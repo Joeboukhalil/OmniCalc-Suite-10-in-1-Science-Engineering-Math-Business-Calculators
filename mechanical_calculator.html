@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Mechanical Engineer Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --accent-violet: #7c3aed;
+      --accent-violet-soft: #ede9fe;
+      --accent-violet-text: #5b21b6;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #070c16;
+      --bg-surface: #10192b;
+      --bg-surface-alt: #0a1120;
+      --bg-canvas: #060b14;
+      --border-color: #1e2d47;
+      --border-strong: #32476b;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --accent-violet: #a78bfa;
+      --accent-violet-soft: rgba(167, 139, 250, 0.16);
+      --accent-violet-text: #c4b5fd;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ========================================================================
+       RESET & BASE
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       1. STICKY TOP HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      cursor: pointer;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #059669);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & CONSTANTS / UNIT HELPER BAR
+       ======================================================================== */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .util-strip {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.95rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1080px) {
+      .util-strip {
+        grid-template-columns: 1.35fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .strip-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chip {
+      padding: 0.3rem 0.55rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.73rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 34px;
+      transition: all 0.12s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .helper-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 680px) {
+      .helper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ========================================================================
+       NAVIGATION TABS & PANELS
+       ======================================================================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 880px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.68rem 0.55rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, INPUTS, BUTTONS & KPI CARDS
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 980px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .mech-input, .mech-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.62rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.88rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .mech-input:focus, .mech-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 0.55rem;
+      margin-top: 0.8rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.65rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-card.pos {
+      background-color: var(--accent-emerald-soft);
+      border-color: var(--accent-emerald);
+    }
+
+    .kpi-card.warn {
+      background-color: var(--accent-amber-soft);
+      border-color: var(--accent-amber);
+    }
+
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.12rem;
+    }
+
+    .kpi-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .kpi-card.pos .kpi-val {
+      color: var(--accent-emerald-text);
+    }
+
+    .kpi-card.warn .kpi-val {
+      color: var(--accent-amber-text);
+    }
+
+    .formula-box {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 6px;
+      padding: 0.55rem 0.72rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.7rem;
+    }
+
+    .sub-block {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .sub-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .sub-block-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .sim-canvas {
+      width: 100%;
+      height: 270px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       1. STICKY TOP HEADER BAR
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">⚙️σ</div>
+          <div>
+            <h1>Advanced Mechanical Engineer Calculator</h1>
+            <span class="brand-sub">Mechanics &amp; Stress • Fluids &amp; Thermal • Power, Gears &amp; Springs • Materials, GD&amp;T &amp; Fasteners</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE CONTAINER
+       ====================================================================== -->
+  <main class="main-container">
+
+    <!-- 2. CONSTANTS & QUICK MECHANICAL UNIT / TOLERANCE HELPER BAR -->
+    <section class="util-strip" aria-label="Mechanical Constants and Quick Unit Helper">
+      <div>
+        <div class="strip-label">
+          <span>🔩 Mechanical Constants (Click to Copy Value)</span>
+          <span id="constReadout" class="mono" style="color: var(--accent-primary-text);"></span>
+        </div>
+        <div class="preset-chips mono" id="constChipsBar">
+          <button type="button" class="preset-chip" data-const="Steel E=200 GPa">Steel E=200 GPa</button>
+          <button type="button" class="preset-chip" data-const="Aluminum E=69 GPa">Aluminum E=69 GPa</button>
+          <button type="button" class="preset-chip" data-const="Titanium E=114 GPa">Titanium E=114 GPa</button>
+          <button type="button" class="preset-chip" data-const="Brass E=105 GPa">Brass E=105 GPa</button>
+          <button type="button" class="preset-chip" data-const="Steel Density 7850 kg/m3">Steel ρ=7850 kg/m³</button>
+          <button type="button" class="preset-chip" data-const="Aluminum Density 2700 kg/m3">Al ρ=2700 kg/m³</button>
+          <button type="button" class="preset-chip" data-const="Water Density 998 kg/m3">Water ρ=998 kg/m³</button>
+          <button type="button" class="preset-chip" data-const="Air Density 1.204 kg/m3">Air ρ=1.204 kg/m³</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="strip-label">
+          <span>📐 Quick Mechanical Unit &amp; Tolerance Helper</span>
+          <span id="quickHelperOut" class="mono" style="color: var(--accent-emerald-text); font-weight: 800;">= 14,503.77 psi</span>
+        </div>
+        <div class="helper-grid">
+          <select id="quickHelperMode" class="mech-select mono" aria-label="Mechanical conversion mode">
+            <option value="mpa_psi" selected>MPa → psi</option>
+            <option value="psi_mpa">psi → MPa</option>
+            <option value="nm_lbfft">N·m → lbf·ft</option>
+            <option value="lbfft_nm">lbf·ft → N·m</option>
+            <option value="kw_hp">kW → hp (mech)</option>
+            <option value="hp_kw">hp (mech) → kW</option>
+            <option value="mm_in">mm → in</option>
+            <option value="in_mm">in → mm</option>
+            <option value="iso_fit">ISO Fit / Stress (MPa/mm)</option>
+          </select>
+          <input type="number" id="quickHelperA" class="mech-input mono" value="100" step="any" aria-label="Primary conversion input" />
+          <input type="number" id="quickHelperB" class="mech-input mono" value="25" step="any" placeholder="Fit / Area" aria-label="Secondary conversion input" />
+          <button type="button" class="btn-sm" id="btnCopyQuickHelper">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. FOUR MAIN CALCULATOR TABS -->
+    <nav class="tab-bar" role="tablist" aria-label="Mechanical Engineering Calculator Tabs">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-mech">
+        <span>📏 Mechanics &amp; Stress</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-fluid">
+        <span>💧 Fluids &amp; Thermal</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-power">
+        <span>⚙️ Power, Gears &amp; Springs</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-mat">
+        <span>🔩 Materials, GD&amp;T &amp; Fasteners</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: MECHANICS & STRESS
+         ==================================================================== -->
+    <section id="panel-mech" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Beam Bending + Interactive Shear/Moment/Deflection Canvas -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📏 Beam Bending &amp; Deflection</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcBeam">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetBeam">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="bmSupport">Support Type</label>
+              <select id="bmSupport" class="mech-select mono">
+                <option value="ss" selected>Simply Supported</option>
+                <option value="cant">Cantilever</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="bmLoadType">Load Distribution</label>
+              <select id="bmLoadType" class="mech-select mono">
+                <option value="point" selected>Point Load F (kN)</option>
+                <option value="udl">Uniform Load w (kN/m)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="bmLoadMag">Load F (kN) or w (kN/m)</label>
+              <input type="number" id="bmLoadMag" class="mech-input mono" value="20" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="bmSpan">Beam Span L (m)</label>
+              <input type="number" id="bmSpan" class="mech-input mono" value="4" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="bmE">Elastic Modulus E (GPa)</label>
+              <input type="number" id="bmE" class="mech-input mono" value="200" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="bmI">Moment of Inertia I (×10⁶ mm⁴)</label>
+              <input type="number" id="bmI" class="mech-input mono" value="45" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="bmC">Extreme Fiber c (mm)</label>
+              <input type="number" id="bmC" class="mech-input mono" value="80" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="bmYield">Yield Strength σ_y (MPa)</label>
+              <input type="number" id="bmYield" class="mech-input mono" value="250" min="1" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Max Moment M_max</div>
+              <div class="kpi-val" id="outBmMoment">20.00 kN·m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Max Shear V_max</div>
+              <div class="kpi-val" id="outBmShear">10.00 kN</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Max Deflection δ_max</div>
+              <div class="kpi-val" id="outBmDefl">2.96 mm</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Sec. Mod. S = I/c</div>
+              <div class="kpi-val" id="outBmSecMod">562.5 cm³</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Bending Stress σ_b</div>
+              <div class="kpi-val" id="outBmStress">35.56 MPa</div>
+            </div>
+            <div class="kpi-card pos" id="outBmSfCard">
+              <div class="kpi-label">Safety Factor SF_y</div>
+              <div class="kpi-val" id="outBmSf">7.03</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; gap: 0.4rem; flex-wrap: wrap;">
+              <span class="field-label" style="margin: 0;">Shear (V), Moment (M) &amp; Deflection (δ) Diagram</span>
+              <button type="button" class="btn-sm" id="btnToggleBeamDiagram">Diagram: Moment (M)</button>
+            </div>
+            <canvas id="beamCanvas" class="sim-canvas" aria-label="Beam Shear, Moment, and Deflection Diagram"></canvas>
+          </div>
+        </div>
+
+        <!-- Card B: Torsional Shaft & Axial Stress / Strain / Elongation -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔄 Torsion Shaft &amp; Axial Stress / Strain</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcTorsionAxial">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetTorsionAxial">Reset</button>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Torsional Shaft (Solid or Hollow Circular)</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="trTorque">Torque T (N·m)</label>
+                <input type="number" id="trTorque" class="mech-input mono" value="1200" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="trOuterD">Outer Dia. d_o (mm)</label>
+                <input type="number" id="trOuterD" class="mech-input mono" value="50" min="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="trInnerD">Inner Dia. d_i (mm)</label>
+                <input type="number" id="trInnerD" class="mech-input mono" value="0" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="trLength">Shaft Length L (m)</label>
+                <input type="number" id="trLength" class="mech-input mono" value="1.5" min="0.01" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="trG">Shear Modulus G (GPa)</label>
+                <input type="number" id="trG" class="mech-input mono" value="79" min="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="trPolarJ">Polar J (×10⁴ mm⁴, auto)</label>
+                <input type="number" id="trPolarJ" class="mech-input mono" value="61.36" step="any" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Axial Tension / Compression &amp; Von Mises</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="axForce">Axial Force F (kN)</label>
+                <input type="number" id="axForce" class="mech-input mono" value="60" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="axArea">Cross Area A (mm²)</label>
+                <input type="number" id="axArea" class="mech-input mono" value="900" min="0.1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="axE">Elastic Modulus E (GPa)</label>
+                <input type="number" id="axE" class="mech-input mono" value="200" min="1" step="any" />
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Max Shear τ = Tr/J</div>
+              <div class="kpi-val" id="outTrTau">48.90 MPa</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Twist Angle θ = TL/GJ</div>
+              <div class="kpi-val" id="outTrTheta">2.075°</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Axial Stress σ_a / ε</div>
+              <div class="kpi-val" id="outAxStressStrain" style="font-size: 0.86rem;">66.67 MPa · 333µε</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Elongation ΔL</div>
+              <div class="kpi-val" id="outAxDeltaL">0.500 mm</div>
+            </div>
+            <div class="kpi-card pos" style="grid-column: span 2;">
+              <div class="kpi-label">Von Mises Stress σ_v = √(σ_a² + 3τ²)</div>
+              <div class="kpi-val" id="outVonMises">107.61 MPa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: FLUIDS & THERMAL
+         ==================================================================== -->
+    <section id="panel-fluid" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Darcy-Weisbach Pipe Head Loss & Pressure Drop -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💧 Darcy-Weisbach Pipe Flow &amp; Pump Power</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcPipe">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetPipe">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="flFlowRate">Flow Rate Q (L/s)</label>
+              <input type="number" id="flFlowRate" class="mech-input mono" value="18" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="flDia">Pipe Inner Dia. D (mm)</label>
+              <input type="number" id="flDia" class="mech-input mono" value="100" min="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="flLen">Pipe Length L (m)</label>
+              <input type="number" id="flLen" class="mech-input mono" value="120" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="flRough">Roughness ε (mm)</label>
+              <input type="number" id="flRough" class="mech-input mono" value="0.045" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="flRho">Density ρ (kg/m³)</label>
+              <input type="number" id="flRho" class="mech-input mono" value="998" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="flKinVis">Kin. Visc. ν (×10⁻⁶ m²/s)</label>
+              <input type="number" id="flKinVis" class="mech-input mono" value="1.004" min="0.001" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">Velocity v / Reg.</div>
+              <div class="kpi-val" id="outFlVelReg" style="font-size: 0.86rem;">2.29 m/s · Turb.</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Reynolds Re / f</div>
+              <div class="kpi-val" id="outFlReF" style="font-size: 0.86rem;">228,311 · 0.0176</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Head Loss h_f</div>
+              <div class="kpi-val" id="outFlHeadLoss">4.73 m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Pressure Drop ΔP</div>
+              <div class="kpi-val" id="outFlDeltaP">46.30 kPa</div>
+            </div>
+            <div class="kpi-card pos" style="grid-column: span 2;">
+              <div class="kpi-label">Hydraulic Power P_h = ρ·g·Q·h_f</div>
+              <div class="kpi-val" id="outFlPower">0.834 kW (1.118 hp)</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono">
+            Friction factor f: laminar f = 64/Re for Re &lt; 2300; turbulent via Swamee-Jain equation.
+          </div>
+        </div>
+
+        <!-- Card B: Heat Transfer & Thermal Expansion -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌡️ Heat Transfer &amp; Thermal Expansion</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcThermal">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetThermal">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="thK">Cond. k (W/m·K)</label>
+              <input type="number" id="thK" class="mech-input mono" value="50" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thH">Conv. h (W/m²·K)</label>
+              <input type="number" id="thH" class="mech-input mono" value="25" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thArea">Surface Area A (m²)</label>
+              <input type="number" id="thArea" class="mech-input mono" value="0.5" min="0.0001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thThick">Wall Thick. L (mm)</label>
+              <input type="number" id="thThick" class="mech-input mono" value="10" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thDeltaT">Temp. Diff ΔT (K or °C)</label>
+              <input type="number" id="thDeltaT" class="mech-input mono" value="80" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thAlpha">Exp. Coeff α (×10⁻⁶ /K)</label>
+              <input type="number" id="thAlpha" class="mech-input mono" value="12" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thBarLen">Member Len. L_0 (mm)</label>
+              <input type="number" id="thBarLen" class="mech-input mono" value="1000" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="thE">Modulus E (GPa)</label>
+              <input type="number" id="thE" class="mech-input mono" value="200" min="0.1" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Conduction Q_cond</div>
+              <div class="kpi-val" id="outThCond">200.00 kW</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Convection Q_conv</div>
+              <div class="kpi-val" id="outThConv">1.000 kW</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Expansion ΔL</div>
+              <div class="kpi-val" id="outThDeltaL">+0.960 mm</div>
+            </div>
+            <div class="kpi-card warn">
+              <div class="kpi-label">Restrained Thermal σ_th</div>
+              <div class="kpi-val" id="outThStress">192.00 MPa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: POWER, GEARS & SPRINGS
+         ==================================================================== -->
+    <section id="panel-power" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Gear Train & Mechanical Power Transmission -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚙️ Gear Train &amp; Power Transmission</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcGear">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetGear">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="grPowerKw">Input Power P (kW)</label>
+              <input type="number" id="grPowerKw" class="mech-input mono" value="15" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="grRpmIn">Input Speed N₁ (RPM)</label>
+              <input type="number" id="grRpmIn" class="mech-input mono" value="1450" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="grTeeth1">Pinion Teeth z₁</label>
+              <input type="number" id="grTeeth1" class="mech-input mono" value="20" min="1" step="1" />
+            </div>
+            <div>
+              <label class="field-label" for="grTeeth2">Driven Gear Teeth z₂</label>
+              <input type="number" id="grTeeth2" class="mech-input mono" value="60" min="1" step="1" />
+            </div>
+            <div>
+              <label class="field-label" for="grMod">Module m (mm)</label>
+              <input type="number" id="grMod" class="mech-input mono" value="3" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="grEff">Mesh Efficiency η (%)</label>
+              <input type="number" id="grEff" class="mech-input mono" value="96" min="1" max="100" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">Gear Ratio i = z₂/z₁</div>
+              <div class="kpi-val" id="outGrRatio">3.000 : 1</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Input / Output Torque</div>
+              <div class="kpi-val" id="outGrTorques" style="font-size: 0.84rem;">98.79 · 284.5 N·m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Output Speed N₂</div>
+              <div class="kpi-val" id="outGrRpmOut">483.33 RPM</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Pitch Velocity v_t</div>
+              <div class="kpi-val" id="outGrVel">4.555 m/s</div>
+            </div>
+            <div class="kpi-card pos" style="grid-column: span 2;">
+              <div class="kpi-label">Center Distance a = m(z₁+z₂)/2</div>
+              <div class="kpi-val" id="outGrCenterDist">120.00 mm (P_out = 14.40 kW)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card B: Helical Coil Spring & Flywheel Rotational Energy -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌀 Helical Spring &amp; Flywheel Energy</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcSpringFly">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetSpringFly">Reset</button>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Helical Coil Spring (Wahl Factor K_w)</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="spWireD">Wire Dia. d (mm)</label>
+                <input type="number" id="spWireD" class="mech-input mono" value="6" min="0.1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="spMeanD">Mean Coil Dia. D (mm)</label>
+                <input type="number" id="spMeanD" class="mech-input mono" value="42" min="0.2" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="spActiveN">Active Coils N_a</label>
+                <input type="number" id="spActiveN" class="mech-input mono" value="8" min="0.5" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="spG">Shear Mod. G (GPa)</label>
+                <input type="number" id="spG" class="mech-input mono" value="79" min="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="spLoad">Axial Load F (N)</label>
+                <input type="number" id="spLoad" class="mech-input mono" value="350" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="spIndexC">Spring Index C = D/d</label>
+                <input type="number" id="spIndexC" class="mech-input mono" value="7.00" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Flywheel Rotational Kinetic Energy</span></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="fwInertia">Moment of Inertia I (kg·m²)</label>
+                <input type="number" id="fwInertia" class="mech-input mono" value="1.25" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="fwRpm">Speed N (RPM)</label>
+                <input type="number" id="fwRpm" class="mech-input mono" value="1800" min="0" step="any" />
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Spring Rate k</div>
+              <div class="kpi-val" id="outSpRate">21.37 N/mm</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Deflection δ = F/k</div>
+              <div class="kpi-val" id="outSpDefl">16.38 mm</div>
+            </div>
+            <div class="kpi-card warn">
+              <div class="kpi-label">Wahl K_w / τ_max</div>
+              <div class="kpi-val" id="outSpShear" style="font-size: 0.86rem;">1.213 · 282.6 MPa</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Flywheel KE = ½Iω²</div>
+              <div class="kpi-val" id="outFwKe">22.21 kJ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: MATERIALS, GD&T & FASTENERS
+         ==================================================================== -->
+    <section id="panel-mat" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Bolted Joint & Fastener Tension/Shear + Fatigue Estimator -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔩 Fasteners, Bolted Joints &amp; Fatigue</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcFastener">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetFastener">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="ftDia">Nominal Bolt Dia. d (mm)</label>
+              <input type="number" id="ftDia" class="mech-input mono" value="12" min="2" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftPitch">Thread Pitch p (mm)</label>
+              <input type="number" id="ftPitch" class="mech-input mono" value="1.75" min="0.2" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftPreload">Preload F_i (kN)</label>
+              <input type="number" id="ftPreload" class="mech-input mono" value="40" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftNutK">Torque Coeff. K</label>
+              <input type="number" id="ftNutK" class="mech-input mono" value="0.20" min="0.02" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftShearLoad">Transverse Shear V_b (kN)</label>
+              <input type="number" id="ftShearLoad" class="mech-input mono" value="12" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftSut">Ultimate Strength S_ut (MPa)</label>
+              <input type="number" id="ftSut" class="mech-input mono" value="800" min="50" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftSy">Yield Strength S_y (MPa)</label>
+              <input type="number" id="ftSy" class="mech-input mono" value="640" min="20" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftAltStress">Alternating Stress σ_a (MPa)</label>
+              <input type="number" id="ftAltStress" class="mech-input mono" value="140" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftMeanStress">Mean Stress σ_m (MPa)</label>
+              <input type="number" id="ftMeanStress" class="mech-input mono" value="220" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ftSurfFactor">Surface/Size Factor k_a·k_b</label>
+              <input type="number" id="ftSurfFactor" class="mech-input mono" value="0.72" min="0.1" max="1" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">Tensile Area A_t</div>
+              <div class="kpi-val" id="outFtArea">84.30 mm²</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Tightening Torque T</div>
+              <div class="kpi-val" id="outFtTorque">96.00 N·m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Tensile / Shear σ_t, τ_b</div>
+              <div class="kpi-val" id="outFtStresses" style="font-size: 0.84rem;">474.5 · 106.1 MPa</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Endurance Limit S_e</div>
+              <div class="kpi-val" id="outFtSe">288.0 MPa</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Goodman SF_g</div>
+              <div class="kpi-val" id="outFtGoodman">1.31</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Soderberg SF_s</div>
+              <div class="kpi-val" id="outFtSoderberg">1.21</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card B: Interactive Stress-Strain / Goodman Fatigue Visualizer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📉 Stress-Strain &amp; Goodman Fatigue Plot</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm" id="btnToggleMatPlot">Plot: Goodman Line</button>
+            </div>
+          </div>
+
+          <canvas id="matCanvas" class="sim-canvas" aria-label="Goodman Fatigue Diagram and Stress-Strain Visualizer"></canvas>
+
+          <div class="formula-box mono" id="outMatPlotNote">
+            Goodman line connects Endurance Limit S_e on vertical axis (σ_a) to Ultimate Strength S_ut on horizontal axis (σ_m).
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         SAFE STORAGE, CLIPBOARD & TOAST HELPERS
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function readStoredTheme() {
+        try {
+          return localStorage.getItem("ame_theme") || "light";
+        } catch (_) {
+          return "light";
+        }
+      }
+
+      function writeStoredTheme(theme) {
+        try {
+          localStorage.setItem("ame_theme", theme);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(label),
+            () => fallbackExecCopy(text, label)
+          );
+          return;
+        }
+        fallbackExecCopy(text, label);
+      }
+
+      function fallbackExecCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (_) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function fmtNum(n, digits = 2) {
+        if (!Number.isFinite(n)) return "—";
+        return n.toLocaleString("en-US", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        });
+      }
+
+      /* ======================================================================
+         CACHED DOM REFERENCES & DEBOUNCED RESIZE
+         ====================================================================== */
+      const els = {};
+      let resizeTimer = null;
+
+      function cacheDomElements() {
+        const ids = [
+          "themeIcon", "themeLabel", "toast", "constReadout",
+          "quickHelperMode", "quickHelperA", "quickHelperB", "quickHelperOut",
+          "bmSupport", "bmLoadType", "bmLoadMag", "bmSpan", "bmE", "bmI", "bmC", "bmYield",
+          "outBmMoment", "outBmShear", "outBmDefl", "outBmSecMod", "outBmStress", "outBmSfCard", "outBmSf",
+          "btnToggleBeamDiagram", "beamCanvas",
+          "trTorque", "trOuterD", "trInnerD", "trLength", "trG", "trPolarJ",
+          "axForce", "axArea", "axE",
+          "outTrTau", "outTrTheta", "outAxStressStrain", "outAxDeltaL", "outVonMises",
+          "flFlowRate", "flDia", "flLen", "flRough", "flRho", "flKinVis",
+          "outFlVelReg", "outFlReF", "outFlHeadLoss", "outFlDeltaP", "outFlPower",
+          "thK", "thH", "thArea", "thThick", "thDeltaT", "thAlpha", "thBarLen", "thE",
+          "outThCond", "outThConv", "outThDeltaL", "outThStress",
+          "grPowerKw", "grRpmIn", "grTeeth1", "grTeeth2", "grMod", "grEff",
+          "outGrRatio", "outGrTorques", "outGrRpmOut", "outGrVel", "outGrCenterDist",
+          "spWireD", "spMeanD", "spActiveN", "spG", "spLoad", "spIndexC",
+          "fwInertia", "fwRpm",
+          "outSpRate", "outSpDefl", "outSpShear", "outFwKe",
+          "ftDia", "ftPitch", "ftPreload", "ftNutK", "ftShearLoad", "ftSut", "ftSy",
+          "ftAltStress", "ftMeanStress", "ftSurfFactor",
+          "outFtArea", "outFtTorque", "outFtStresses", "outFtSe", "outFtGoodman", "outFtSoderberg",
+          "btnToggleMatPlot", "matCanvas", "outMatPlotNote"
+        ];
+        ids.forEach((id) => {
+          els[id] = document.getElementById(id);
+        });
+      }
+
+      function redrawVisibleCanvases() {
+        const activePanel = document.querySelector(".panel.active");
+        if (!activePanel) return;
+        if (activePanel.id === "panel-mech") drawBeamCanvas();
+        if (activePanel.id === "panel-mat") drawMatCanvas();
+      }
+
+      function scheduleDebouncedResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          requestAnimationFrame(redrawVisibleCanvases);
+        }, 120);
+      }
+
+      /* ======================================================================
+         THEME & TAB SWITCHING
+         ====================================================================== */
+      function setTheme(theme, notify = false) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        if (els.themeIcon) els.themeIcon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (els.themeLabel) els.themeLabel.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        writeStoredTheme(safeTheme);
+        requestAnimationFrame(redrawVisibleCanvases);
+        if (notify) {
+          showToast(safeTheme === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      function activateTab(targetTabId, notify = false) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          const active = btn.dataset.tab === targetTabId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        document.querySelectorAll(".panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetTabId);
+        });
+        requestAnimationFrame(redrawVisibleCanvases);
+        if (notify) {
+          const activeBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+          if (activeBtn) showToast(`Switched to ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         QUICK MECHANICAL UNIT & TOLERANCE HELPER
+         ====================================================================== */
+      function updateQuickHelper() {
+        const mode = els.quickHelperMode.value;
+        const a = parseFloat(els.quickHelperA.value) || 0;
+        const b = parseFloat(els.quickHelperB.value) || 0;
+
+        if (mode === "mpa_psi") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a * 145.037738, 2)} psi`;
+        } else if (mode === "psi_mpa") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a / 145.037738, 3)} MPa`;
+        } else if (mode === "nm_lbfft") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a * 0.73756215, 2)} lbf·ft`;
+        } else if (mode === "lbfft_nm") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a / 0.73756215, 2)} N·m`;
+        } else if (mode === "kw_hp") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a * 1.34102209, 3)} hp`;
+        } else if (mode === "hp_kw") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a / 1.34102209, 3)} kW`;
+        } else if (mode === "mm_in") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a / 25.4, 4)} in`;
+        } else if (mode === "in_mm") {
+          els.quickHelperOut.textContent = `= ${fmtNum(a * 25.4, 3)} mm`;
+        } else if (mode === "iso_fit") {
+          // Force A (kN) / Area B (mm^2) => MPa, plus ISO clearance approximation
+          const stressMpa = b > 0 ? (a * 1000) / b : 0;
+          els.quickHelperOut.textContent = `= ${fmtNum(stressMpa, 2)} MPa`;
+        }
+      }
+
+      /* ======================================================================
+         TAB 1: BEAM BENDING + TORSION / AXIAL STRESS
+         ====================================================================== */
+      let beamDiagramMode = "moment"; // "moment" | "shear" | "deflection"
+
+      function computeBeamMetrics(notify = false, redraw = true) {
+        const support = els.bmSupport.value; // "ss" | "cant"
+        const loadType = els.bmLoadType.value; // "point" | "udl"
+        const loadMag = Math.max(0, parseFloat(els.bmLoadMag.value) || 0); // kN or kN/m
+        const L = Math.max(0.01, parseFloat(els.bmSpan.value) || 1); // m
+        const E_Gpa = Math.max(0.1, parseFloat(els.bmE.value) || 200); // GPa = kN/mm^2 * 1000
+        const I_1e6mm4 = Math.max(0.001, parseFloat(els.bmI.value) || 45); // 10^6 mm^4 = m^4 * 1e-6
+        const c_mm = Math.max(0.1, parseFloat(els.bmC.value) || 80); // mm
+        const sy_Mpa = Math.max(1, parseFloat(els.bmYield.value) || 250); // MPa
+
+        // SI conversions: E in Pa (N/m^2), I in m^4, c in m, load in N or N/m
+        const E_Pa = E_Gpa * 1e9;
+        const I_m4 = I_1e6mm4 * 1e-6;
+        const c_m = c_mm * 1e-3;
+
+        let M_Nm = 0;
+        let V_N = 0;
+        let defl_m = 0;
+
+        if (support === "ss" && loadType === "point") {
+          const F_N = loadMag * 1000;
+          V_N = F_N / 2;
+          M_Nm = (F_N * L) / 4;
+          defl_m = (F_N * Math.pow(L, 3)) / (48 * E_Pa * I_m4);
+        } else if (support === "ss" && loadType === "udl") {
+          const w_Nm = loadMag * 1000;
+          V_N = (w_Nm * L) / 2;
+          M_Nm = (w_Nm * L * L) / 8;
+          defl_m = (5 * w_Nm * Math.pow(L, 4)) / (384 * E_Pa * I_m4);
+        } else if (support === "cant" && loadType === "point") {
+          const F_N = loadMag * 1000;
+          V_N = F_N;
+          M_Nm = F_N * L;
+          defl_m = (F_N * Math.pow(L, 3)) / (3 * E_Pa * I_m4);
+        } else {
+          // Cantilever UDL
+          const w_Nm = loadMag * 1000;
+          V_N = w_Nm * L;
+          M_Nm = (w_Nm * L * L) / 2;
+          defl_m = (w_Nm * Math.pow(L, 4)) / (8 * E_Pa * I_m4);
+        }
+
+        // Section modulus S = I / c in mm^3 -> cm^3 (* 1e-3)
+        const S_mm3 = (I_1e6mm4 * 1e6) / c_mm;
+        const S_cm3 = S_mm3 / 1000;
+
+        // Bending stress sigma = M * c / I in Pa -> MPa (/ 1e6)
+        const sigma_Mpa = ((M_Nm * c_m) / I_m4) / 1e6;
+        const sfYield = sigma_Mpa > 0 ? sy_Mpa / sigma_Mpa : 999;
+
+        els.outBmMoment.textContent = `${fmtNum(M_Nm / 1000, 2)} kN·m`;
+        els.outBmShear.textContent = `${fmtNum(V_N / 1000, 2)} kN`;
+        els.outBmDefl.textContent = `${fmtNum(defl_m * 1000, 2)} mm`;
+        els.outBmSecMod.textContent = `${fmtNum(S_cm3, 1)} cm³`;
+        els.outBmStress.textContent = `${fmtNum(sigma_Mpa, 2)} MPa`;
+        els.outBmSf.textContent = sfYield > 100 ? "> 100" : fmtNum(sfYield, 2);
+
+        els.outBmSfCard.classList.remove("pos", "warn");
+        els.outBmSfCard.classList.add(sfYield >= 1.5 ? "pos" : "warn");
+
+        if (redraw) requestAnimationFrame(drawBeamCanvas);
+        if (notify) showToast("Beam bending & deflection calculated");
+      }
+
+      function drawBeamCanvas() {
+        const canvas = els.beamCanvas;
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 270;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const lineColor = isDark ? "#60a5fa" : "#2563eb";
+        const axisColor = isDark ? "#64748b" : "#94a3b8";
+        const textColor = isDark ? "#cbd5e1" : "#334155";
+        const fillColor = isDark ? "rgba(59, 130, 246, 0.22)" : "rgba(37, 99, 235, 0.14)";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const support = els.bmSupport.value;
+        const loadType = els.bmLoadType.value;
+        const q = Math.max(0, parseFloat(els.bmLoadMag.value) || 0);
+        const L = Math.max(0.01, parseFloat(els.bmSpan.value) || 1);
+
+        const steps = 100;
+        const vals = [];
+        for (let i = 0; i <= steps; i++) {
+          const u = i / steps; // normalized position x/L in [0, 1]
+          const x = u * L;
+          let v = 0;
+          if (beamDiagramMode === "shear") {
+            if (support === "ss" && loadType === "point") v = u < 0.5 ? q / 2 : -q / 2;
+            else if (support === "ss" && loadType === "udl") v = q * (L / 2 - x);
+            else if (support === "cant" && loadType === "point") v = q;
+            else v = q * (L - x);
+          } else if (beamDiagramMode === "moment") {
+            if (support === "ss" && loadType === "point") v = (q * L / 2) * (u <= 0.5 ? u : 1 - u);
+            else if (support === "ss" && loadType === "udl") v = (q * x * (L - x)) / 2;
+            else if (support === "cant" && loadType === "point") v = q * (L - x);
+            else v = (q * Math.pow(L - x, 2)) / 2;
+          } else {
+            // Deflection shape (magnitude)
+            if (support === "ss" && loadType === "point") {
+              v = u <= 0.5 ? u * (3 - 4 * u * u) : (1 - u) * (3 - 4 * Math.pow(1 - u, 2));
+            } else if (support === "ss" && loadType === "udl") {
+              v = u * (1 - 2 * u * u + Math.pow(u, 3));
+            } else if (support === "cant" && loadType === "point") {
+              v = Math.pow(u, 2) * (3 - u);
+            } else {
+              v = Math.pow(u, 2) * (6 - 4 * u + Math.pow(u, 2));
+            }
+          }
+          vals.push(v);
+        }
+
+        let maxAbs = 0;
+        vals.forEach((v) => {
+          if (Math.abs(v) > maxAbs) maxAbs = Math.abs(v);
+        });
+        if (maxAbs < 1e-9) maxAbs = 1;
+
+        const padL = 36;
+        const padR = 16;
+        const padT = 24;
+        const padB = 26;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+        const zeroY = padT + plotH / 2;
+
+        // Zero axis
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(padL, zeroY);
+        ctx.lineTo(width - padR, zeroY);
+        ctx.stroke();
+
+        // Filled curve
+        ctx.fillStyle = fillColor;
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(padL, zeroY);
+        vals.forEach((v, i) => {
+          const px = padL + (i / steps) * plotW;
+          const py = zeroY - (v / maxAbs) * (plotH * 0.44);
+          ctx.lineTo(px, py);
+        });
+        ctx.lineTo(padL + plotW, zeroY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = textColor;
+        ctx.font = "600 10px var(--font-mono)";
+        ctx.fillText(`x = 0`, padL, height - 8);
+        ctx.fillText(`x = L (${fmtNum(L, 1)}m)`, width - padR - 58, height - 8);
+      }
+
+      function computeTorsionAxial(notify = false) {
+        const T_Nm = parseFloat(els.trTorque.value) || 0;
+        const do_mm = Math.max(0.5, parseFloat(els.trOuterD.value) || 50);
+        const di_mm = Math.min(do_mm * 0.99, Math.max(0, parseFloat(els.trInnerD.value) || 0));
+        const L_m = Math.max(0.01, parseFloat(els.trLength.value) || 1.5);
+        const G_Gpa = Math.max(1, parseFloat(els.trG.value) || 79);
+
+        // Polar moment J = pi/32 * (do^4 - di^4) in mm^4
+        const J_mm4 = (Math.PI / 32) * (Math.pow(do_mm, 4) - Math.pow(di_mm, 4));
+        const J_1e4mm4 = J_mm4 / 1e4;
+        els.trPolarJ.value = fmtNum(J_1e4mm4, 2);
+
+        const r_mm = do_mm / 2;
+        // tau = T * r / J (N*mm / mm^4 = N/mm^2 = MPa)
+        const tau_Mpa = J_mm4 > 0 ? ((T_Nm * 1000) * r_mm) / J_mm4 : 0;
+
+        // theta = T * L / (G * J) in radians -> degrees
+        const G_Pa = G_Gpa * 1e9;
+        const J_m4 = J_mm4 * 1e-12;
+        const theta_rad = (G_Pa * J_m4) > 0 ? (T_Nm * L_m) / (G_Pa * J_m4) : 0;
+        const theta_deg = (theta_rad * 180) / Math.PI;
+
+        // Axial stress, strain, elongation
+        const F_N = (parseFloat(els.axForce.value) || 0) * 1000;
+        const A_mm2 = Math.max(0.1, parseFloat(els.axArea.value) || 900);
+        const E_Gpa = Math.max(1, parseFloat(els.axE.value) || 200);
+
+        const sigmaAx_Mpa = F_N / A_mm2; // N/mm^2 = MPa
+        const strain = sigmaAx_Mpa / (E_Gpa * 1000); // dimensionless
+        const deltaL_mm = strain * (L_m * 1000);
+
+        // Von Mises stress for combined axial sigma_a and shear tau: sqrt(sigma_a^2 + 3*tau^2)
+        const vonMises_Mpa = Math.sqrt(sigmaAx_Mpa * sigmaAx_Mpa + 3 * tau_Mpa * tau_Mpa);
+
+        els.outTrTau.textContent = `${fmtNum(tau_Mpa, 2)} MPa`;
+        els.outTrTheta.textContent = `${fmtNum(theta_deg, 3)}°`;
+        els.outAxStressStrain.textContent = `${fmtNum(sigmaAx_Mpa, 2)} MPa · ${fmtNum(strain * 1e6, 0)}µε`;
+        els.outAxDeltaL.textContent = `${fmtNum(deltaL_mm, 3)} mm`;
+        els.outVonMises.textContent = `${fmtNum(vonMises_Mpa, 2)} MPa`;
+
+        if (notify) showToast("Torsion & axial stresses calculated");
+      }
+
+      /* ======================================================================
+         TAB 2: FLUIDS & THERMAL
+         ====================================================================== */
+      function computePipeFlow(notify = false) {
+        const Q_Ls = Math.max(0.001, parseFloat(els.flFlowRate.value) || 18);
+        const D_mm = Math.max(1, parseFloat(els.flDia.value) || 100);
+        const L_m = Math.max(0.1, parseFloat(els.flLen.value) || 120);
+        const rough_mm = Math.max(0, parseFloat(els.flRough.value) || 0.045);
+        const rho = Math.max(0.01, parseFloat(els.flRho.value) || 998);
+        const nu_1e6 = Math.max(0.001, parseFloat(els.flKinVis.value) || 1.004);
+
+        const Q_m3s = Q_Ls / 1000;
+        const D_m = D_mm / 1000;
+        const area_m2 = (Math.PI * D_m * D_m) / 4;
+        const vel_ms = Q_m3s / area_m2;
+        const nu_m2s = nu_1e6 * 1e-6;
+
+        const Re = (vel_ms * D_m) / nu_m2s;
+        let f = 0.02;
+        let regime = "Turb.";
+
+        if (Re < 2300) {
+          f = Re > 0 ? 64 / Re : 0.02;
+          regime = "Lam.";
+        } else if (Re < 4000) {
+          regime = "Trans.";
+          const relRough = (rough_mm / 1000) / D_m;
+          const logTerm = Math.log10(relRough / 3.7 + 5.74 / Math.pow(Re, 0.9));
+          f = 0.25 / (logTerm * logTerm);
+        } else {
+          // Swamee-Jain explicit friction factor
+          const relRough = (rough_mm / 1000) / D_m;
+          const logTerm = Math.log10(relRough / 3.7 + 5.74 / Math.pow(Re, 0.9));
+          f = 0.25 / (logTerm * logTerm);
+        }
+
+        const g = 9.80665;
+        const hf_m = f * (L_m / D_m) * ((vel_ms * vel_ms) / (2 * g));
+        const deltaP_Pa = rho * g * hf_m;
+        const power_W = rho * g * Q_m3s * hf_m;
+        const power_kW = power_W / 1000;
+        const power_hp = power_kW * 1.34102209;
+
+        els.outFlVelReg.textContent = `${fmtNum(vel_ms, 2)} m/s · ${regime}`;
+        els.outFlReF.textContent = `${Math.round(Re).toLocaleString("en-US")} · ${f.toFixed(4)}`;
+        els.outFlHeadLoss.textContent = `${fmtNum(hf_m, 2)} m`;
+        els.outFlDeltaP.textContent = `${fmtNum(deltaP_Pa / 1000, 2)} kPa`;
+        els.outFlPower.textContent = `${fmtNum(power_kW, 3)} kW (${fmtNum(power_hp, 3)} hp)`;
+
+        if (notify) showToast("Darcy-Weisbach pipe flow calculated");
+      }
+
+      function computeThermal(notify = false) {
+        const k = Math.max(0.001, parseFloat(els.thK.value) || 50); // W/m*K
+        const h = Math.max(0, parseFloat(els.thH.value) || 25); // W/m^2*K
+        const A = Math.max(0.0001, parseFloat(els.thArea.value) || 0.5); // m^2
+        const L_m = Math.max(0.00001, (parseFloat(els.thThick.value) || 10) / 1000); // mm -> m
+        const dT = parseFloat(els.thDeltaT.value) || 0; // K or C
+        const alpha = (parseFloat(els.thAlpha.value) || 0) * 1e-6; // 1/K
+        const L0_mm = Math.max(0.1, parseFloat(els.thBarLen.value) || 1000); // mm
+        const E_Gpa = Math.max(0.1, parseFloat(els.thE.value) || 200); // GPa
+
+        // Q_cond = k * A * dT / L (W -> kW)
+        const qCond_kW = ((k * A * dT) / L_m) / 1000;
+        // Q_conv = h * A * dT (W -> kW)
+        const qConv_kW = ((h * A * dT)) / 1000;
+
+        // Thermal expansion deltaL = alpha * L0 * dT
+        const deltaL_mm = alpha * L0_mm * dT;
+        // Restrained thermal stress sigma_th = alpha * dT * E (GPa -> MPa via * 1000)
+        const sigmaTh_Mpa = alpha * dT * (E_Gpa * 1000);
+
+        els.outThCond.textContent = `${fmtNum(qCond_kW, 2)} kW`;
+        els.outThConv.textContent = `${fmtNum(qConv_kW, 3)} kW`;
+        els.outThDeltaL.textContent = `${deltaL_mm >= 0 ? "+" : ""}${fmtNum(deltaL_mm, 3)} mm`;
+        els.outThStress.textContent = `${fmtNum(sigmaTh_Mpa, 2)} MPa`;
+
+        if (notify) showToast("Heat transfer & thermal expansion calculated");
+      }
+
+      /* ======================================================================
+         TAB 3: POWER, GEARS & SPRINGS
+         ====================================================================== */
+      function computeGearTrain(notify = false) {
+        const P_kW = Math.max(0, parseFloat(els.grPowerKw.value) || 0);
+        const rpmIn = Math.max(0.1, parseFloat(els.grRpmIn.value) || 1450);
+        const z1 = Math.max(1, parseInt(els.grTeeth1.value, 10) || 20);
+        const z2 = Math.max(1, parseInt(els.grTeeth2.value, 10) || 60);
+        const mod_mm = Math.max(0.1, parseFloat(els.grMod.value) || 3);
+        const eff = Math.min(100, Math.max(1, parseFloat(els.grEff.value) || 96)) / 100;
+
+        const ratio = z2 / z1;
+        const rpmOut = rpmIn / ratio;
+        const pOut_kW = P_kW * eff;
+
+        // T (N*m) = 9550 * P_kW / RPM (exact omega relation: P*1000 / (2*pi*RPM/60) = 9549.2966 * P_kW / RPM)
+        const omegaIn = (2 * Math.PI * rpmIn) / 60;
+        const torqueIn_Nm = omegaIn > 0 ? (P_kW * 1000) / omegaIn : 0;
+        const torqueOut_Nm = torqueIn_Nm * ratio * eff;
+
+        // Pitch circle diameter d1 = m * z1 (mm -> m), pitch line velocity v_t = omega1 * r1
+        const d1_m = (mod_mm * z1) / 1000;
+        const velPitch_ms = omegaIn * (d1_m / 2);
+
+        // Center distance a = m * (z1 + z2) / 2 (mm)
+        const centerDist_mm = (mod_mm * (z1 + z2)) / 2;
+
+        els.outGrRatio.textContent = `${fmtNum(ratio, 3)} : 1`;
+        els.outGrTorques.textContent = `${fmtNum(torqueIn_Nm, 1)} · ${fmtNum(torqueOut_Nm, 1)} N·m`;
+        els.outGrRpmOut.textContent = `${fmtNum(rpmOut, 2)} RPM`;
+        els.outGrVel.textContent = `${fmtNum(velPitch_ms, 3)} m/s`;
+        els.outGrCenterDist.textContent = `${fmtNum(centerDist_mm, 2)} mm (P_out = ${fmtNum(pOut_kW, 2)} kW)`;
+
+        if (notify) showToast("Gear train & power transmission calculated");
+      }
+
+      function computeSpringAndFlywheel(notify = false) {
+        const d_mm = Math.max(0.1, parseFloat(els.spWireD.value) || 6);
+        const D_mm = Math.max(0.2, parseFloat(els.spMeanD.value) || 42);
+        const Na = Math.max(0.5, parseFloat(els.spActiveN.value) || 8);
+        const G_Gpa = Math.max(1, parseFloat(els.spG.value) || 79);
+        const F_N = Math.max(0, parseFloat(els.spLoad.value) || 350);
+
+        const C = D_mm / d_mm;
+        els.spIndexC.value = fmtNum(C, 2);
+
+        // k = G * d^4 / (8 * D^3 * Na) in N/mm (G in GPa = kN/mm^2 -> * 1000 for N/mm^2)
+        const G_Nmm2 = G_Gpa * 1000;
+        const k_Nmm = (G_Nmm2 * Math.pow(d_mm, 4)) / (8 * Math.pow(D_mm, 3) * Na);
+        const defl_mm = k_Nmm > 0 ? F_N / k_Nmm : 0;
+
+        // Wahl factor Kw = (4C - 1)/(4C - 4) + 0.615/C
+        const safeC = Math.max(1.1, C);
+        const Kw = (4 * safeC - 1) / (4 * safeC - 4) + 0.615 / safeC;
+        const tau_Mpa = Kw * ((8 * F_N * D_mm) / (Math.PI * Math.pow(d_mm, 3)));
+
+        // Flywheel rotational KE = 0.5 * I * omega^2 (J -> kJ)
+        const I_kgm2 = Math.max(0, parseFloat(els.fwInertia.value) || 0);
+        const rpmFw = Math.max(0, parseFloat(els.fwRpm.value) || 0);
+        const omegaFw = (2 * Math.PI * rpmFw) / 60;
+        const ke_kJ = (0.5 * I_kgm2 * omegaFw * omegaFw) / 1000;
+
+        els.outSpRate.textContent = `${fmtNum(k_Nmm, 2)} N/mm`;
+        els.outSpDefl.textContent = `${fmtNum(defl_mm, 2)} mm`;
+        els.outSpShear.textContent = `${fmtNum(Kw, 3)} · ${fmtNum(tau_Mpa, 1)} MPa`;
+        els.outFwKe.textContent = `${fmtNum(ke_kJ, 2)} kJ`;
+
+        if (notify) showToast("Helical spring & flywheel energy calculated");
+      }
+
+      /* ======================================================================
+         TAB 4: FASTENERS, FATIGUE & GOODMAN / STRESS-STRAIN CANVAS
+         ====================================================================== */
+      let matPlotMode = "goodman"; // "goodman" | "stress_strain"
+
+      function computeFastenerAndFatigue(notify = false, redraw = true) {
+        const d_mm = Math.max(2, parseFloat(els.ftDia.value) || 12);
+        const p_mm = Math.max(0.2, parseFloat(els.ftPitch.value) || 1.75);
+        const Fi_kN = Math.max(0, parseFloat(els.ftPreload.value) || 40);
+        const K_nut = Math.max(0.02, parseFloat(els.ftNutK.value) || 0.2);
+        const Vb_kN = Math.max(0, parseFloat(els.ftShearLoad.value) || 12);
+        const Sut = Math.max(50, parseFloat(els.ftSut.value) || 800);
+        const Sy = Math.max(20, parseFloat(els.ftSy.value) || 640);
+        const sigmaA = Math.max(0, parseFloat(els.ftAltStress.value) || 140);
+        const sigmaM = Math.max(0, parseFloat(els.ftMeanStress.value) || 220);
+        const kSurfSize = Math.min(1, Math.max(0.1, parseFloat(els.ftSurfFactor.value) || 0.72));
+
+        // Metric ISO tensile stress area approximation At = pi/4 * (d - 0.938194*p)^2
+        const dTens = Math.max(0.5, d_mm - 0.938194 * p_mm);
+        const At_mm2 = (Math.PI / 4) * dTens * dTens;
+
+        // Tightening torque T = K * F * d (N*m: kN * m -> * 1000)
+        const torque_Nm = K_nut * Fi_kN * (d_mm / 1000) * 1000;
+
+        // Bolt axial tensile stress and single-shear stress
+        const sigmaTens_Mpa = (Fi_kN * 1000) / At_mm2;
+        const areaNom_mm2 = (Math.PI / 4) * d_mm * d_mm;
+        const tauShear_Mpa = (Vb_kN * 1000) / areaNom_mm2;
+
+        // Endurance limit Se = k_a*k_b * (0.5 * Sut)
+        const Se = kSurfSize * (0.5 * Sut);
+
+        // Goodman fatigue safety factor: 1 / (sigma_a / Se + sigma_m / Sut)
+        const gDenom = Se > 0 && Sut > 0 ? (sigmaA / Se + sigmaM / Sut) : 0;
+        const sfGoodman = gDenom > 0 ? 1 / gDenom : 999;
+
+        // Soderberg fatigue safety factor: 1 / (sigma_a / Se + sigma_m / Sy)
+        const sDenom = Se > 0 && Sy > 0 ? (sigmaA / Se + sigmaM / Sy) : 0;
+        const sfSoderberg = sDenom > 0 ? 1 / sDenom : 999;
+
+        els.outFtArea.textContent = `${fmtNum(At_mm2, 2)} mm²`;
+        els.outFtTorque.textContent = `${fmtNum(torque_Nm, 2)} N·m`;
+        els.outFtStresses.textContent = `${fmtNum(sigmaTens_Mpa, 1)} · ${fmtNum(tauShear_Mpa, 1)} MPa`;
+        els.outFtSe.textContent = `${fmtNum(Se, 1)} MPa`;
+        els.outFtGoodman.textContent = sfGoodman > 100 ? "> 100" : fmtNum(sfGoodman, 2);
+        els.outFtSoderberg.textContent = sfSoderberg > 100 ? "> 100" : fmtNum(sfSoderberg, 2);
+
+        if (redraw) requestAnimationFrame(drawMatCanvas);
+        if (notify) showToast("Fastener & fatigue safety factors calculated");
+      }
+
+      function drawMatCanvas() {
+        const canvas = els.matCanvas;
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 270;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const axisColor = isDark ? "#64748b" : "#94a3b8";
+        const goodmanColor = isDark ? "#34d399" : "#059669";
+        const soderColor = isDark ? "#60a5fa" : "#2563eb";
+        const ptColor = "#f59e0b";
+        const textColor = isDark ? "#cbd5e1" : "#334155";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const padL = 44;
+        const padR = 18;
+        const padT = 24;
+        const padB = 30;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        if (matPlotMode === "goodman") {
+          const Sut = Math.max(50, parseFloat(els.ftSut.value) || 800);
+          const Sy = Math.max(20, parseFloat(els.ftSy.value) || 640);
+          const kSurfSize = Math.min(1, Math.max(0.1, parseFloat(els.ftSurfFactor.value) || 0.72));
+          const Se = kSurfSize * (0.5 * Sut);
+          const sm = Math.max(0, parseFloat(els.ftMeanStress.value) || 0);
+          const sa = Math.max(0, parseFloat(els.ftAltStress.value) || 0);
+
+          const maxX = Math.max(Sut * 1.1, sm * 1.25, 100);
+          const maxY = Math.max(Se * 1.25, sa * 1.25, 100);
+
+          const toPx = (x, y) => [
+            padL + (x / maxX) * plotW,
+            height - padB - (y / maxY) * plotH
+          ];
+
+          // Goodman line: (0, Se) to (Sut, 0)
+          const [gx0, gy0] = toPx(0, Se);
+          const [gx1, gy1] = toPx(Sut, 0);
+          ctx.strokeStyle = goodmanColor;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(gx0, gy0);
+          ctx.lineTo(gx1, gy1);
+          ctx.stroke();
+
+          // Soderberg line: (0, Se) to (Sy, 0)
+          const [sx1, sy1] = toPx(Sy, 0);
+          ctx.strokeStyle = soderColor;
+          ctx.lineWidth = 1.8;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(gx0, gy0);
+          ctx.lineTo(sx1, sy1);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Operating point (sigma_m, sigma_a)
+          const [px, py] = toPx(sm, sa);
+          ctx.fillStyle = ptColor;
+          ctx.beginPath();
+          ctx.arc(px, py, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = textColor;
+          ctx.font = "600 10px var(--font-mono)";
+          ctx.fillText("— Goodman   -- Soderberg   ● Load", padL + 6, 14);
+          ctx.fillText("σ_m (MPa)", width - padR - 52, height - 8);
+          els.outMatPlotNote.textContent =
+            `Goodman line connects Se=${fmtNum(Se, 1)} MPa to Sut=${fmtNum(Sut, 0)} MPa; Soderberg targets Sy=${fmtNum(Sy, 0)} MPa.`;
+        } else {
+          // Elastic-plastic stress-strain curve preview
+          const E_Gpa = Math.max(1, parseFloat(els.bmE.value) || 200);
+          const Sy = Math.max(20, parseFloat(els.ftSy.value) || 640);
+          const Sut = Math.max(Sy + 10, parseFloat(els.ftSut.value) || 800);
+
+          const epsY = Sy / (E_Gpa * 1000);
+          const epsUlt = Math.max(epsY * 12, 0.04);
+          const maxStress = Sut * 1.15;
+
+          const toPx = (eps, sig) => [
+            padL + Math.min(1, eps / epsUlt) * plotW,
+            height - padB - Math.min(1, sig / maxStress) * plotH
+          ];
+
+          const [x0, y0] = toPx(0, 0);
+          const [xy, yy] = toPx(epsY, Sy);
+          const [xu, yu] = toPx(epsUlt, Sut);
+
+          ctx.strokeStyle = soderColor;
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.moveTo(x0, y0);
+          ctx.lineTo(xy, yy);
+          ctx.lineTo(xu, yu);
+          ctx.stroke();
+
+          ctx.fillStyle = textColor;
+          ctx.font = "600 10px var(--font-mono)";
+          ctx.fillText(`Elastic (E=${E_Gpa} GPa) → Yield (${Sy} MPa) → Ultimate (${Sut} MPa)`, padL + 6, 14);
+          ctx.fillText("Strain ε", width - padR - 46, height - 8);
+          els.outMatPlotNote.textContent =
+            `Bilinear elastic-plastic stress-strain representation with E=${E_Gpa} GPa, Sy=${Sy} MPa, Sut=${Sut} MPa.`;
+        }
+      }
+
+      /* ======================================================================
+         RESET HANDLERS PER CARD
+         ====================================================================== */
+      function resetBeam(notify = false) {
+        els.bmSupport.value = "ss";
+        els.bmLoadType.value = "point";
+        els.bmLoadMag.value = "20";
+        els.bmSpan.value = "4";
+        els.bmE.value = "200";
+        els.bmI.value = "45";
+        els.bmC.value = "80";
+        els.bmYield.value = "250";
+        computeBeamMetrics(false, true);
+        if (notify) showToast("Beam bending inputs reset");
+      }
+
+      function resetTorsionAxial(notify = false) {
+        els.trTorque.value = "1200";
+        els.trOuterD.value = "50";
+        els.trInnerD.value = "0";
+        els.trLength.value = "1.5";
+        els.trG.value = "79";
+        els.axForce.value = "60";
+        els.axArea.value = "900";
+        els.axE.value = "200";
+        computeTorsionAxial(false);
+        if (notify) showToast("Torsion & axial inputs reset");
+      }
+
+      function resetPipe(notify = false) {
+        els.flFlowRate.value = "18";
+        els.flDia.value = "100";
+        els.flLen.value = "120";
+        els.flRough.value = "0.045";
+        els.flRho.value = "998";
+        els.flKinVis.value = "1.004";
+        computePipeFlow(false);
+        if (notify) showToast("Pipe flow inputs reset");
+      }
+
+      function resetThermal(notify = false) {
+        els.thK.value = "50";
+        els.thH.value = "25";
+        els.thArea.value = "0.5";
+        els.thThick.value = "10";
+        els.thDeltaT.value = "80";
+        els.thAlpha.value = "12";
+        els.thBarLen.value = "1000";
+        els.thE.value = "200";
+        computeThermal(false);
+        if (notify) showToast("Thermal inputs reset");
+      }
+
+      function resetGear(notify = false) {
+        els.grPowerKw.value = "15";
+        els.grRpmIn.value = "1450";
+        els.grTeeth1.value = "20";
+        els.grTeeth2.value = "60";
+        els.grMod.value = "3";
+        els.grEff.value = "96";
+        computeGearTrain(false);
+        if (notify) showToast("Gear train inputs reset");
+      }
+
+      function resetSpringFly(notify = false) {
+        els.spWireD.value = "6";
+        els.spMeanD.value = "42";
+        els.spActiveN.value = "8";
+        els.spG.value = "79";
+        els.spLoad.value = "350";
+        els.fwInertia.value = "1.25";
+        els.fwRpm.value = "1800";
+        computeSpringAndFlywheel(false);
+        if (notify) showToast("Spring & flywheel inputs reset");
+      }
+
+      function resetFastener(notify = false) {
+        els.ftDia.value = "12";
+        els.ftPitch.value = "1.75";
+        els.ftPreload.value = "40";
+        els.ftNutK.value = "0.20";
+        els.ftShearLoad.value = "12";
+        els.ftSut.value = "800";
+        els.ftSy.value = "640";
+        els.ftAltStress.value = "140";
+        els.ftMeanStress.value = "220";
+        els.ftSurfFactor.value = "0.72";
+        computeFastenerAndFatigue(false, true);
+        if (notify) showToast("Fastener & fatigue inputs reset");
+      }
+
+      /* ======================================================================
+         DOM READY INITIALIZATION & EVENT WIRING
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        cacheDomElements();
+        setTheme(readStoredTheme(), false);
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        // Clickable Mechanical Constants
+        document.getElementById("constChipsBar").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-const]");
+          if (!chip) return;
+          const label = chip.dataset.const;
+          if (els.constReadout) els.constReadout.textContent = label;
+          copyToClipboard(label, `Copied: ${label}`);
+        });
+
+        // Quick Mechanical Unit & Tolerance Helper
+        ["quickHelperMode", "quickHelperA", "quickHelperB"].forEach((id) => {
+          els[id].addEventListener("input", updateQuickHelper);
+          els[id].addEventListener("change", updateQuickHelper);
+        });
+        document.getElementById("btnCopyQuickHelper").addEventListener("click", () => {
+          const out = els.quickHelperOut.textContent.replace(/^=\s*/, "");
+          copyToClipboard(out, `Copied ${out}`);
+        });
+
+        // Main Tabs
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.dataset.tab) activateTab(btn.dataset.tab, true);
+          });
+        });
+
+        // Tab 1: Beam Bending & Torsion/Axial
+        ["bmSupport", "bmLoadType", "bmLoadMag", "bmSpan", "bmE", "bmI", "bmC", "bmYield"].forEach((id) => {
+          els[id].addEventListener("input", () => computeBeamMetrics(false, true));
+          els[id].addEventListener("change", () => computeBeamMetrics(false, true));
+        });
+        document.getElementById("btnCalcBeam").addEventListener("click", () => computeBeamMetrics(true, true));
+        document.getElementById("btnResetBeam").addEventListener("click", () => resetBeam(true));
+        els.btnToggleBeamDiagram.addEventListener("click", () => {
+          const order = ["moment", "shear", "deflection"];
+          const labels = {
+            moment: "Diagram: Moment (M)",
+            shear: "Diagram: Shear (V)",
+            deflection: "Diagram: Deflection (δ)"
+          };
+          const nextIdx = (order.indexOf(beamDiagramMode) + 1) % order.length;
+          beamDiagramMode = order[nextIdx];
+          els.btnToggleBeamDiagram.textContent = labels[beamDiagramMode];
+          requestAnimationFrame(drawBeamCanvas);
+          showToast(`Switched to ${labels[beamDiagramMode]}`);
+        });
+
+        ["trTorque", "trOuterD", "trInnerD", "trLength", "trG", "axForce", "axArea", "axE"].forEach((id) => {
+          els[id].addEventListener("input", () => computeTorsionAxial(false));
+        });
+        document.getElementById("btnCalcTorsionAxial").addEventListener("click", () => computeTorsionAxial(true));
+        document.getElementById("btnResetTorsionAxial").addEventListener("click", () => resetTorsionAxial(true));
+
+        // Tab 2: Fluids & Thermal
+        ["flFlowRate", "flDia", "flLen", "flRough", "flRho", "flKinVis"].forEach((id) => {
+          els[id].addEventListener("input", () => computePipeFlow(false));
+        });
+        document.getElementById("btnCalcPipe").addEventListener("click", () => computePipeFlow(true));
+        document.getElementById("btnResetPipe").addEventListener("click", () => resetPipe(true));
+
+        ["thK", "thH", "thArea", "thThick", "thDeltaT", "thAlpha", "thBarLen", "thE"].forEach((id) => {
+          els[id].addEventListener("input", () => computeThermal(false));
+        });
+        document.getElementById("btnCalcThermal").addEventListener("click", () => computeThermal(true));
+        document.getElementById("btnResetThermal").addEventListener("click", () => resetThermal(true));
+
+        // Tab 3: Power, Gears & Springs
+        ["grPowerKw", "grRpmIn", "grTeeth1", "grTeeth2", "grMod", "grEff"].forEach((id) => {
+          els[id].addEventListener("input", () => computeGearTrain(false));
+        });
+        document.getElementById("btnCalcGear").addEventListener("click", () => computeGearTrain(true));
+        document.getElementById("btnResetGear").addEventListener("click", () => resetGear(true));
+
+        ["spWireD", "spMeanD", "spActiveN", "spG", "spLoad", "fwInertia", "fwRpm"].forEach((id) => {
+          els[id].addEventListener("input", () => computeSpringAndFlywheel(false));
+        });
+        document.getElementById("btnCalcSpringFly").addEventListener("click", () => computeSpringAndFlywheel(true));
+        document.getElementById("btnResetSpringFly").addEventListener("click", () => resetSpringFly(true));
+
+        // Tab 4: Fasteners, Fatigue & Canvas
+        ["ftDia", "ftPitch", "ftPreload", "ftNutK", "ftShearLoad", "ftSut", "ftSy", "ftAltStress", "ftMeanStress", "ftSurfFactor"].forEach((id) => {
+          els[id].addEventListener("input", () => computeFastenerAndFatigue(false, true));
+        });
+        document.getElementById("btnCalcFastener").addEventListener("click", () => computeFastenerAndFatigue(true, true));
+        document.getElementById("btnResetFastener").addEventListener("click", () => resetFastener(true));
+        els.btnToggleMatPlot.addEventListener("click", () => {
+          matPlotMode = matPlotMode === "goodman" ? "stress_strain" : "goodman";
+          els.btnToggleMatPlot.textContent = matPlotMode === "goodman" ? "Plot: Goodman Line" : "Plot: Stress-Strain";
+          requestAnimationFrame(drawMatCanvas);
+          showToast(matPlotMode === "goodman" ? "Showing Goodman diagram" : "Showing Stress-Strain curve");
+        });
+
+        window.addEventListener("resize", scheduleDebouncedResize, { passive: true });
+
+        // Initial single-pass setup
+        updateQuickHelper();
+        computeBeamMetrics(false, true);
+        computeTorsionAxial(false);
+        computePipeFlow(false);
+        computeThermal(false);
+        computeGearTrain(false);
+        computeSpringAndFlywheel(false);
+        computeFastenerAndFatigue(false, true);
+      });
+    })();
+  </script>
+</body>
+</html>

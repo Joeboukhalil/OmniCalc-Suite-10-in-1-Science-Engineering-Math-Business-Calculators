@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pro Engineering, Science &amp; Business Calculator Hub</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-subtle: #eef2f6;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --glow-a: rgba(37, 99, 235, 0.11);
+      --glow-b: rgba(16, 185, 129, 0.09);
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.07);
+      --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.12);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #060b14;
+      --bg-surface: #0f172a;
+      --bg-surface-alt: #09101f;
+      --bg-subtle: #162238;
+      --border-color: #1e2d47;
+      --border-strong: #314669;
+
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --glow-a: rgba(59, 130, 246, 0.16);
+      --glow-b: rgba(16, 185, 129, 0.12);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 18px 38px rgba(0, 0, 0, 0.65);
+    }
+
+    /* ========================================================================
+       RESET & AMBIENT BACKDROP
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body {
+      background-image:
+        radial-gradient(900px 420px at 8% -4%, var(--glow-a), transparent 70%),
+        radial-gradient(820px 380px at 92% 2%, var(--glow-b), transparent 70%);
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       STICKY HEADER BAR
+       ======================================================================== */
+    .hub-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb 0%, #0d9488 100%);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-tagline {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theme-btn {
+      height: 40px;
+      padding: 0 0.9rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.15s ease;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & EDITORIAL HERO
+       ======================================================================== */
+    .hub-container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .hero-banner {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.4rem 1.35rem;
+      margin-bottom: 1.15rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    @media (min-width: 920px) {
+      .hero-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.65rem 1.85rem;
+      }
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 0.55rem;
+    }
+
+    .hero-heading {
+      font-size: clamp(1.45rem, 2.8vw, 2.05rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.18;
+      margin-bottom: 0.45rem;
+    }
+
+    .hero-copy {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      max-width: 64ch;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(88px, 1fr));
+      gap: 0.6rem;
+      flex-shrink: 0;
+    }
+
+    .stat-pill {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.8rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    /* ========================================================================
+       SEARCH & CATEGORY FILTER CONTROLS
+       ======================================================================== */
+    .controls-bar {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.2rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 860px) {
+      .controls-bar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 5.4rem 0 2.55rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.9rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+      background-color: var(--bg-surface);
+    }
+
+    .search-hint {
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .kbd-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.42rem;
+      border-radius: 6px;
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+    }
+
+    .clear-search-btn {
+      height: 28px;
+      padding: 0 0.55rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+    }
+
+    .clear-search-btn.visible {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .filter-pill {
+      min-height: 38px;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .filter-pill:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+    }
+
+    .filter-pill.active {
+      background-color: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ========================================================================
+       PINNED / QUICK LAUNCH SECTION
+       ======================================================================== */
+    .pinned-section {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pinned-section.hidden {
+      display: none;
+    }
+
+    .section-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .pinned-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .quick-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      min-height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.83rem;
+      font-weight: 700;
+      transition: all 0.14s ease;
+    }
+
+    .quick-chip:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+      transform: translateY(-1px);
+    }
+
+    .quick-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--domain-color, var(--accent-primary));
+      flex-shrink: 0;
+    }
+
+    /* ========================================================================
+       CALCULATOR GRID & CARDS
+       ======================================================================== */
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 660px) {
+      .calc-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1120px) {
+      .calc-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .calc-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.15rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.9rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .calc-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: var(--domain-color, var(--accent-primary));
+      opacity: 0.9;
+    }
+
+    .calc-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--domain-color, var(--accent-primary));
+    }
+
+    .calc-card.hidden {
+      display: none;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+    }
+
+    .card-icon-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background-color: var(--domain-soft, var(--accent-primary-soft));
+      color: var(--domain-color, var(--accent-primary));
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .card-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .domain-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.24rem 0.58rem;
+      border-radius: 999px;
+      background-color: var(--domain-soft, var(--accent-primary-soft));
+      color: var(--domain-text, var(--accent-primary-text));
+      white-space: nowrap;
+    }
+
+    .star-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.14s ease;
+    }
+
+    .star-btn:hover {
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .star-btn.pinned {
+      background-color: rgba(245, 158, 11, 0.15);
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .calc-title {
+      font-size: 1.04rem;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.2rem;
+    }
+
+    .calc-file {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+      display: block;
+    }
+
+    .calc-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.48;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .launch-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 40px;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--domain-color, var(--accent-primary));
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 700;
+      transition: filter 0.14s ease, transform 0.14s ease;
+    }
+
+    .launch-link:hover {
+      filter: brightness(1.08);
+      transform: translateX(1px);
+    }
+
+    .cat-caption {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* ========================================================================
+       EMPTY STATE & FOOTER
+       ======================================================================== */
+    .empty-state {
+      display: none;
+      background-color: var(--bg-surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 2.2rem 1.25rem;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    .empty-state.visible {
+      display: block;
+    }
+
+    .empty-state h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .empty-state p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.9rem;
+    }
+
+    .reset-filter-btn {
+      min-height: 40px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--accent-primary);
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hub-footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       STICKY TOP HEADER
+       ====================================================================== -->
+  <header class="hub-header">
+    <div class="header-inner">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="8" y1="11" x2="10" y2="11"></line>
+            <line x1="14" y1="11" x2="16" y2="11"></line>
+            <line x1="8" y1="15" x2="10" y2="15"></line>
+            <line x1="14" y1="15" x2="16" y2="15"></line>
+            <line x1="8" y1="19" x2="16" y2="19"></line>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">Pro Calculator Suite</span>
+          <span class="brand-tagline mono">10 Standalone Engineering, Science, Math &amp; Growth Tools</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="theme-btn" id="themeToggle" aria-label="Toggle Light or Dark Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE
+       ====================================================================== -->
+  <main class="hub-container">
+
+    <!-- Editorial Hero Banner -->
+    <section class="hero-banner" aria-label="Calculator Suite Overview">
+      <div>
+        <div class="hero-eyebrow mono">⚡ Self-Contained Suite • Zero External Dependencies</div>
+        <h1 class="hero-heading">Precision Calculators for Every Technical &amp; Commercial Domain</h1>
+        <p class="hero-copy">
+          Jump straight into specialized interactive workbenches featuring live diagrams, unit conversions,
+          formula solvers, and engineering checks—each running cleanly in its own dedicated HTML file.
+        </p>
+      </div>
+
+      <div class="hero-stats mono">
+        <div class="stat-pill">
+          <div class="stat-num" id="statTotalCount">10</div>
+          <div class="stat-label">Calculators</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-num" id="statShownCount">10</div>
+          <div class="stat-label">Visible</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-num" id="statPinnedCount">0</div>
+          <div class="stat-label">Pinned</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Domain Filter Bar -->
+    <section class="controls-bar" aria-label="Search and Filter Calculators">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input
+          type="search"
+          id="calcSearchInput"
+          class="search-input"
+          placeholder="Search calculators, formulas, or topics (e.g., beam, CIDR, pH, Hohmann, ROAS)..."
+          aria-label="Search calculators"
+          autocomplete="off"
+        />
+        <div class="search-hint">
+          <button type="button" class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">Clear</button>
+          <span class="kbd-badge mono" id="shortcutBadge">/</span>
+        </div>
+      </div>
+
+      <div class="filter-pills" role="tablist" aria-label="Filter Calculators by Domain">
+        <button type="button" class="filter-pill active" data-category="all" role="tab" aria-selected="true">All (10)</button>
+        <button type="button" class="filter-pill" data-category="Science & Space" role="tab" aria-selected="false">Science &amp; Space</button>
+        <button type="button" class="filter-pill" data-category="Math & Logic" role="tab" aria-selected="false">Math &amp; Logic</button>
+        <button type="button" class="filter-pill" data-category="Engineering & Tech" role="tab" aria-selected="false">Engineering &amp; Tech</button>
+        <button type="button" class="filter-pill" data-category="Business & Growth" role="tab" aria-selected="false">Business &amp; Growth</button>
+      </div>
+    </section>
+
+    <!-- Pinned / Quick Launch Bar -->
+    <section class="pinned-section hidden" id="pinnedSection" aria-label="Pinned Quick Launch Calculators">
+      <div class="section-kicker">
+        <span>★ Quick Launch — Pinned Calculators</span>
+        <span class="mono" style="font-size: 0.7rem; font-weight: 600; text-transform: none;">Saved locally</span>
+      </div>
+      <div class="pinned-row" id="pinnedRow"></div>
+    </section>
+
+    <!-- 10 Calculator Cards Grid -->
+    <section class="calc-grid" id="calcGrid" aria-label="All Calculators">
+
+      <!-- 1. Merchant Calculator Pro -->
+      <article
+        class="calc-card"
+        data-href="merchant_calculator.html"
+        data-title="Merchant Calculator Pro"
+        data-category="Business & Growth"
+        data-keywords="merchant grand total register paper tape margin markup break-even itemized quotes retail profit"
+        style="--domain-color: #10b981; --domain-soft: rgba(16, 185, 129, 0.14); --domain-text: #059669;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Commerce &amp; Margin</span>
+              <button type="button" class="star-btn" data-pin="merchant_calculator.html" aria-label="Pin Merchant Calculator Pro" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Merchant Calculator Pro</h2>
+          <span class="calc-file mono">merchant_calculator.html</span>
+          <p class="calc-desc">
+            Grand Total register, paper tape, margin/markup/break-even solver, and itemized quotes.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Business &amp; Growth</span>
+          <a href="merchant_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 2. Advanced Technology Calculator -->
+      <article
+        class="calc-card"
+        data-href="tech_calculator.html"
+        data-title="Advanced Technology Calculator"
+        data-category="Engineering & Tech"
+        data-keywords="tech programmer 64-bit bitwise storage network transfer ipv4 cidr subnet ohm ai vram ieee-754 hex binary"
+        style="--domain-color: #06b6d4; --domain-soft: rgba(6, 182, 212, 0.14); --domain-text: #0891b2;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                <rect x="9" y="9" width="6" height="6"></rect>
+                <line x1="9" y1="1" x2="9" y2="4"></line>
+                <line x1="15" y1="1" x2="15" y2="4"></line>
+                <line x1="9" y1="20" x2="9" y2="23"></line>
+                <line x1="15" y1="20" x2="15" y2="23"></line>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Systems &amp; Net</span>
+              <button type="button" class="star-btn" data-pin="tech_calculator.html" aria-label="Pin Advanced Technology Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Technology Calculator</h2>
+          <span class="calc-file mono">tech_calculator.html</span>
+          <p class="calc-desc">
+            64-bit programmer &amp; bitwise grid, storage/network transfer, IPv4/CIDR subnet, Ohm&apos;s law, AI VRAM, IEEE-754.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Engineering &amp; Tech</span>
+          <a href="tech_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 3. Advanced Chemistry Calculator -->
+      <article
+        class="calc-card"
+        data-href="chem_calculator.html"
+        data-title="Advanced Chemistry Calculator"
+        data-category="Science & Space"
+        data-keywords="chemistry formula molar mass stoichiometry limiting reagent molarity dilution ph buffer gas laws nernst periodic table"
+        style="--domain-color: #14b8a6; --domain-soft: rgba(20, 184, 166, 0.14); --domain-text: #0d9488;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3h6"></path>
+                <path d="M10 3v6.5l-5 8.5A2 2 0 0 0 6.7 21h10.6a2 2 0 0 0 1.7-3l-5-8.5V3"></path>
+                <line x1="7" y1="15" x2="17" y2="15"></line>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Chemical Lab</span>
+              <button type="button" class="star-btn" data-pin="chem_calculator.html" aria-label="Pin Advanced Chemistry Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Chemistry Calculator</h2>
+          <span class="calc-file mono">chem_calculator.html</span>
+          <p class="calc-desc">
+            Formula &amp; molar mass parser, stoichiometry &amp; limiting reagent, molarity/dilution/pH/buffer, gas laws &amp; Nernst, periodic table.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Science &amp; Space</span>
+          <a href="chem_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 4. Advanced Physics Calculator -->
+      <article
+        class="calc-card"
+        data-href="physics_calculator.html"
+        data-title="Advanced Physics Calculator"
+        data-category="Science & Space"
+        data-keywords="physics suvat kinematics projectile dynamics collisions snell law optics waves doppler lens electromagnetism relativity quantum"
+        style="--domain-color: #6366f1; --domain-soft: rgba(99, 102, 241, 0.14); --domain-text: #4f46e5;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="2"></circle>
+                <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(30 12 12)"></ellipse>
+                <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-30 12 12)"></ellipse>
+                <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(90 12 12)"></ellipse>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Physics &amp; Optics</span>
+              <button type="button" class="star-btn" data-pin="physics_calculator.html" aria-label="Pin Advanced Physics Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Physics Calculator</h2>
+          <span class="calc-file mono">physics_calculator.html</span>
+          <p class="calc-desc">
+            SUVAT kinematics, 2D projectile canvas, dynamics &amp; collisions, Snell&apos;s law canvas, waves/Doppler/lens/EM, relativity &amp; quantum.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Science &amp; Space</span>
+          <a href="physics_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 5. Advanced Biology Calculator -->
+      <article
+        class="calc-card"
+        data-href="biology_calculator.html"
+        data-title="Advanced Biology Calculator"
+        data-category="Science & Space"
+        data-keywords="biology dna sequence pcr copy number osmolarity microscopy growth curve punnett hardy-weinberg pedigree michaelis-menten pharmacokinetics"
+        style="--domain-color: #22c55e; --domain-soft: rgba(34, 197, 94, 0.14); --domain-text: #16a34a;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 15c6.667-6 13.333 0 20-6"></path>
+                <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"></path>
+                <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"></path>
+                <path d="m17 6-2.5-2.5"></path>
+                <path d="m14 8-1-1"></path>
+                <path d="m7 18 2.5 2.5"></path>
+                <path d="m3.5 14.5.5.5"></path>
+                <path d="m20 9 .5.5"></path>
+                <path d="m6.5 12.5 1 1"></path>
+                <path d="m16.5 10.5 1 1"></path>
+                <path d="m10 16 1.5 1.5"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Bio &amp; Genetics</span>
+              <button type="button" class="star-btn" data-pin="biology_calculator.html" aria-label="Pin Advanced Biology Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Biology Calculator</h2>
+          <span class="calc-file mono">biology_calculator.html</span>
+          <p class="calc-desc">
+            Sequence/PCR/copy-number, osmolarity/microscopy/growth curve, Punnett/Hardy-Weinberg/pedigree, Michaelis-Menten &amp; pharmacokinetics.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Science &amp; Space</span>
+          <a href="biology_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 6. Advanced Astronomy Calculator -->
+      <article
+        class="calc-card"
+        data-href="astronomy_calculator.html"
+        data-title="Advanced Astronomy Calculator"
+        data-category="Science & Space"
+        data-keywords="astronomy kepler orbits hohmann transfer ra dec diurnal sky hr diagram exoplanets cosmology schwarzschild black hole redshift"
+        style="--domain-color: #8b5cf6; --domain-soft: rgba(139, 92, 246, 0.14); --domain-text: #7c3aed;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                <path d="M19 3v4"></path>
+                <path d="M21 5h-4"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Astro &amp; Orbits</span>
+              <button type="button" class="star-btn" data-pin="astronomy_calculator.html" aria-label="Pin Advanced Astronomy Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Astronomy Calculator</h2>
+          <span class="calc-file mono">astronomy_calculator.html</span>
+          <p class="calc-desc">
+            Kepler orbits &amp; Hohmann transfer canvas, RA/Dec &amp; diurnal sky canvas, HR diagram &amp; exoplanets, ΛCDM cosmology &amp; Schwarzschild.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Science &amp; Space</span>
+          <a href="astronomy_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 7. Advanced Marketing Calculator -->
+      <article
+        class="calc-card"
+        data-href="marketing_calculator.html"
+        data-title="Advanced Marketing Calculator"
+        data-category="Business & Growth"
+        data-keywords="marketing funnel roas ltv cac payback a/b test z-test email discount break-even media mix budget allocator conversion"
+        style="--domain-color: #f43f5e; --domain-soft: rgba(244, 63, 94, 0.14); --domain-text: #e11d48;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                <polyline points="16 7 22 7 22 13"></polyline>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Growth &amp; ROI</span>
+              <button type="button" class="star-btn" data-pin="marketing_calculator.html" aria-label="Pin Advanced Marketing Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Marketing Calculator</h2>
+          <span class="calc-file mono">marketing_calculator.html</span>
+          <p class="calc-desc">
+            Funnel &amp; ROAS canvas, LTV/CAC &amp; payback, A/B z-test &amp; email/discount break-even, media mix budget allocator.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Business &amp; Growth</span>
+          <a href="marketing_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 8. Advanced Normal Calculator -->
+      <article
+        class="calc-card"
+        data-href="normal_calculator.html"
+        data-title="Advanced Normal Calculator"
+        data-category="Math & Logic"
+        data-keywords="normal scientific expression parser graph quadratics linear compound growth stats bell curve bases fractions ratios"
+        style="--domain-color: #3b82f6; --domain-soft: rgba(59, 130, 246, 0.14); --domain-text: #2563eb;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"></path>
+                <path d="M7 16c2.5-8 7.5-8 10 0"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Scientific &amp; Stats</span>
+              <button type="button" class="star-btn" data-pin="normal_calculator.html" aria-label="Pin Advanced Normal Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Normal Calculator</h2>
+          <span class="calc-file mono">normal_calculator.html</span>
+          <p class="calc-desc">
+            Scientific expression parser &amp; y=f(x) canvas, quadratics/2x2 linear/compound growth, stats &amp; normal bell curve canvas, bases/fractions/ratios.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Math &amp; Logic</span>
+          <a href="normal_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 9. Advanced Mathematics Calculator -->
+      <article
+        class="calc-card"
+        data-href="math_calculator.html"
+        data-title="Advanced Mathematics Calculator"
+        data-category="Math & Logic"
+        data-keywords="mathematics derivatives integrals taylor series matrices vectors number theory combinatorics geometry parametric curves"
+        style="--domain-color: #a855f7; --domain-soft: rgba(168, 85, 247, 0.14); --domain-text: #9333ea;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 4H6l6 8-6 8h12"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Calculus &amp; Algebra</span>
+              <button type="button" class="star-btn" data-pin="math_calculator.html" aria-label="Pin Advanced Mathematics Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Mathematics Calculator</h2>
+          <span class="calc-file mono">math_calculator.html</span>
+          <p class="calc-desc">
+            Derivatives/integrals/Taylor &amp; series canvas, 2x2/3x3 matrices &amp; 3D vectors, number theory &amp; combinatorics, geometry &amp; parametric curves canvas.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Math &amp; Logic</span>
+          <a href="math_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- 10. Advanced Mechanical Engineer Calculator -->
+      <article
+        class="calc-card"
+        data-href="mechanical_calculator.html"
+        data-title="Advanced Mechanical Engineer Calculator"
+        data-category="Engineering & Tech"
+        data-keywords="mechanical beam shear moment deflection torsion shaft darcy-weisbach pipe flow thermal gears springs bolt torque goodman fatigue"
+        style="--domain-color: #f59e0b; --domain-soft: rgba(245, 158, 11, 0.14); --domain-text: #d97706;"
+      >
+        <div>
+          <div class="card-top">
+            <div class="card-icon-badge" aria-hidden="true">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+              </svg>
+            </div>
+            <div class="card-meta-right">
+              <span class="domain-tag">Mechanical &amp; CAD</span>
+              <button type="button" class="star-btn" data-pin="mechanical_calculator.html" aria-label="Pin Advanced Mechanical Engineer Calculator" title="Pin to Quick Launch">★</button>
+            </div>
+          </div>
+
+          <h2 class="calc-title" style="margin-top: 0.75rem;">Advanced Mechanical Engineer Calculator</h2>
+          <span class="calc-file mono">mechanical_calculator.html</span>
+          <p class="calc-desc">
+            Beam SFD/BMD/deflection canvas &amp; shafts, Darcy-Weisbach pipe flow &amp; thermal, gears &amp; helical springs, bolt torque &amp; Goodman fatigue canvas.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <span class="cat-caption">Engineering &amp; Tech</span>
+          <a href="mechanical_calculator.html" class="launch-link">
+            <span>Open Calculator</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Empty Filter State -->
+    <div class="empty-state" id="emptyState">
+      <h3>No matching calculators found</h3>
+      <p>Try a different keyword, clear your search filter, or switch back to All calculators.</p>
+      <button type="button" class="reset-filter-btn" id="resetFiltersBtn">Reset Search &amp; Filters</button>
+    </div>
+
+    <!-- Hub Footer -->
+    <footer class="hub-footer mono">
+      <span>Tip: Press <strong style="color: var(--text-secondary);">/</strong> to search • Press <strong style="color: var(--text-secondary);">Esc</strong> to clear</span>
+      <span>10 Standalone HTML Calculators • Light/Dark Theme Persisted</span>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const THEME_KEY = "calc_hub_theme";
+      const PIN_KEY = "calc_hub_pinned";
+
+      let toastTimer = null;
+      let activeCategory = "all";
+      let pinnedSet = new Set();
+      const els = {};
+
+      function showToast(msg) {
+        if (!els.toast) return;
+        els.toast.textContent = msg;
+        els.toast.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          els.toast.classList.remove("show");
+        }, 2200);
+      }
+
+      function readStorage(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function writeStorage(key, val) {
+        try {
+          localStorage.setItem(key, val);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function setTheme(theme, notify = false) {
+        const safe = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safe);
+        if (els.themeIcon) els.themeIcon.textContent = safe === "dark" ? "☀️" : "🌙";
+        if (els.themeLabel) els.themeLabel.textContent = safe === "dark" ? "Light" : "Dark";
+        writeStorage(THEME_KEY, safe);
+        if (notify) {
+          showToast(safe === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      function loadPinned() {
+        const raw = readStorage(PIN_KEY);
+        if (!raw) {
+          pinnedSet = new Set(["mechanical_calculator.html", "normal_calculator.html"]);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            pinnedSet = new Set(parsed.filter((item) => typeof item === "string"));
+          }
+        } catch (_) {
+          pinnedSet = new Set();
+        }
+      }
+
+      function savePinned() {
+        writeStorage(PIN_KEY, JSON.stringify(Array.from(pinnedSet)));
+      }
+
+      function renderPinnedBar() {
+        const cards = Array.from(document.querySelectorAll(".calc-card"));
+        const pinnedCards = cards.filter((c) => pinnedSet.has(c.dataset.href || ""));
+
+        if (els.statPinnedCount) {
+          els.statPinnedCount.textContent = String(pinnedCards.length);
+        }
+
+        cards.forEach((card) => {
+          const href = card.dataset.href || "";
+          const starBtn = card.querySelector(".star-btn");
+          if (starBtn) {
+            const isPinned = pinnedSet.has(href);
+            starBtn.classList.toggle("pinned", isPinned);
+            starBtn.setAttribute("aria-pressed", isPinned ? "true" : "false");
+          }
+        });
+
+        if (!els.pinnedSection || !els.pinnedRow) return;
+
+        if (pinnedCards.length === 0) {
+          els.pinnedSection.classList.add("hidden");
+          els.pinnedRow.innerHTML = "";
+          return;
+        }
+
+        els.pinnedSection.classList.remove("hidden");
+        const fragment = document.createDocumentFragment();
+        pinnedCards.forEach((card) => {
+          const href = card.dataset.href;
+          const title = card.dataset.title;
+          const color = card.style.getPropertyValue("--domain-color") || "#2563eb";
+
+          const link = document.createElement("a");
+          link.href = href;
+          link.className = "quick-chip";
+          link.style.setProperty("--domain-color", color);
+
+          const dot = document.createElement("span");
+          dot.className = "quick-dot";
+          dot.setAttribute("aria-hidden", "true");
+
+          const label = document.createElement("span");
+          label.textContent = title;
+
+          link.appendChild(dot);
+          link.appendChild(label);
+          fragment.appendChild(link);
+        });
+
+        els.pinnedRow.innerHTML = "";
+        els.pinnedRow.appendChild(fragment);
+      }
+
+      function applyFilters() {
+        const query = (els.calcSearchInput ? els.calcSearchInput.value : "").trim().toLowerCase();
+        const cards = Array.from(document.querySelectorAll(".calc-card"));
+        let shown = 0;
+
+        if (els.clearSearchBtn) {
+          els.clearSearchBtn.classList.toggle("visible", query.length > 0);
+        }
+
+        cards.forEach((card) => {
+          const cat = card.dataset.category || "";
+          const haystack = [
+            card.dataset.title || "",
+            card.dataset.href || "",
+            card.dataset.category || "",
+            card.dataset.keywords || ""
+          ].join(" ").toLowerCase();
+
+          const matchesCat = activeCategory === "all" || cat === activeCategory;
+          const matchesQuery = query === "" || haystack.includes(query);
+          const visible = matchesCat && matchesQuery;
+
+          card.classList.toggle("hidden", !visible);
+          if (visible) shown += 1;
+        });
+
+        if (els.statShownCount) {
+          els.statShownCount.textContent = String(shown);
+        }
+        if (els.emptyState) {
+          els.emptyState.classList.toggle("visible", shown === 0);
+        }
+      }
+
+      function togglePin(href, notify = true) {
+        if (!href) return;
+        const card = document.querySelector(`.calc-card[data-href="${href}"]`);
+        const title = card ? card.dataset.title : href;
+
+        if (pinnedSet.has(href)) {
+          pinnedSet.delete(href);
+          savePinned();
+          renderPinnedBar();
+          if (notify) showToast(`Unpinned ${title}`);
+        } else {
+          pinnedSet.add(href);
+          savePinned();
+          renderPinnedBar();
+          if (notify) showToast(`Pinned ${title} to Quick Launch`);
+        }
+      }
+
+      function resetAllFilters(notify = true) {
+        activeCategory = "all";
+        if (els.calcSearchInput) els.calcSearchInput.value = "";
+        document.querySelectorAll(".filter-pill").forEach((pill) => {
+          const isAll = pill.dataset.category === "all";
+          pill.classList.toggle("active", isAll);
+          pill.setAttribute("aria-selected", isAll ? "true" : "false");
+        });
+        applyFilters();
+        if (notify) showToast("Showing all 10 calculators");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        els.themeIcon = document.getElementById("themeIcon");
+        els.themeLabel = document.getElementById("themeLabel");
+        els.toast = document.getElementById("toast");
+        els.calcSearchInput = document.getElementById("calcSearchInput");
+        els.clearSearchBtn = document.getElementById("clearSearchBtn");
+        els.pinnedSection = document.getElementById("pinnedSection");
+        els.pinnedRow = document.getElementById("pinnedRow");
+        els.statTotalCount = document.getElementById("statTotalCount");
+        els.statShownCount = document.getElementById("statShownCount");
+        els.statPinnedCount = document.getElementById("statPinnedCount");
+        els.emptyState = document.getElementById("emptyState");
+        els.resetFiltersBtn = document.getElementById("resetFiltersBtn");
+
+        const totalCards = document.querySelectorAll(".calc-card").length;
+        if (els.statTotalCount) els.statTotalCount.textContent = String(totalCards);
+
+        setTheme(readStorage(THEME_KEY) || "light", false);
+        loadPinned();
+        renderPinnedBar();
+        applyFilters();
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        if (els.calcSearchInput) {
+          els.calcSearchInput.addEventListener("input", applyFilters);
+        }
+
+        if (els.clearSearchBtn) {
+          els.clearSearchBtn.addEventListener("click", () => {
+            if (els.calcSearchInput) {
+              els.calcSearchInput.value = "";
+              els.calcSearchInput.focus();
+            }
+            applyFilters();
+          });
+        }
+
+        document.querySelectorAll(".filter-pill").forEach((pill) => {
+          pill.addEventListener("click", () => {
+            activeCategory = pill.dataset.category || "all";
+            document.querySelectorAll(".filter-pill").forEach((p) => {
+              const selected = p === pill;
+              p.classList.toggle("active", selected);
+              p.setAttribute("aria-selected", selected ? "true" : "false");
+            });
+            applyFilters();
+          });
+        });
+
+        document.getElementById("calcGrid").addEventListener("click", (e) => {
+          const starBtn = e.target.closest(".star-btn");
+          if (!starBtn) return;
+          e.preventDefault();
+          e.stopPropagation();
+          togglePin(starBtn.dataset.pin, true);
+        });
+
+        if (els.resetFiltersBtn) {
+          els.resetFiltersBtn.addEventListener("click", () => resetAllFilters(true));
+        }
+
+        document.addEventListener("keydown", (e) => {
+          const tag = document.activeElement ? document.activeElement.tagName : "";
+          const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+
+          if (e.key === "/" && !isTyping) {
+            e.preventDefault();
+            if (els.calcSearchInput) {
+              els.calcSearchInput.focus();
+              els.calcSearchInput.select();
+            }
+          } else if (e.key === "Escape") {
+            if (els.calcSearchInput && els.calcSearchInput.value.trim() !== "") {
+              els.calcSearchInput.value = "";
+              applyFilters();
+            } else if (isTyping) {
+              document.activeElement.blur();
+            }
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

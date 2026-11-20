@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Physics Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --accent-violet: #7c3aed;
+      --accent-violet-soft: #ede9fe;
+      --accent-violet-text: #5b21b6;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #080d17;
+      --bg-surface: #111a2e;
+      --bg-surface-alt: #0b1221;
+      --bg-canvas: #070c17;
+      --border-color: #22304a;
+      --border-strong: #334669;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --accent-violet: #a78bfa;
+      --accent-violet-soft: rgba(167, 139, 250, 0.16);
+      --accent-violet-text: #c4b5fd;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.42);
+    }
+
+    /* ========================================================================
+       RESET & BASE
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      cursor: pointer;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & CONSTANTS / UNIT BAR
+       ======================================================================== */
+    .main-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .util-strip {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.95rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1020px) {
+      .util-strip {
+        grid-template-columns: 1.25fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .strip-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .const-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .const-chip {
+      padding: 0.32rem 0.58rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 34px;
+      transition: all 0.12s;
+    }
+
+    .const-chip:hover {
+      border-color: var(--accent-violet);
+      background-color: var(--accent-violet-soft);
+      color: var(--accent-violet-text);
+    }
+
+    .unit-helper-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 560px) {
+      .unit-helper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ========================================================================
+       NAVIGATION TABS & PANELS
+       ======================================================================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 860px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.68rem 0.55rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, FORMS & RESULT BOXES
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 960px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.28rem;
+    }
+
+    .phys-input, .phys-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.92rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .phys-input:focus, .phys-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.42rem 0.78rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+
+    .kpi-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .formula-box {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    .alert-box {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 0.6rem;
+      display: none;
+    }
+
+    /* ========================================================================
+       CANVAS VISUALIZERS
+       ======================================================================== */
+    .sim-canvas {
+      width: 100%;
+      height: 290px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       TOP HEADER BAR WITH NAVIGATION TO index.html
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">∑F</div>
+          <div>
+            <h1>Advanced Physics Calculator</h1>
+            <span class="brand-sub">Kinematics &amp; Projectile • Dynamics &amp; Collisions • Optics &amp; EM • Relativity &amp; Quantum</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE CONTAINER
+       ====================================================================== -->
+  <main class="main-container">
+
+    <!-- Top Constants & Quick Unit Converter Bar -->
+    <section class="util-strip" aria-label="Physical Constants and Unit Converter">
+      <div>
+        <div class="strip-label">
+          <span>⚛️ Quick Physical Constants (Click to Copy Value)</span>
+          <span id="lastConstantReadout" class="mono" style="color: var(--accent-violet-text);"></span>
+        </div>
+        <div class="const-chips mono" id="constantsBar">
+          <button type="button" class="const-chip" data-val="299792458" data-name="Speed of light (c)">c = 2.998e8 m/s</button>
+          <button type="button" class="const-chip" data-val="6.62607015e-34" data-name="Planck constant (h)">h = 6.626e-34 J·s</button>
+          <button type="button" class="const-chip" data-val="1.054571817e-34" data-name="Reduced Planck (ħ)">ħ = 1.055e-34 J·s</button>
+          <button type="button" class="const-chip" data-val="6.67430e-11" data-name="Gravitational constant (G)">G = 6.674e-11</button>
+          <button type="button" class="const-chip" data-val="1.602176634e-19" data-name="Elementary charge (e)">e = 1.602e-19 C</button>
+          <button type="button" class="const-chip" data-val="1.380649e-23" data-name="Boltzmann constant (k_B)">k_B = 1.381e-23 J/K</button>
+          <button type="button" class="const-chip" data-val="6.02214076e23" data-name="Avogadro number (N_A)">N_A = 6.022e23</button>
+          <button type="button" class="const-chip" data-val="8.8541878128e-12" data-name="Vacuum permittivity (ε_0)">ε_0 = 8.854e-12 F/m</button>
+          <button type="button" class="const-chip" data-val="9.1093837015e-31" data-name="Electron mass (m_e)">m_e = 9.109e-31 kg</button>
+          <button type="button" class="const-chip" data-val="1.67262192369e-27" data-name="Proton mass (m_p)">m_p = 1.673e-27 kg</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="strip-label">
+          <span>📐 Quick Unit Converter</span>
+          <span id="unitConvOut" class="mono" style="color: var(--accent-primary-text); font-weight: 800;">= 108.00 km/h</span>
+        </div>
+        <div class="unit-helper-grid">
+          <input type="number" id="unitConvInput" class="phys-input mono" value="30" step="any" aria-label="Value to convert" />
+          <select id="unitConvCategory" class="phys-select" aria-label="Unit category">
+            <option value="vel" selected>Velocity</option>
+            <option value="force">Force</option>
+            <option value="energy">Energy</option>
+            <option value="pressure">Pressure</option>
+            <option value="angle">Angle</option>
+          </select>
+          <select id="unitConvPair" class="phys-select mono" aria-label="Conversion pair"></select>
+          <button type="button" class="btn-sm" id="btnCopyUnitConv" title="Copy converted value">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Primary 4-Domain Physics Navigation Tabs -->
+    <nav class="tab-bar" role="tablist" aria-label="Physics Calculators">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-kin">
+        <span>🚀 Kinematics &amp; Projectile</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-dyn">
+        <span>⚙️ Dynamics, Energy &amp; Momentum</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-opt">
+        <span>🌊 Waves, Optics &amp; EM</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-mod">
+        <span>⚛️ Relativity &amp; Quantum</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: KINEMATICS (SUVAT) & 2D PROJECTILE MOTION LAB
+         ==================================================================== -->
+    <section id="panel-kin" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <!-- SUVAT Solver Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📏 SUVAT 1D Kinematics Solver</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcSuvat">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetSuvat">Reset</button>
+            </div>
+          </div>
+
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Choose which variable to solve for and enter the remaining known SI quantities.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="suvatTarget">Solve For</label>
+              <select id="suvatTarget" class="phys-select mono">
+                <option value="v">Final Velocity v (m/s)</option>
+                <option value="x">Displacement x (m)</option>
+                <option value="v0">Initial Velocity v₀ (m/s)</option>
+                <option value="a">Acceleration a (m/s²)</option>
+                <option value="t">Time t (s)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="suvatV0">Initial Velocity v₀ (m/s)</label>
+              <input type="number" id="suvatV0" class="phys-input mono" value="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="suvatV">Final Velocity v (m/s)</label>
+              <input type="number" id="suvatV" class="phys-input mono" value="24" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="suvatA">Acceleration a (m/s²)</label>
+              <input type="number" id="suvatA" class="phys-input mono" value="3" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="suvatX">Displacement x (m)</label>
+              <input type="number" id="suvatX" class="phys-input mono" value="96" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="suvatT">Time t (s)</label>
+              <input type="number" id="suvatT" class="phys-input mono" value="8" step="any" />
+            </div>
+          </div>
+
+          <div id="suvatError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Computed Value</div>
+              <div class="kpi-val" id="outSuvatResult">v = 24.000 m/s</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Average Velocity</div>
+              <div class="kpi-val" id="outSuvatAvgV">12.000 m/s</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outSuvatFormula">
+            Equation used: v = v₀ + a·t
+          </div>
+        </div>
+
+        <!-- 2D Projectile Motion Lab + Interactive HTML5 Canvas -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎯 2D Projectile Trajectory Lab</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnReplayProj">Calculate &amp; Replay</button>
+              <button type="button" class="btn-sm" id="btnResetProj">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="projSpeed">Launch Speed v₀ (m/s)</label>
+              <input type="number" id="projSpeed" class="phys-input mono" value="35" min="0.1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="projAngle">Launch Angle θ (deg)</label>
+              <input type="number" id="projAngle" class="phys-input mono" value="42" min="-89" max="89" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="projHeight">Initial Height y₀ (m)</label>
+              <input type="number" id="projHeight" class="phys-input mono" value="5" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="projGravityPreset">Gravity Preset</label>
+              <select id="projGravityPreset" class="phys-select mono">
+                <option value="9.81" selected>Earth (9.81 m/s²)</option>
+                <option value="1.62">Moon (1.62 m/s²)</option>
+                <option value="3.72">Mars (3.72 m/s²)</option>
+                <option value="24.79">Jupiter (24.79 m/s²)</option>
+                <option value="custom">Custom g...</option>
+              </select>
+            </div>
+            <div id="projCustomGWrap" style="display: none;">
+              <label class="field-label" for="projCustomG">Custom g (m/s²)</label>
+              <input type="number" id="projCustomG" class="phys-input mono" value="9.81" min="0.05" step="any" />
+            </div>
+          </div>
+
+          <canvas id="projectileCanvas" class="sim-canvas" aria-label="2D Projectile Trajectory Visualizer"></canvas>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Horizontal Range</div>
+              <div class="kpi-val" id="outProjRange">129.05 m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Max Height (Apex)</div>
+              <div class="kpi-val" id="outProjMaxH">32.92 m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Flight Time</div>
+              <div class="kpi-val" id="outProjTime">5.11 s</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Impact Speed</div>
+              <div class="kpi-val" id="outProjImpactV">36.38 m/s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: DYNAMICS, INCLINED PLANE, WORK, ENERGY & COLLISIONS
+         ==================================================================== -->
+    <section id="panel-dyn" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Newton's 2nd Law & Inclined Plane Solver -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📐 Newton's 2nd Law &amp; Inclined Plane</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcDyn">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetDyn">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="dynMass">Mass m (kg)</label>
+              <input type="number" id="dynMass" class="phys-input mono" value="10" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="dynSlopeAngle">Incline Angle θ (deg)</label>
+              <input type="number" id="dynSlopeAngle" class="phys-input mono" value="25" min="0" max="89.9" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="dynMu">Kinetic Friction μ_k</label>
+              <input type="number" id="dynMu" class="phys-input mono" value="0.15" min="0" max="2" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="dynAppliedF">Applied Force F_app (N)</label>
+              <input type="number" id="dynAppliedF" class="phys-input mono" value="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="dynG">Gravity g (m/s²)</label>
+              <input type="number" id="dynG" class="phys-input mono" value="9.81" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="dynTime">Elapsed Time Δt (s)</label>
+              <input type="number" id="dynTime" class="phys-input mono" value="4" min="0" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Net Accel (a_net)</div>
+              <div class="kpi-val" id="outDynAccel">2.81 m/s²</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Normal Force (N)</div>
+              <div class="kpi-val" id="outDynNormal">88.91 N</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Friction Force (f_k)</div>
+              <div class="kpi-val" id="outDynFric">13.34 N</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Impulse J = F_net·Δt</div>
+              <div class="kpi-val" id="outDynImpulse">112.48 N·s</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Work, Kinetic/Potential Energy, Power & 1D Collisions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💥 Energy, Power &amp; 1D Collisions</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCol">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCol">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.65rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="colM1">Mass m₁ (kg)</label>
+              <input type="number" id="colM1" class="phys-input mono" value="4" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="colV1">Velocity v₁i (m/s)</label>
+              <input type="number" id="colV1" class="phys-input mono" value="6" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="colM2">Mass m₂ (kg)</label>
+              <input type="number" id="colM2" class="phys-input mono" value="2" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="colV2">Velocity v₂i (m/s)</label>
+              <input type="number" id="colV2" class="phys-input mono" value="-3" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="colType">Collision Type</label>
+              <select id="colType" class="phys-select">
+                <option value="elastic" selected>Elastic (e = 1.0)</option>
+                <option value="inelastic">Perfectly Inelastic (e = 0)</option>
+                <option value="custom">Custom Restitution e</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="colRest">Restitution (0..1)</label>
+              <input type="number" id="colRest" class="phys-input mono" value="1.0" min="0" max="1" step="0.05" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Final v₁f / v₂f</div>
+              <div class="kpi-val" id="outColV12">0.0 / 9.0 m/s</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Initial KE (K_i)</div>
+              <div class="kpi-val" id="outColKeInit">81.00 J</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Final KE (K_f)</div>
+              <div class="kpi-val" id="outColKeFinal">81.00 J</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total Momentum p</div>
+              <div class="kpi-val" id="outColMom">18.00 kg·m/s</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outEnergySummary">
+            Work (W = F_net·x) &amp; Power (P = W/t) synced with left panel: W = 225.0 J | P = 56.25 W
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: WAVES, DOPPLER, SNELL'S LAW OPTICS & ELECTROMAGNETISM
+         ==================================================================== -->
+    <section id="panel-opt" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Snell's Law Refraction & Critical Angle with Interactive Canvas -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔦 Snell's Law Refraction &amp; Ray Diagram</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcSnell">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetSnell">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="snellN1">Index n₁ (Incident)</label>
+              <input type="number" id="snellN1" class="phys-input mono" value="1.50" min="1" step="0.01" />
+            </div>
+            <div>
+              <label class="field-label" for="snellN2">Index n₂ (Refracted)</label>
+              <input type="number" id="snellN2" class="phys-input mono" value="1.00" min="1" step="0.01" />
+            </div>
+            <div>
+              <label class="field-label" for="snellTheta1">Angle θ₁ (deg)</label>
+              <input type="number" id="snellTheta1" class="phys-input mono" value="30" min="0" max="89.9" step="0.5" />
+            </div>
+          </div>
+
+          <canvas id="opticsCanvas" class="sim-canvas" aria-label="Snell's Law Ray Diagram"></canvas>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Refracted Angle θ₂</div>
+              <div class="kpi-val" id="outSnellTheta2">48.59°</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Critical Angle θ_c</div>
+              <div class="kpi-val" id="outSnellCrit">41.81°</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Refraction Status</div>
+              <div class="kpi-val" id="outSnellStatus" style="font-size: 0.92rem;">Refracts</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Waves, Doppler Shift, Thin Lens & Electromagnetism -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📡 Waves, Doppler, Lens &amp; EM Solver</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcWaveEm">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetWaveEm">Reset</button>
+            </div>
+          </div>
+
+          <!-- Wave & Doppler -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.8rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Wave Speed (v = fλ) &amp; Doppler Shift</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem;">
+              <div>
+                <label class="field-label" for="waveFreq">Freq f (Hz)</label>
+                <input type="number" id="waveFreq" class="phys-input mono" value="440" min="0.01" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="waveSpeed">Wave v (m/s)</label>
+                <input type="number" id="waveSpeed" class="phys-input mono" value="343" min="0.01" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="dopObs">Obs v_o (m/s)</label>
+                <input type="number" id="dopObs" class="phys-input mono" value="15" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="dopSrc">Src v_s (m/s)</label>
+                <input type="number" id="dopSrc" class="phys-input mono" value="-20" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outWaveDoppler" style="margin-top: 0.45rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-primary-text);">
+              λ = 0.7795 m • Observed f' = 487.50 Hz
+            </div>
+          </div>
+
+          <!-- Thin Lens Equation -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.8rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Thin Lens / Mirror (1/f = 1/d_o + 1/d_i)</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="lensF">Focal Length f (cm)</label>
+                <input type="number" id="lensF" class="phys-input mono" value="15" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="lensDo">Object Distance d_o (cm)</label>
+                <input type="number" id="lensDo" class="phys-input mono" value="25" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outLensRes" style="margin-top: 0.45rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-violet-text);">
+              Image d_i = +37.50 cm • Magnification m = -1.50x (Real, Inverted)
+            </div>
+          </div>
+
+          <!-- Coulomb's Law & RC/RL Time Constant -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Coulomb Force (F = k|q₁q₂|/r²) &amp; RC/RL Tau (τ)</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem;">
+              <div>
+                <label class="field-label" for="emQ1">q₁ (μC)</label>
+                <input type="number" id="emQ1" class="phys-input mono" value="5" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emQ2">q₂ (μC)</label>
+                <input type="number" id="emQ2" class="phys-input mono" value="-3" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emR">Distance r (m)</label>
+                <input type="number" id="emR" class="phys-input mono" value="0.5" min="0.0001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="rcR">R (Ω) &amp; C (μF)</label>
+                <div style="display:flex; gap:4px;">
+                  <input type="number" id="rcR" class="phys-input mono" value="1000" min="0.1" step="any" title="Resistance Ohms" aria-label="Resistance in Ohms" />
+                  <input type="number" id="rcC" class="phys-input mono" value="100" min="0.01" step="any" title="Capacitance uF" aria-label="Capacitance in microfarads" />
+                </div>
+              </div>
+            </div>
+            <div class="mono" id="outEmRes" style="margin-top: 0.45rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-text);">
+              |F| = 0.5393 N (Attractive) • RC τ = 100.00 ms
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: SPECIAL RELATIVITY, QUANTUM & RADIOACTIVE DECAY
+         ==================================================================== -->
+    <section id="panel-mod" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Special Relativity Lorentz & Relativistic Energy -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌌 Special Relativity (γ, Time &amp; Length)</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcRel">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetRel">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="relBeta">Velocity Fraction (v / c)</label>
+              <input type="number" id="relBeta" class="phys-input mono" value="0.80" min="0" max="0.999999999" step="0.01" />
+            </div>
+            <div>
+              <label class="field-label" for="relT0">Proper Time Δt₀ (s)</label>
+              <input type="number" id="relT0" class="phys-input mono" value="10" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="relL0">Proper Length L₀ (m)</label>
+              <input type="number" id="relL0" class="phys-input mono" value="100" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="relMass">Rest Mass m₀ (kg)</label>
+              <input type="number" id="relMass" class="phys-input mono" value="9.1093837e-31" min="0" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Lorentz Factor (γ)</div>
+              <div class="kpi-val" id="outRelGamma">1.6667</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Dilated Time (Δt)</div>
+              <div class="kpi-val" id="outRelTime">16.667 s</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Contracted Length (L)</div>
+              <div class="kpi-val" id="outRelLen">60.000 m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total Energy (E)</div>
+              <div class="kpi-val" id="outRelEnergy" style="font-size: 0.98rem;">1.365e-13 J</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantum de Broglie / Photon Energy & Radioactive Half-Life -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔬 Quantum Wavelength &amp; Radioactive Decay</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcQuant">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetQuant">Reset</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.85rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">de Broglie Wavelength (λ = h/p) &amp; Photon Energy (E = hc/λ)</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+              <div>
+                <label class="field-label" for="qMass">Particle Mass m (kg)</label>
+                <input type="number" id="qMass" class="phys-input mono" value="9.1093837e-31" min="1e-45" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="qVel">Speed v (m/s)</label>
+                <input type="number" id="qVel" class="phys-input mono" value="2.0e6" min="0.0001" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outQuantumRes" style="margin-top: 0.5rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-violet-text);">
+              λ_dB = 3.636e-10 m (0.364 nm) • Equivalent Photon E = 3.405 keV
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Radioactive Decay N(t) = N₀ (1/2)^(t / t_½)</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="decN0">Initial N₀ (nuclei)</label>
+                <input type="number" id="decN0" class="phys-input mono" value="1e12" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="decHalfLife">Half-Life t_½ (s)</label>
+                <input type="number" id="decHalfLife" class="phys-input mono" value="3600" min="1e-12" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="decElapsed">Elapsed Time t (s)</label>
+                <input type="number" id="decElapsed" class="phys-input mono" value="7200" min="0" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outDecayRes" style="margin-top: 0.5rem; font-size: 0.82rem; font-weight: 700; color: var(--accent-emerald-text);">
+              Remaining N(t) = 2.500e+11 (25.00%) • λ = 1.925e-4 s⁻¹ • Activity A = 4.813e+7 Bq
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const C_LIGHT = 299792458;
+      const H_PLANCK = 6.62607015e-34;
+      const K_COULOMB = 8.9875517923e9;
+      const E_CHARGE = 1.602176634e-19;
+
+      /* ======================================================================
+         SAFE STORAGE, CLIPBOARD & TOAST HELPERS
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function readStoredTheme() {
+        try {
+          return localStorage.getItem("apc_theme") || "light";
+        } catch (_) {
+          return "light";
+        }
+      }
+
+      function writeStoredTheme(theme) {
+        try {
+          localStorage.setItem("apc_theme", theme);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(label),
+            () => fallbackExecCopy(text, label)
+          );
+          return;
+        }
+        fallbackExecCopy(text, label);
+      }
+
+      function fallbackExecCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (_) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      /* ======================================================================
+         THEME CONTROLLER
+         ====================================================================== */
+      function setTheme(theme, notify = false) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        const icon = document.getElementById("themeIcon");
+        const label = document.getElementById("themeLabel");
+        if (icon) icon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (label) label.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        writeStoredTheme(safeTheme);
+        requestAnimationFrame(() => {
+          drawProjectileCanvas();
+          drawOpticsCanvas();
+        });
+        if (notify) {
+          showToast(safeTheme === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      /* ======================================================================
+         TAB SWITCHING & CANVAS REDRAW
+         ====================================================================== */
+      function activateTab(targetTabId, notify = false) {
+        const tabBtns = document.querySelectorAll(".tab-btn");
+        const panels = document.querySelectorAll(".panel");
+        tabBtns.forEach((btn) => {
+          const active = btn.dataset.tab === targetTabId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetTabId);
+        });
+        requestAnimationFrame(() => {
+          drawProjectileCanvas();
+          drawOpticsCanvas();
+        });
+        if (notify) {
+          const activeBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+          if (activeBtn) showToast(`Switched to ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         CONSTANTS CHIPS & QUICK UNIT CONVERTER
+         ====================================================================== */
+      const UNIT_PAIRS = {
+        vel: [
+          { label: "m/s → km/h", factor: 3.6, suffix: "km/h" },
+          { label: "km/h → m/s", factor: 1 / 3.6, suffix: "m/s" },
+          { label: "m/s → mph", factor: 2.23693629, suffix: "mph" },
+          { label: "mph → m/s", factor: 0.44704, suffix: "m/s" }
+        ],
+        force: [
+          { label: "N → lbf", factor: 0.22480894, suffix: "lbf" },
+          { label: "lbf → N", factor: 4.4482216, suffix: "N" },
+          { label: "N → dyne", factor: 1e5, suffix: "dyn" }
+        ],
+        energy: [
+          { label: "J → kcal", factor: 1 / 4184, suffix: "kcal" },
+          { label: "J → eV", factor: 1 / E_CHARGE, suffix: "eV" },
+          { label: "eV → J", factor: E_CHARGE, suffix: "J" },
+          { label: "kWh → MJ", factor: 3.6, suffix: "MJ" }
+        ],
+        pressure: [
+          { label: "atm → Pa", factor: 101325, suffix: "Pa" },
+          { label: "Pa → atm", factor: 1 / 101325, suffix: "atm" },
+          { label: "bar → psi", factor: 14.5037738, suffix: "psi" },
+          { label: "psi → kPa", factor: 6.894757, suffix: "kPa" }
+        ],
+        angle: [
+          { label: "deg → rad", factor: Math.PI / 180, suffix: "rad" },
+          { label: "rad → deg", factor: 180 / Math.PI, suffix: "deg" }
+        ]
+      };
+
+      function populateUnitPairs() {
+        const unitConvCategory = document.getElementById("unitConvCategory");
+        const unitConvPair = document.getElementById("unitConvPair");
+        if (!unitConvCategory || !unitConvPair) return;
+        const list = UNIT_PAIRS[unitConvCategory.value] || UNIT_PAIRS.vel;
+        unitConvPair.innerHTML = list
+          .map((p, idx) => `<option value="${idx}">${p.label}</option>`)
+          .join("");
+        updateUnitConverter();
+      }
+
+      function updateUnitConverter() {
+        const unitConvInput = document.getElementById("unitConvInput");
+        const unitConvCategory = document.getElementById("unitConvCategory");
+        const unitConvPair = document.getElementById("unitConvPair");
+        const unitConvOut = document.getElementById("unitConvOut");
+        if (!unitConvInput || !unitConvCategory || !unitConvPair || !unitConvOut) return;
+
+        const val = parseFloat(unitConvInput.value) || 0;
+        const list = UNIT_PAIRS[unitConvCategory.value] || UNIT_PAIRS.vel;
+        const pair = list[parseInt(unitConvPair.value, 10) || 0] || list[0];
+        const res = val * pair.factor;
+        const formatted = Math.abs(res) >= 1e7 || (Math.abs(res) > 0 && Math.abs(res) < 1e-4)
+          ? res.toExponential(4)
+          : res.toLocaleString("en-US", { maximumFractionDigits: 4 });
+        unitConvOut.textContent = `= ${formatted} ${pair.suffix}`;
+      }
+
+      /* ======================================================================
+         MODULE 1A: SUVAT 1D KINEMATICS SOLVER
+         ====================================================================== */
+      function solveSuvat(notify = false) {
+        const target = document.getElementById("suvatTarget").value;
+        const v0El = document.getElementById("suvatV0");
+        const vEl = document.getElementById("suvatV");
+        const aEl = document.getElementById("suvatA");
+        const xEl = document.getElementById("suvatX");
+        const tEl = document.getElementById("suvatT");
+        const errBox = document.getElementById("suvatError");
+        const outRes = document.getElementById("outSuvatResult");
+        const outFormula = document.getElementById("outSuvatFormula");
+
+        let v0 = parseFloat(v0El.value);
+        let v = parseFloat(vEl.value);
+        let a = parseFloat(aEl.value);
+        let x = parseFloat(xEl.value);
+        let t = parseFloat(tEl.value);
+
+        errBox.style.display = "none";
+
+        try {
+          if (target === "v") {
+            if (!Number.isNaN(v0) && !Number.isNaN(a) && !Number.isNaN(t)) {
+              v = v0 + a * t;
+              outFormula.textContent = "Formula: v = v₀ + a·t";
+            } else if (!Number.isNaN(v0) && !Number.isNaN(a) && !Number.isNaN(x)) {
+              const rad = v0 * v0 + 2 * a * x;
+              if (rad < 0) throw new Error("v² < 0: No real final velocity for given inputs.");
+              v = Math.sqrt(rad);
+              outFormula.textContent = "Formula: v = √(v₀² + 2·a·x)";
+            } else if (!Number.isNaN(v0) && !Number.isNaN(x) && !Number.isNaN(t) && t !== 0) {
+              v = (2 * x) / t - v0;
+              outFormula.textContent = "Formula: v = 2x/t − v₀";
+            } else {
+              throw new Error("Provide any 3 compatible known values (e.g., v₀, a, t or v₀, a, x).");
+            }
+            vEl.value = Number(v.toFixed(4));
+            outRes.textContent = `v = ${v.toFixed(3)} m/s`;
+          } else if (target === "x") {
+            if (!Number.isNaN(v0) && !Number.isNaN(t) && !Number.isNaN(a)) {
+              x = v0 * t + 0.5 * a * t * t;
+              outFormula.textContent = "Formula: x = v₀·t + ½·a·t²";
+            } else if (!Number.isNaN(v0) && !Number.isNaN(v) && !Number.isNaN(t)) {
+              x = 0.5 * (v0 + v) * t;
+              outFormula.textContent = "Formula: x = ½(v₀ + v)·t";
+            } else if (!Number.isNaN(v) && !Number.isNaN(v0) && !Number.isNaN(a) && a !== 0) {
+              x = (v * v - v0 * v0) / (2 * a);
+              outFormula.textContent = "Formula: x = (v² − v₀²) / (2a)";
+            } else {
+              throw new Error("Provide any 3 compatible known values.");
+            }
+            xEl.value = Number(x.toFixed(4));
+            outRes.textContent = `x = ${x.toFixed(3)} m`;
+          } else if (target === "v0") {
+            if (!Number.isNaN(v) && !Number.isNaN(a) && !Number.isNaN(t)) {
+              v0 = v - a * t;
+              outFormula.textContent = "Formula: v₀ = v − a·t";
+            } else if (!Number.isNaN(x) && !Number.isNaN(a) && !Number.isNaN(t) && t !== 0) {
+              v0 = (x - 0.5 * a * t * t) / t;
+              outFormula.textContent = "Formula: v₀ = (x − ½at²) / t";
+            } else if (!Number.isNaN(v) && !Number.isNaN(a) && !Number.isNaN(x)) {
+              const rad = v * v - 2 * a * x;
+              if (rad < 0) throw new Error("Negative square root solving for v₀.");
+              v0 = Math.sqrt(rad);
+              outFormula.textContent = "Formula: v₀ = √(v² − 2ax)";
+            } else {
+              throw new Error("Provide any 3 compatible known values.");
+            }
+            v0El.value = Number(v0.toFixed(4));
+            outRes.textContent = `v₀ = ${v0.toFixed(3)} m/s`;
+          } else if (target === "a") {
+            if (!Number.isNaN(v) && !Number.isNaN(v0) && !Number.isNaN(t) && t !== 0) {
+              a = (v - v0) / t;
+              outFormula.textContent = "Formula: a = (v − v₀) / t";
+            } else if (!Number.isNaN(x) && !Number.isNaN(v0) && !Number.isNaN(t) && t !== 0) {
+              a = (2 * (x - v0 * t)) / (t * t);
+              outFormula.textContent = "Formula: a = 2(x − v₀t) / t²";
+            } else if (!Number.isNaN(v) && !Number.isNaN(v0) && !Number.isNaN(x) && x !== 0) {
+              a = (v * v - v0 * v0) / (2 * x);
+              outFormula.textContent = "Formula: a = (v² − v₀²) / (2x)";
+            } else {
+              throw new Error("Provide any 3 compatible known values.");
+            }
+            aEl.value = Number(a.toFixed(4));
+            outRes.textContent = `a = ${a.toFixed(3)} m/s²`;
+          } else if (target === "t") {
+            if (!Number.isNaN(v) && !Number.isNaN(v0) && !Number.isNaN(a) && a !== 0) {
+              t = (v - v0) / a;
+              outFormula.textContent = "Formula: t = (v − v₀) / a";
+            } else if (!Number.isNaN(v0) && !Number.isNaN(v) && !Number.isNaN(x) && (v0 + v) !== 0) {
+              t = (2 * x) / (v0 + v);
+              outFormula.textContent = "Formula: t = 2x / (v₀ + v)";
+            } else {
+              throw new Error("Provide (v, v₀, a) or (v₀, v, x) to solve time t.");
+            }
+            tEl.value = Number(t.toFixed(4));
+            outRes.textContent = `t = ${t.toFixed(3)} s`;
+          }
+
+          const avgV = !Number.isNaN(t) && t !== 0 && !Number.isNaN(x)
+            ? x / t
+            : (!Number.isNaN(v0) && !Number.isNaN(v) ? 0.5 * (v0 + v) : 0);
+          document.getElementById("outSuvatAvgV").textContent = `${avgV.toFixed(3)} m/s`;
+          updateDynamicsAndEnergy(false);
+          if (notify) showToast("SUVAT kinematics calculated");
+        } catch (err) {
+          errBox.textContent = err.message;
+          errBox.style.display = "block";
+        }
+      }
+
+      function resetSuvatCalculator(notify = false) {
+        document.getElementById("suvatTarget").value = "v";
+        document.getElementById("suvatV0").value = "0";
+        document.getElementById("suvatV").value = "24";
+        document.getElementById("suvatA").value = "3";
+        document.getElementById("suvatX").value = "96";
+        document.getElementById("suvatT").value = "8";
+        solveSuvat(false);
+        if (notify) showToast("SUVAT inputs reset to defaults");
+      }
+
+      /* ======================================================================
+         MODULE 1B: 2D PROJECTILE MOTION LAB & ANIMATED CANVAS
+         ====================================================================== */
+      let projAnimId = null;
+      let projAnimProgress = 1;
+
+      function getProjectileGravity() {
+        const projPreset = document.getElementById("projGravityPreset");
+        const projCustomG = document.getElementById("projCustomG");
+        if (projPreset && projPreset.value === "custom") {
+          return Math.max(0.05, parseFloat(projCustomG && projCustomG.value) || 9.81);
+        }
+        return parseFloat(projPreset && projPreset.value) || 9.81;
+      }
+
+      function computeProjectileMetrics() {
+        const v0 = Math.max(0.1, parseFloat(document.getElementById("projSpeed").value) || 0);
+        const deg = parseFloat(document.getElementById("projAngle").value) || 0;
+        const y0 = Math.max(0, parseFloat(document.getElementById("projHeight").value) || 0);
+        const g = getProjectileGravity();
+
+        const rad = (deg * Math.PI) / 180;
+        const vx = v0 * Math.cos(rad);
+        const vy0 = v0 * Math.sin(rad);
+
+        const disc = vy0 * vy0 + 2 * g * y0;
+        const flightTime = (vy0 + Math.sqrt(Math.max(0, disc))) / g;
+        const range = vx * flightTime;
+
+        const tApex = vy0 > 0 ? vy0 / g : 0;
+        const maxHeight = vy0 > 0 ? y0 + (vy0 * vy0) / (2 * g) : y0;
+
+        const vyImpact = vy0 - g * flightTime;
+        const impactSpeed = Math.hypot(vx, vyImpact);
+
+        document.getElementById("outProjRange").textContent = `${range.toFixed(2)} m`;
+        document.getElementById("outProjMaxH").textContent = `${maxHeight.toFixed(2)} m`;
+        document.getElementById("outProjTime").textContent = `${flightTime.toFixed(2)} s`;
+        document.getElementById("outProjImpactV").textContent = `${impactSpeed.toFixed(2)} m/s`;
+
+        return { v0, deg, y0, g, vx, vy0, flightTime, range, tApex, maxHeight };
+      }
+
+      function drawProjectileCanvas() {
+        const projCanvas = document.getElementById("projectileCanvas");
+        if (!projCanvas || !projCanvas.parentElement) return;
+        const rect = projCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(280, rect.width || projCanvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        projCanvas.width = Math.round(width * dpr);
+        projCanvas.height = Math.round(height * dpr);
+
+        const ctx = projCanvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const gridColor = isDark ? "rgba(148, 163, 184, 0.12)" : "rgba(15, 23, 42, 0.07)";
+        const axisColor = isDark ? "#94a3b8" : "#475569";
+        const pathColor = isDark ? "#60a5fa" : "#2563eb";
+        const apexColor = isDark ? "#fbbf24" : "#d97706";
+        const vecColor = isDark ? "#34d399" : "#059669";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const m = computeProjectileMetrics();
+        const padL = 44;
+        const padR = 22;
+        const padT = 22;
+        const padB = 34;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+
+        const maxX = Math.max(10, m.range * 1.12);
+        const maxY = Math.max(10, m.maxHeight * 1.18);
+        const scale = Math.min(plotW / maxX, plotH / maxY);
+
+        const toPx = (x, y) => [
+          padL + x * scale,
+          height - padB - y * scale
+        ];
+
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+          const gx = padL + (plotW * i) / 5;
+          ctx.beginPath();
+          ctx.moveTo(gx, padT);
+          ctx.lineTo(gx, height - padB);
+          ctx.stroke();
+
+          const gy = padT + (plotH * i) / 5;
+          ctx.beginPath();
+          ctx.moveTo(padL, gy);
+          ctx.lineTo(width - padR, gy);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        ctx.strokeStyle = pathColor;
+        ctx.globalAlpha = 0.28;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        const steps = 60;
+        for (let i = 0; i <= steps; i++) {
+          const t = (m.flightTime * i) / steps;
+          const x = m.vx * t;
+          const y = Math.max(0, m.y0 + m.vy0 * t - 0.5 * m.g * t * t);
+          const [px, py] = toPx(x, y);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+
+        const curT = m.flightTime * Math.min(1, projAnimProgress);
+        ctx.strokeStyle = pathColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const frac = (i / steps) * Math.min(1, projAnimProgress);
+          const t = m.flightTime * frac;
+          const x = m.vx * t;
+          const y = Math.max(0, m.y0 + m.vy0 * t - 0.5 * m.g * t * t);
+          const [px, py] = toPx(x, y);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        if (m.vy0 > 0 && m.tApex <= m.flightTime) {
+          const [ax, ay] = toPx(m.vx * m.tApex, m.maxHeight);
+          ctx.fillStyle = apexColor;
+          ctx.beginPath();
+          ctx.arc(ax, ay, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.font = "600 11px var(--font-mono)";
+          ctx.fillText(`Apex (${m.maxHeight.toFixed(1)}m)`, ax + 6, ay - 4);
+        }
+
+        const curX = m.vx * curT;
+        const curY = Math.max(0, m.y0 + m.vy0 * curT - 0.5 * m.g * curT * curT);
+        const curVy = m.vy0 - m.g * curT;
+        const [bx, by] = toPx(curX, curY);
+
+        ctx.fillStyle = pathColor;
+        ctx.beginPath();
+        ctx.arc(bx, by, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        const vecScale = 1.3;
+        const vxPx = m.vx * vecScale;
+        const vyPx = -curVy * vecScale;
+        ctx.strokeStyle = vecColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx + vxPx, by + vyPx);
+        ctx.stroke();
+      }
+
+      function startProjectileAnimation(notify = false) {
+        if (projAnimId) cancelAnimationFrame(projAnimId);
+        projAnimProgress = 0;
+        const startTime = performance.now();
+        const duration = 900;
+
+        function tick(now) {
+          projAnimProgress = Math.min(1, (now - startTime) / duration);
+          drawProjectileCanvas();
+          if (projAnimProgress < 1) {
+            projAnimId = requestAnimationFrame(tick);
+          } else {
+            projAnimId = null;
+          }
+        }
+        projAnimId = requestAnimationFrame(tick);
+        if (notify) showToast("Projectile trajectory calculated & replayed");
+      }
+
+      function resetProjectileLab(notify = false) {
+        document.getElementById("projSpeed").value = "35";
+        document.getElementById("projAngle").value = "42";
+        document.getElementById("projHeight").value = "5";
+        document.getElementById("projGravityPreset").value = "9.81";
+        document.getElementById("projCustomG").value = "9.81";
+        document.getElementById("projCustomGWrap").style.display = "none";
+        startProjectileAnimation(false);
+        if (notify) showToast("Projectile inputs reset to defaults");
+      }
+
+      /* ======================================================================
+         MODULE 2: DYNAMICS, INCLINED PLANE, WORK, ENERGY & COLLISIONS
+         ====================================================================== */
+      function updateDynamicsAndEnergy(notifyMsg = "") {
+        const m = Math.max(0.0001, parseFloat(document.getElementById("dynMass").value) || 1);
+        const thetaDeg = parseFloat(document.getElementById("dynSlopeAngle").value) || 0;
+        const mu = Math.max(0, parseFloat(document.getElementById("dynMu").value) || 0);
+        const fApp = parseFloat(document.getElementById("dynAppliedF").value) || 0;
+        const g = Math.max(0.01, parseFloat(document.getElementById("dynG").value) || 9.81);
+        const dt = Math.max(0, parseFloat(document.getElementById("dynTime").value) || 0);
+
+        const rad = (thetaDeg * Math.PI) / 180;
+        const normal = m * g * Math.cos(rad);
+        const gravParallel = m * g * Math.sin(rad);
+        const frictionMag = mu * normal;
+
+        const drivingForce = gravParallel + fApp;
+        let fNet = drivingForce;
+        if (Math.abs(drivingForce) <= frictionMag && dt === 0) {
+          fNet = 0;
+        } else if (drivingForce > 0) {
+          fNet = Math.max(0, drivingForce - frictionMag);
+        } else if (drivingForce < 0) {
+          fNet = Math.min(0, drivingForce + frictionMag);
+        }
+
+        const accel = fNet / m;
+        const impulse = fNet * dt;
+        const disp = 0.5 * accel * dt * dt;
+        const work = fNet * disp;
+        const power = dt > 0 ? work / dt : 0;
+
+        document.getElementById("outDynAccel").textContent = `${accel.toFixed(2)} m/s²`;
+        document.getElementById("outDynNormal").textContent = `${normal.toFixed(2)} N`;
+        document.getElementById("outDynFric").textContent = `${frictionMag.toFixed(2)} N`;
+        document.getElementById("outDynImpulse").textContent = `${impulse.toFixed(2)} N·s`;
+        document.getElementById("outEnergySummary").textContent =
+          `Over Δt = ${dt.toFixed(1)}s (x = ${disp.toFixed(2)} m): Work W = ${work.toFixed(2)} J • Avg Power P = ${power.toFixed(2)} W`;
+
+        const m1 = Math.max(0.0001, parseFloat(document.getElementById("colM1").value) || 1);
+        const v1i = parseFloat(document.getElementById("colV1").value) || 0;
+        const m2 = Math.max(0.0001, parseFloat(document.getElementById("colM2").value) || 1);
+        const v2i = parseFloat(document.getElementById("colV2").value) || 0;
+
+        const colType = document.getElementById("colType").value;
+        const restEl = document.getElementById("colRest");
+        let e = parseFloat(restEl.value);
+        if (colType === "elastic") {
+          e = 1;
+          restEl.value = "1.0";
+        } else if (colType === "inelastic") {
+          e = 0;
+          restEl.value = "0.0";
+        } else {
+          e = Math.min(1, Math.max(0, Number.isNaN(e) ? 1 : e));
+        }
+
+        const v1f = (m1 * v1i + m2 * v2i - m2 * e * (v1i - v2i)) / (m1 + m2);
+        const v2f = (m1 * v1i + m2 * v2i + m1 * e * (v1i - v2i)) / (m1 + m2);
+
+        const keInit = 0.5 * m1 * v1i * v1i + 0.5 * m2 * v2i * v2i;
+        const keFinal = 0.5 * m1 * v1f * v1f + 0.5 * m2 * v2f * v2f;
+        const momTotal = m1 * v1i + m2 * v2i;
+
+        document.getElementById("outColV12").textContent = `${v1f.toFixed(2)} / ${v2f.toFixed(2)} m/s`;
+        document.getElementById("outColKeInit").textContent = `${keInit.toFixed(2)} J`;
+        document.getElementById("outColKeFinal").textContent = `${keFinal.toFixed(2)} J`;
+        document.getElementById("outColMom").textContent = `${momTotal.toFixed(2)} kg·m/s`;
+
+        if (notifyMsg) showToast(notifyMsg);
+      }
+
+      function resetDynamicsCard(notify = false) {
+        document.getElementById("dynMass").value = "10";
+        document.getElementById("dynSlopeAngle").value = "25";
+        document.getElementById("dynMu").value = "0.15";
+        document.getElementById("dynAppliedF").value = "0";
+        document.getElementById("dynG").value = "9.81";
+        document.getElementById("dynTime").value = "4";
+        updateDynamicsAndEnergy(notify ? "Dynamics inputs reset" : "");
+      }
+
+      function resetCollisionCard(notify = false) {
+        document.getElementById("colM1").value = "4";
+        document.getElementById("colV1").value = "6";
+        document.getElementById("colM2").value = "2";
+        document.getElementById("colV2").value = "-3";
+        document.getElementById("colType").value = "elastic";
+        document.getElementById("colRest").value = "1.0";
+        updateDynamicsAndEnergy(notify ? "Collision inputs reset" : "");
+      }
+
+      /* ======================================================================
+         MODULE 3: SNELL'S LAW OPTICS CANVAS, WAVES, DOPPLER, LENS & EM
+         ====================================================================== */
+      function computeSnell() {
+        const n1 = Math.max(1, parseFloat(document.getElementById("snellN1").value) || 1);
+        const n2 = Math.max(1, parseFloat(document.getElementById("snellN2").value) || 1);
+        const theta1Deg = Math.min(89.9, Math.max(0, parseFloat(document.getElementById("snellTheta1").value) || 0));
+        const theta1Rad = (theta1Deg * Math.PI) / 180;
+
+        const sinTheta2 = (n1 / n2) * Math.sin(theta1Rad);
+        let critDegStr = "None (n₁ ≤ n₂)";
+        if (n1 > n2) {
+          critDegStr = `${((Math.asin(n2 / n1) * 180) / Math.PI).toFixed(2)}°`;
+        }
+
+        let tir = false;
+        let theta2Deg = 0;
+        let statusStr = "Refracts";
+
+        if (sinTheta2 > 1) {
+          tir = true;
+          statusStr = "Total Internal Reflection";
+        } else {
+          theta2Deg = (Math.asin(sinTheta2) * 180) / Math.PI;
+          statusStr = n2 > n1 ? "Bends Toward Normal" : "Bends Away From Normal";
+        }
+
+        document.getElementById("outSnellTheta2").textContent = tir ? "TIR" : `${theta2Deg.toFixed(2)}°`;
+        document.getElementById("outSnellCrit").textContent = critDegStr;
+        document.getElementById("outSnellStatus").textContent = statusStr;
+
+        return { n1, n2, theta1Deg, theta2Deg, tir };
+      }
+
+      function drawOpticsCanvas(notify = false) {
+        const opticsCanvas = document.getElementById("opticsCanvas");
+        if (!opticsCanvas || !opticsCanvas.parentElement) return;
+        const rect = opticsCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(280, rect.width || opticsCanvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        opticsCanvas.width = Math.round(width * dpr);
+        opticsCanvas.height = Math.round(height * dpr);
+
+        const ctx = opticsCanvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const med1Bg = isDark ? "rgba(59, 130, 246, 0.08)" : "rgba(37, 99, 235, 0.06)";
+        const med2Bg = isDark ? "rgba(167, 139, 250, 0.10)" : "rgba(124, 58, 237, 0.07)";
+        const normalColor = isDark ? "#64748b" : "#94a3b8";
+        const incColor = "#ef4444";
+        const refColor = "#3b82f6";
+
+        const s = computeSnell();
+        const cx = width / 2;
+        const cy = height / 2;
+
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.fillStyle = med1Bg;
+        ctx.fillRect(0, 0, width, cy);
+        ctx.fillStyle = med2Bg;
+        ctx.fillRect(0, cy, width, height - cy);
+
+        ctx.strokeStyle = isDark ? "#475569" : "#64748b";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, cy);
+        ctx.lineTo(width, cy);
+        ctx.stroke();
+
+        ctx.strokeStyle = normalColor;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(cx, 12);
+        ctx.lineTo(cx, height - 12);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const rayLen = Math.min(cx, cy) * 0.82;
+        const th1 = (s.theta1Deg * Math.PI) / 180;
+
+        const startX = cx - rayLen * Math.sin(th1);
+        const startY = cy - rayLen * Math.cos(th1);
+        ctx.strokeStyle = incColor;
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+
+        if (s.tir) {
+          const refX = cx + rayLen * Math.sin(th1);
+          const refY = cy - rayLen * Math.cos(th1);
+          ctx.strokeStyle = "#f59e0b";
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(refX, refY);
+          ctx.stroke();
+        } else {
+          const th2 = (s.theta2Deg * Math.PI) / 180;
+          const endX = cx + rayLen * Math.sin(th2);
+          const endY = cy + rayLen * Math.cos(th2);
+          ctx.strokeStyle = refColor;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = isDark ? "#cbd5e1" : "#334155";
+        ctx.font = "600 11px var(--font-mono)";
+        ctx.fillText(`n₁ = ${s.n1}`, 12, 20);
+        ctx.fillText(`n₂ = ${s.n2}`, 12, height - 12);
+
+        if (notify) showToast("Snell's law refraction updated");
+      }
+
+      function resetSnellCard(notify = false) {
+        document.getElementById("snellN1").value = "1.50";
+        document.getElementById("snellN2").value = "1.00";
+        document.getElementById("snellTheta1").value = "30";
+        drawOpticsCanvas(false);
+        if (notify) showToast("Snell's law inputs reset");
+      }
+
+      function updateWaveLensEm(notify = false) {
+        const f = Math.max(0.001, parseFloat(document.getElementById("waveFreq").value) || 0);
+        const v = Math.max(0.001, parseFloat(document.getElementById("waveSpeed").value) || 343);
+        const vo = parseFloat(document.getElementById("dopObs").value) || 0;
+        const vs = parseFloat(document.getElementById("dopSrc").value) || 0;
+
+        const lambda = v / f;
+        const denom = v - vs;
+        const fObs = denom !== 0 ? f * ((v + vo) / denom) : 0;
+        document.getElementById("outWaveDoppler").textContent =
+          `λ = ${lambda.toFixed(4)} m • Observed f' = ${fObs.toFixed(2)} Hz`;
+
+        const focal = parseFloat(document.getElementById("lensF").value) || 1;
+        const dObj = parseFloat(document.getElementById("lensDo").value) || 1;
+        const diff = dObj - focal;
+        if (Math.abs(diff) < 1e-9) {
+          document.getElementById("outLensRes").textContent = "Image at Infinity (Collimated / d_o = f)";
+        } else {
+          const dImg = (focal * dObj) / diff;
+          const mag = -dImg / dObj;
+          const nature = dImg > 0 ? "Real, Inverted" : "Virtual, Upright";
+          document.getElementById("outLensRes").textContent =
+            `d_i = ${dImg >= 0 ? "+" : ""}${dImg.toFixed(2)} cm • Mag m = ${mag.toFixed(2)}x (${nature})`;
+        }
+
+        const q1 = (parseFloat(document.getElementById("emQ1").value) || 0) * 1e-6;
+        const q2 = (parseFloat(document.getElementById("emQ2").value) || 0) * 1e-6;
+        const rDist = Math.max(1e-6, parseFloat(document.getElementById("emR").value) || 1);
+        const forceMag = (K_COULOMB * Math.abs(q1 * q2)) / (rDist * rDist);
+        const pol = q1 * q2 < 0 ? "Attractive" : q1 * q2 > 0 ? "Repulsive" : "Zero";
+
+        const rOhm = Math.max(0.01, parseFloat(document.getElementById("rcR").value) || 1000);
+        const cUf = Math.max(1e-6, parseFloat(document.getElementById("rcC").value) || 100);
+        const tauMs = rOhm * (cUf * 1e-6) * 1000;
+
+        document.getElementById("outEmRes").textContent =
+          `|F| = ${forceMag.toFixed(4)} N (${pol}) • RC τ = ${tauMs.toFixed(2)} ms`;
+
+        if (notify) showToast("Wave, lens & EM values calculated");
+      }
+
+      function resetWaveLensEmCard(notify = false) {
+        document.getElementById("waveFreq").value = "440";
+        document.getElementById("waveSpeed").value = "343";
+        document.getElementById("dopObs").value = "15";
+        document.getElementById("dopSrc").value = "-20";
+        document.getElementById("lensF").value = "15";
+        document.getElementById("lensDo").value = "25";
+        document.getElementById("emQ1").value = "5";
+        document.getElementById("emQ2").value = "-3";
+        document.getElementById("emR").value = "0.5";
+        document.getElementById("rcR").value = "1000";
+        document.getElementById("rcC").value = "100";
+        updateWaveLensEm(false);
+        if (notify) showToast("Wave, lens & EM inputs reset");
+      }
+
+      /* ======================================================================
+         MODULE 4: SPECIAL RELATIVITY, QUANTUM & RADIOACTIVE DECAY
+         ====================================================================== */
+      function updateRelativity(notify = false) {
+        const betaRaw = parseFloat(document.getElementById("relBeta").value) || 0;
+        const beta = Math.min(0.999999999, Math.max(0, betaRaw));
+        const gamma = 1 / Math.sqrt(1 - beta * beta);
+
+        const t0 = Math.max(0, parseFloat(document.getElementById("relT0").value) || 0);
+        const l0 = Math.max(0, parseFloat(document.getElementById("relL0").value) || 0);
+        const m0 = Math.max(0, parseFloat(document.getElementById("relMass").value) || 0);
+
+        const dilatedT = gamma * t0;
+        const contractedL = l0 / gamma;
+        const totalEnergy = gamma * m0 * C_LIGHT * C_LIGHT;
+
+        document.getElementById("outRelGamma").textContent = gamma.toFixed(4);
+        document.getElementById("outRelTime").textContent = `${dilatedT.toFixed(3)} s`;
+        document.getElementById("outRelLen").textContent = `${contractedL.toFixed(3)} m`;
+        document.getElementById("outRelEnergy").textContent =
+          totalEnergy === 0 ? "0 J" : `${totalEnergy.toExponential(3)} J`;
+
+        if (notify) showToast("Relativity metrics calculated");
+      }
+
+      function resetRelativityCard(notify = false) {
+        document.getElementById("relBeta").value = "0.80";
+        document.getElementById("relT0").value = "10";
+        document.getElementById("relL0").value = "100";
+        document.getElementById("relMass").value = "9.1093837e-31";
+        updateRelativity(false);
+        if (notify) showToast("Relativity inputs reset");
+      }
+
+      function updateQuantumAndDecay(notify = false) {
+        const qMass = Math.max(1e-45, parseFloat(document.getElementById("qMass").value) || 1e-31);
+        const qVel = Math.max(1e-9, parseFloat(document.getElementById("qVel").value) || 1);
+        const momentum = qMass * qVel;
+        const lambdaDb = H_PLANCK / momentum;
+        const photonEnergyJ = (H_PLANCK * C_LIGHT) / lambdaDb;
+        const photonEnergyEv = photonEnergyJ / E_CHARGE;
+
+        const eLabel = photonEnergyEv >= 1000
+          ? `${(photonEnergyEv / 1000).toFixed(3)} keV`
+          : `${photonEnergyEv.toFixed(3)} eV`;
+
+        document.getElementById("outQuantumRes").textContent =
+          `λ_dB = ${lambdaDb.toExponential(3)} m • Photon E = ${eLabel}`;
+
+        const n0 = Math.max(0, parseFloat(document.getElementById("decN0").value) || 0);
+        const halfLife = Math.max(1e-12, parseFloat(document.getElementById("decHalfLife").value) || 1);
+        const elapsed = Math.max(0, parseFloat(document.getElementById("decElapsed").value) || 0);
+
+        const lambdaDecay = Math.LN2 / halfLife;
+        const nRem = n0 * Math.pow(0.5, elapsed / halfLife);
+        const pctRem = n0 > 0 ? (nRem / n0) * 100 : 0;
+        const activityBq = lambdaDecay * nRem;
+
+        document.getElementById("outDecayRes").textContent =
+          `Remaining N(t) = ${nRem.toExponential(3)} (${pctRem.toFixed(2)}%) • λ = ${lambdaDecay.toExponential(3)} s⁻¹ • A = ${activityBq.toExponential(3)} Bq`;
+
+        if (notify) showToast("Quantum & decay metrics calculated");
+      }
+
+      function resetQuantumAndDecayCard(notify = false) {
+        document.getElementById("qMass").value = "9.1093837e-31";
+        document.getElementById("qVel").value = "2.0e6";
+        document.getElementById("decN0").value = "1e12";
+        document.getElementById("decHalfLife").value = "3600";
+        document.getElementById("decElapsed").value = "7200";
+        updateQuantumAndDecay(false);
+        if (notify) showToast("Quantum & decay inputs reset");
+      }
+
+      /* ======================================================================
+         DOM READY WIRING & INITIALIZATION
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        setTheme(readStoredTheme(), false);
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        document.getElementById("constantsBar").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-val]");
+          if (!chip) return;
+          const val = chip.dataset.val;
+          const name = chip.dataset.name;
+          document.getElementById("lastConstantReadout").textContent = `${name}: ${val}`;
+          copyToClipboard(val, `Copied ${name}`);
+        });
+
+        document.getElementById("unitConvCategory").addEventListener("change", populateUnitPairs);
+        document.getElementById("unitConvPair").addEventListener("change", updateUnitConverter);
+        document.getElementById("unitConvInput").addEventListener("input", updateUnitConverter);
+        document.getElementById("btnCopyUnitConv").addEventListener("click", () => {
+          const cleanText = document.getElementById("unitConvOut").textContent.replace(/^=\s*/, "");
+          copyToClipboard(cleanText, "Converted unit copied");
+        });
+
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.dataset.tab) activateTab(btn.dataset.tab, true);
+          });
+        });
+
+        ["suvatTarget", "suvatV0", "suvatV", "suvatA", "suvatX", "suvatT"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => solveSuvat(false));
+        });
+        document.getElementById("btnCalcSuvat").addEventListener("click", () => solveSuvat(true));
+        document.getElementById("btnResetSuvat").addEventListener("click", () => resetSuvatCalculator(true));
+
+        const projPreset = document.getElementById("projGravityPreset");
+        projPreset.addEventListener("change", () => {
+          document.getElementById("projCustomGWrap").style.display =
+            projPreset.value === "custom" ? "block" : "none";
+          startProjectileAnimation(false);
+        });
+        ["projSpeed", "projAngle", "projHeight", "projCustomG"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => startProjectileAnimation(false));
+        });
+        document.getElementById("btnReplayProj").addEventListener("click", () => startProjectileAnimation(true));
+        document.getElementById("btnResetProj").addEventListener("click", () => resetProjectileLab(true));
+
+        ["dynMass", "dynSlopeAngle", "dynMu", "dynAppliedF", "dynG", "dynTime"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => updateDynamicsAndEnergy(""));
+        });
+        document.getElementById("btnCalcDyn").addEventListener("click", () =>
+          updateDynamicsAndEnergy("Dynamics & incline calculated")
+        );
+        document.getElementById("btnResetDyn").addEventListener("click", () => resetDynamicsCard(true));
+
+        ["colM1", "colV1", "colM2", "colV2", "colType", "colRest"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => updateDynamicsAndEnergy(""));
+        });
+        document.getElementById("btnCalcCol").addEventListener("click", () =>
+          updateDynamicsAndEnergy("Collision & energy calculated")
+        );
+        document.getElementById("btnResetCol").addEventListener("click", () => resetCollisionCard(true));
+
+        ["snellN1", "snellN2", "snellTheta1"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => drawOpticsCanvas(false));
+        });
+        document.getElementById("btnCalcSnell").addEventListener("click", () => drawOpticsCanvas(true));
+        document.getElementById("btnResetSnell").addEventListener("click", () => resetSnellCard(true));
+
+        [
+          "waveFreq", "waveSpeed", "dopObs", "dopSrc",
+          "lensF", "lensDo", "emQ1", "emQ2", "emR", "rcR", "rcC"
+        ].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => updateWaveLensEm(false));
+        });
+        document.getElementById("btnCalcWaveEm").addEventListener("click", () => updateWaveLensEm(true));
+        document.getElementById("btnResetWaveEm").addEventListener("click", () => resetWaveLensEmCard(true));
+
+        ["relBeta", "relT0", "relL0", "relMass"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => updateRelativity(false));
+        });
+        document.getElementById("btnCalcRel").addEventListener("click", () => updateRelativity(true));
+        document.getElementById("btnResetRel").addEventListener("click", () => resetRelativityCard(true));
+
+        ["qMass", "qVel", "decN0", "decHalfLife", "decElapsed"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => updateQuantumAndDecay(false));
+        });
+        document.getElementById("btnCalcQuant").addEventListener("click", () => updateQuantumAndDecay(true));
+        document.getElementById("btnResetQuant").addEventListener("click", () => resetQuantumAndDecayCard(true));
+
+        window.addEventListener("resize", () => {
+          drawProjectileCanvas();
+          drawOpticsCanvas();
+        });
+
+        populateUnitPairs();
+        solveSuvat(false);
+        startProjectileAnimation(false);
+        updateDynamicsAndEnergy("");
+        drawOpticsCanvas(false);
+        updateWaveLensEm(false);
+        updateRelativity(false);
+        updateQuantumAndDecay(false);
+      });
+    })();
+  </script>
+</body>
+</html>

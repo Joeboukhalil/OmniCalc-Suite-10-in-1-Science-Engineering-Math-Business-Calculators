@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Astronomy Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #1d4ed8;
+      --accent-primary-hover: #1e40af;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e3a8a;
+
+      --accent-violet: #6d28d9;
+      --accent-violet-soft: #ede9fe;
+      --accent-violet-text: #4c1d95;
+
+      --accent-emerald: #047857;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #064e3b;
+
+      --accent-amber: #b45309;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #78350f;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #060a14;
+      --bg-surface: #0f172a;
+      --bg-surface-alt: #091020;
+      --bg-canvas: #060b16;
+      --border-color: #1e293b;
+      --border-strong: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --accent-violet: #a78bfa;
+      --accent-violet-soft: rgba(167, 139, 250, 0.16);
+      --accent-violet-text: #c4b5fd;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.48);
+    }
+
+    /* ========================================================================
+       RESET & BASE
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      cursor: pointer;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & CONSTANTS / UNIT STRIP
+       ======================================================================== */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .util-strip {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.95rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1040px) {
+      .util-strip {
+        grid-template-columns: 1.25fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .strip-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .const-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .const-chip {
+      padding: 0.32rem 0.58rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 34px;
+      transition: all 0.12s;
+    }
+
+    .const-chip:hover {
+      border-color: var(--accent-violet);
+      background-color: var(--accent-violet-soft);
+      color: var(--accent-violet-text);
+    }
+
+    .unit-helper-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 580px) {
+      .unit-helper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ========================================================================
+       NAVIGATION TABS & PANELS
+       ======================================================================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 880px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.68rem 0.55rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, FORMS, BUTTONS & KPI BOXES
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .preset-btn {
+      padding: 0.28rem 0.58rem;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-secondary);
+      cursor: pointer;
+      min-height: 32px;
+      transition: all 0.12s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 980px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .astro-input, .astro-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .astro-input:focus, .astro-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.42rem 0.78rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.7rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+
+    .kpi-val {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background-color: var(--accent-violet-soft);
+      color: var(--accent-violet-text);
+      border: 1px solid var(--accent-violet);
+    }
+
+    .formula-box {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 6px;
+      padding: 0.58rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    .alert-box {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 0.6rem;
+      display: none;
+    }
+
+    /* ========================================================================
+       CANVAS VISUALIZERS
+       ======================================================================== */
+    .sim-canvas {
+      width: 100%;
+      height: 290px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       STICKY HEADER BAR WITH NAVIGATION TO index.html & THEME TOGGLE
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">✦Ω</div>
+          <div>
+            <h1>Advanced Astronomy Calculator</h1>
+            <span class="brand-sub">Orbital &amp; Kepler • Coordinates &amp; Eclipses • Astrophysics &amp; Exoplanets • ΛCDM &amp; Compact Objects</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE CONTAINER
+       ====================================================================== -->
+  <main class="main-container">
+
+    <!-- Top Astronomical Constants & Quick Unit Converter Strip -->
+    <section class="util-strip" aria-label="Astronomical Constants and Quick Unit Converter">
+      <div>
+        <div class="strip-label">
+          <span>🪐 Astronomical Constants (Click to Copy Value)</span>
+          <span id="lastConstantReadout" class="mono" style="color: var(--accent-violet-text);"></span>
+        </div>
+        <div class="const-chips mono" id="constantsBar">
+          <button type="button" class="const-chip" data-val="149597870700" data-name="Astronomical Unit (AU)">1 AU = 1.496e11 m</button>
+          <button type="button" class="const-chip" data-val="9.4607304725808e15" data-name="Light-Year (ly)">1 ly = 9.461e15 m</button>
+          <button type="button" class="const-chip" data-val="3.0856775814913673e16" data-name="Parsec (pc)">1 pc = 3.086e16 m</button>
+          <button type="button" class="const-chip" data-val="1.98847e30" data-name="Solar Mass (M☉)">M☉ = 1.988e30 kg</button>
+          <button type="button" class="const-chip" data-val="6.9634e8" data-name="Solar Radius (R☉)">R☉ = 6.963e8 m</button>
+          <button type="button" class="const-chip" data-val="3.828e26" data-name="Solar Luminosity (L☉)">L☉ = 3.828e26 W</button>
+          <button type="button" class="const-chip" data-val="6.67430e-11" data-name="Gravitational Constant (G)">G = 6.674e-11</button>
+          <button type="button" class="const-chip" data-val="299792458" data-name="Speed of Light (c)">c = 2.998e8 m/s</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="strip-label">
+          <span>📐 Quick Astro Unit Converter</span>
+          <span id="unitConvOut" class="mono" style="color: var(--accent-primary-text); font-weight: 800;">= 63,241.08 AU</span>
+        </div>
+        <div class="unit-helper-grid">
+          <input type="number" id="unitConvInput" class="phys-input astro-input mono" value="1" step="any" aria-label="Value to convert" />
+          <select id="unitConvCategory" class="phys-select astro-select" aria-label="Unit category">
+            <option value="dist" selected>Distance</option>
+            <option value="mass">Mass</option>
+            <option value="radius">Radius</option>
+            <option value="angle">Angle / Time</option>
+          </select>
+          <select id="unitConvPair" class="phys-select astro-select mono" aria-label="Conversion pair"></select>
+          <button type="button" class="btn-sm" id="btnCopyUnitConv" title="Copy converted value">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Primary 4-Domain Astronomy Navigation Tabs -->
+    <nav class="tab-bar" role="tablist" aria-label="Astronomy Calculators">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-orb">
+        <span>🛰️ Orbital &amp; Kepler Lab</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-coo">
+        <span>🧭 Coordinates &amp; Eclipses</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-ast">
+        <span>🌟 Astrophysics &amp; Exoplanets</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-cos">
+        <span>🌌 Cosmology &amp; Compact Objects</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: ORBITAL MECHANICS & KEPLER LAB
+         ==================================================================== -->
+    <section id="panel-orb" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: Kepler's Third Law, Vis-Viva & Hohmann Transfer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🪐 Kepler's Third Law, Vis-Viva &amp; Hohmann Transfer</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcOrb">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetOrb">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-bar" aria-label="Orbital Presets">
+            <button type="button" class="preset-btn" data-orb-preset="earth">Earth Orbit (1 AU)</button>
+            <button type="button" class="preset-btn" data-orb-preset="mars">Mars Eccentric (a=1.524 AU, e=0.0934)</button>
+            <button type="button" class="preset-btn" data-orb-preset="hohmann">Earth → Mars Hohmann</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="orbSemiMajor">Semi-Major Axis a (AU)</label>
+              <input type="number" id="orbSemiMajor" class="astro-input mono" value="1.5237" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="orbEcc">Eccentricity e (0..0.95)</label>
+              <input type="number" id="orbEcc" class="astro-input mono" value="0.0934" min="0" max="0.95" step="0.005" />
+            </div>
+            <div>
+              <label class="field-label" for="orbCentralMass">Primary Mass M (M☉)</label>
+              <input type="number" id="orbCentralMass" class="astro-input mono" value="1.0" min="0.0001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="orbCurRadius">Current Radius r (AU)</label>
+              <input type="number" id="orbCurRadius" class="astro-input mono" value="1.45" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="orbTargetR">Hohmann Target r₂ (AU)</label>
+              <input type="number" id="orbTargetR" class="astro-input mono" value="1.5237" min="0.001" step="any" />
+            </div>
+          </div>
+
+          <div id="orbError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Orbital Period P</div>
+              <div class="kpi-val" id="outOrbPeriod">1.881 yr</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Periapsis / Apoapsis</div>
+              <div class="kpi-val" id="outOrbApse" style="font-size: 0.94rem;">1.38 / 1.67 AU</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">v(r) / v_p / v_a</div>
+              <div class="kpi-val" id="outOrbVisViva" style="font-size: 0.88rem;">24.7 / 26.5 / 22.0 km/s</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Hohmann Δv₁ + Δv₂</div>
+              <div class="kpi-val" id="outOrbHohmannDv" style="font-size: 0.92rem;">5.59 km/s</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outOrbHohmannDetail">
+            Hohmann Transfer (r₁ = periapsis → r₂): t_trans = 258.9 days • Δv₁ = 2.95 km/s • Δv₂ = 2.65 km/s
+          </div>
+        </div>
+
+        <!-- Right Card: Animated HTML5 Canvas 2D Orbit Visualizer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🛰️ 2D Keplerian Orbit Visualizer</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnToggleOrbAnim">Pause / Play</button>
+              <button type="button" class="btn-sm" id="btnResetOrbView">Restart</button>
+            </div>
+          </div>
+
+          <canvas id="orbitCanvas" class="sim-canvas" aria-label="2D Keplerian Orbit Visualizer"></canvas>
+
+          <div class="formula-box mono" id="outOrbitCanvasLegend">
+            Focus = Primary Body • Periapsis (r_p) &amp; Apoapsis (r_a) marked • Speed varies by Kepler's 2nd Law
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: CELESTIAL COORDINATES, TIME & ECLIPSES LAB
+         ==================================================================== -->
+    <section id="panel-coo" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: Equatorial -> Horizontal, JD/LST, Elongation & Eclipse Geometry -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧭 Equatorial → Horizontal, JD/LST &amp; Eclipses</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCoo">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCoo">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-bar" aria-label="Coordinate & Eclipse Presets">
+            <button type="button" class="preset-btn" data-coo-preset="orion">Orion Belt (Alnilam)</button>
+            <button type="button" class="preset-btn" data-coo-preset="polaris">Polaris High-Lat</button>
+            <button type="button" class="preset-btn" data-coo-preset="eclipse">Solar Saros &amp; Shadow</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem;">
+            <div>
+              <label class="field-label" for="cooRaHr">Right Ascension RA (hr 0..24)</label>
+              <input type="number" id="cooRaHr" class="astro-input mono" value="5.603" min="0" max="24" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cooDecDeg">Declination Dec (deg)</label>
+              <input type="number" id="cooDecDeg" class="astro-input mono" value="-1.202" min="-90" max="90" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cooLatDeg">Observer Lat (deg +N/-S)</label>
+              <input type="number" id="cooLatDeg" class="astro-input mono" value="33.8938" min="-90" max="90" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cooLonDeg">Observer Lon (deg +E/-W)</label>
+              <input type="number" id="cooLonDeg" class="astro-input mono" value="35.5018" min="-180" max="180" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cooUtcIso">UTC Date &amp; Time</label>
+              <input type="datetime-local" id="cooUtcIso" class="astro-input mono" value="2026-11-20T10:09" />
+            </div>
+            <div>
+              <label class="field-label" for="cooElongDeg">Elongation ψ (deg 0..180)</label>
+              <input type="number" id="cooElongDeg" class="astro-input mono" value="90" min="0" max="180" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="eclBodyDistKm">Body Dist d (km)</label>
+              <input type="number" id="eclBodyDistKm" class="astro-input mono" value="384400" min="1000" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="eclBodyRadKm">Body Radius R_b (km)</label>
+              <input type="number" id="eclBodyRadKm" class="astro-input mono" value="1737.4" min="1" step="any" />
+            </div>
+          </div>
+
+          <div id="cooError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Altitude / Azimuth</div>
+              <div class="kpi-val" id="outCooAltAz" style="font-size: 0.96rem;">+54.8° / 178.2°</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Julian Date (JD)</div>
+              <div class="kpi-val" id="outCooJd" style="font-size: 0.94rem;">2461365.9229</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Local Sidereal Time</div>
+              <div class="kpi-val" id="outCooLst">09h 42m</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Phase Angle / Illum.</div>
+              <div class="kpi-val" id="outCooPhase" style="font-size: 0.94rem;">90.0° / 50.0%</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outCooEclipseInfo">
+            Shadow &amp; Saros: Umbra length ~373,000 km • Lunar/Solar eclipse window ±15.4° / ±18.3° nodal limit • 1 Saros = 18 yr 11.3 d
+          </div>
+        </div>
+
+        <!-- Right Card: Interactive HTML5 Canvas Horizon & Sky Dome Plot -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌌 Horizon &amp; Sky Dome Altitude Plot</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnUseNowUtc">Use Current UTC</button>
+            </div>
+          </div>
+
+          <canvas id="skyCanvas" class="sim-canvas" aria-label="Horizon Altitude and Sky Dome Plot"></canvas>
+
+          <div class="formula-box mono" id="outSkyCanvasNote">
+            Shows target elevation above/below horizon across azimuth (0° N, 90° E, 180° S, 270° W) &amp; 24h diurnal curve
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: ASTROPHYSICS, LUMINOSITY & EXOPLANETS LAB
+         ==================================================================== -->
+    <section id="panel-ast" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: Stefan-Boltzmann, Magnitudes, Wien, Habitable Zone & Exoplanets -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌟 Stellar Luminosity, HZ &amp; Exoplanet Transit/RV</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcAst">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetAst">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-bar" aria-label="Astrophysics Presets">
+            <button type="button" class="preset-btn" data-ast-preset="sun">Sun (G2V, 5778 K, 1 R☉)</button>
+            <button type="button" class="preset-btn" data-ast-preset="vega">Vega (A0V, 9602 K, 2.5 L☉)</button>
+            <button type="button" class="preset-btn" data-ast-preset="trappist">M-Dwarf Hot Jupiter</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem;">
+            <div>
+              <label class="field-label" for="astRadiusRsun">Star Radius R (R☉)</label>
+              <input type="number" id="astRadiusRsun" class="astro-input mono" value="1.0" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="astTempK">Effective Temp T_eff (K)</label>
+              <input type="number" id="astTempK" class="astro-input mono" value="5778" min="500" max="60000" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="astAppMag">Apparent Mag m</label>
+              <input type="number" id="astAppMag" class="astro-input mono" value="-26.74" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="astAbsMag">Absolute Mag M</label>
+              <input type="number" id="astAbsMag" class="astro-input mono" value="4.83" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="exoPlanetRad">Planet Radius (R_⊕)</label>
+              <input type="number" id="exoPlanetRad" class="astro-input mono" value="1.25" min="0.05" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="exoStarMass">Star Mass (M☉)</label>
+              <input type="number" id="exoStarMass" class="astro-input mono" value="1.0" min="0.02" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="exoPlanetMsini">Planet m·sin i (M_⊕)</label>
+              <input type="number" id="exoPlanetMsini" class="astro-input mono" value="5.0" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="exoOrbitAu">Planet Semi-Major a (AU)</label>
+              <input type="number" id="exoOrbitAu" class="astro-input mono" value="0.1" min="0.002" step="any" />
+            </div>
+          </div>
+
+          <div style="margin-top: 0.65rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="field-label" style="margin: 0;">Spectral Classification:</span>
+            <span class="badge-pill mono" id="outAstSpecBadge">G2V · λ_peak = 501.5 nm</span>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Luminosity L / L☉</div>
+              <div class="kpi-val" id="outAstLum">1.000 L☉</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Distance d (pc / ly)</div>
+              <div class="kpi-val" id="outAstDist" style="font-size: 0.92rem;">4.85e-6 pc</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Habitable Zone (AU)</div>
+              <div class="kpi-val" id="outAstHz" style="font-size: 0.9rem;">0.95 – 1.68 AU</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Transit ΔF / RV K</div>
+              <div class="kpi-val" id="outAstExo" style="font-size: 0.88rem;">131 ppm · 1.41 m/s</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outAstMagDetail">
+            Distance Modulus (m − M): −31.57 mag • Bolometric Mag M_bol ≈ +4.75 • Conservative HZ: 0.95–1.68 AU (Optimistic: 0.75–1.77 AU)
+          </div>
+        </div>
+
+        <!-- Right Card: Interactive HTML5 Canvas H-R & Habitable Zone Diagram -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Hertzsprung-Russell &amp; Habitable Zone Plot</div>
+          </div>
+
+          <canvas id="hrCanvas" class="sim-canvas" aria-label="Hertzsprung-Russell and Habitable Zone Visualizer"></canvas>
+
+          <div class="formula-box mono" id="outHrCanvasNote">
+            Main sequence band &amp; current star marker plotted across Temperature (K) vs. Luminosity (L/L☉)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: COSMOLOGY & COMPACT OBJECTS LAB
+         ==================================================================== -->
+    <section id="panel-cos" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: Flat ΛCDM Cosmology Calculator -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌌 Flat ΛCDM Cosmology Calculator</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCos">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCos">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-bar" aria-label="Cosmology Presets">
+            <button type="button" class="preset-btn" data-cos-preset="planck">Planck 2018 (z=1.0, H0=67.4)</button>
+            <button type="button" class="preset-btn" data-cos-preset="cmb">Recombination (z=1089)</button>
+            <button type="button" class="preset-btn" data-cos-preset="local">Local Universe (z=0.15, H0=70)</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="cosRedshift">Redshift z</label>
+              <input type="number" id="cosRedshift" class="astro-input mono" value="1.0" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cosH0">Hubble Constant H₀ (km/s/Mpc)</label>
+              <input type="number" id="cosH0" class="astro-input mono" value="67.4" min="20" max="120" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cosOm">Matter Density Ω_m</label>
+              <input type="number" id="cosOm" class="astro-input mono" value="0.315" min="0" max="1" step="0.005" />
+            </div>
+            <div>
+              <label class="field-label" for="cosOl">Dark Energy Ω_Λ (flat = 1 − Ω_m)</label>
+              <input type="number" id="cosOl" class="astro-input mono" value="0.685" min="0" max="1" step="0.005" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Hubble Time (1/H₀)</div>
+              <div class="kpi-val" id="outCosTh">14.51 Gyr</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Comoving Dist D_C</div>
+              <div class="kpi-val" id="outCosDc" style="font-size: 0.94rem;">3,395 Mpc</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Luminosity Dist D_L</div>
+              <div class="kpi-val" id="outCosDl" style="font-size: 0.94rem;">6,790 Mpc</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Angular Diam. D_A / a(z)</div>
+              <div class="kpi-val" id="outCosDa" style="font-size: 0.88rem;">1,698 Mpc · a=0.500</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outCosFormula">
+            Flat ΛCDM: E(z) = √(Ω_m(1+z)³ + Ω_Λ) • D_C = (c/H₀) ∫ dz'/E(z') • D_L = (1+z)D_C • D_A = D_C/(1+z)
+          </div>
+        </div>
+
+        <!-- Right Card: Compact Objects (Schwarzschild, Photon Sphere & Gravitational Redshift) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🕳️ Compact Objects: Schwarzschild &amp; Redshift</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCompact">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCompact">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-bar" aria-label="Compact Object Presets">
+            <button type="button" class="preset-btn" data-cmp-preset="sgrA">Sgr A* (4.15e6 M☉)</button>
+            <button type="button" class="preset-btn" data-cmp-preset="ns">Neutron Star (1.4 M☉, 12 km)</button>
+            <button type="button" class="preset-btn" data-cmp-preset="wd">White Dwarf (0.6 M☉, 7000 km)</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="cmpMassMsun">Compact Mass M (M☉)</label>
+              <input type="number" id="cmpMassMsun" class="astro-input mono" value="1.4" min="0.01" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="cmpEmitRadiusKm">Emission Radius r (km)</label>
+              <input type="number" id="cmpEmitRadiusKm" class="astro-input mono" value="12" min="0.001" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Schwarzschild r_s</div>
+              <div class="kpi-val" id="outCmpRs">4.135 km</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Photon Sphere 1.5·r_s</div>
+              <div class="kpi-val" id="outCmpRph">6.203 km</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Grav. Redshift z_grav</div>
+              <div class="kpi-val" id="outCmpZgrav">0.3055</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Surface Escape v_esc/c</div>
+              <div class="kpi-val" id="outCmpVesc">0.580 c</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outCmpNote">
+            r_s = 2GM/c² • r_ph = 1.5·r_s • z_grav = 1/√(1 − r_s/r) − 1 (for r &gt; r_s)
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         PHYSICAL & ASTRONOMICAL CONSTANTS (SI)
+         ====================================================================== */
+      const AU_M = 149597870700;
+      const LY_M = 9.4607304725808e15;
+      const PC_M = 3.0856775814913673e16;
+      const M_SUN = 1.98847e30;
+      const R_SUN = 6.9634e8;
+      const L_SUN = 3.828e26;
+      const R_EARTH_M = 6.371e6;
+      const M_EARTH_KG = 5.9722e24;
+      const G_CONST = 6.67430e-11;
+      const C_LIGHT = 299792458;
+      const WIEN_B = 2.897771955e-3; // m·K
+      const YEAR_SEC = 31557600; // Julian year (365.25 days)
+      const MPC_KM = 3.0856775814913673e19;
+
+      /* ======================================================================
+         SAFE STORAGE, CLIPBOARD & TOAST HELPERS
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function readStoredTheme() {
+        try {
+          return localStorage.getItem("aac_theme") || "light";
+        } catch (_) {
+          return "light";
+        }
+      }
+
+      function writeStoredTheme(theme) {
+        try {
+          localStorage.setItem("aac_theme", theme);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(label),
+            () => fallbackExecCopy(text, label)
+          );
+          return;
+        }
+        fallbackExecCopy(text, label);
+      }
+
+      function fallbackExecCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (_) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function formatCompact(num, digits = 3) {
+        if (!Number.isFinite(num)) return "—";
+        if (num === 0) return "0";
+        if (Math.abs(num) >= 1e6 || (Math.abs(num) > 0 && Math.abs(num) < 1e-3)) {
+          return num.toExponential(digits);
+        }
+        return num.toLocaleString("en-US", { maximumFractionDigits: digits });
+      }
+
+      function redrawAllCanvases() {
+        drawOrbitCanvas();
+        drawSkyCanvas();
+        drawHrCanvas();
+      }
+
+      /* ======================================================================
+         THEME CONTROLLER
+         ====================================================================== */
+      function setTheme(theme, notify = false) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        const icon = document.getElementById("themeIcon");
+        const label = document.getElementById("themeLabel");
+        if (icon) icon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (label) label.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        writeStoredTheme(safeTheme);
+        requestAnimationFrame(redrawAllCanvases);
+        if (notify) {
+          showToast(safeTheme === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      /* ======================================================================
+         TAB SWITCHING
+         ====================================================================== */
+      function activateTab(targetTabId, notify = false) {
+        const tabBtns = document.querySelectorAll(".tab-btn");
+        const panels = document.querySelectorAll(".panel");
+        tabBtns.forEach((btn) => {
+          const active = btn.dataset.tab === targetTabId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetTabId);
+        });
+        requestAnimationFrame(redrawAllCanvases);
+        if (notify) {
+          const activeBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+          if (activeBtn) showToast(`Switched to ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         ASTRONOMICAL UNIT CONVERTER
+         ====================================================================== */
+      const ASTRO_UNIT_PAIRS = {
+        dist: [
+          { label: "ly → AU", factor: LY_M / AU_M, suffix: "AU" },
+          { label: "pc → ly", factor: PC_M / LY_M, suffix: "ly" },
+          { label: "AU → km", factor: AU_M / 1000, suffix: "km" },
+          { label: "pc → AU", factor: PC_M / AU_M, suffix: "AU" }
+        ],
+        mass: [
+          { label: "M☉ → M_⊕", factor: M_SUN / M_EARTH_KG, suffix: "M_⊕" },
+          { label: "M☉ → kg", factor: M_SUN, suffix: "kg" },
+          { label: "M_⊕ → kg", factor: M_EARTH_KG, suffix: "kg" }
+        ],
+        radius: [
+          { label: "R☉ → R_⊕", factor: R_SUN / R_EARTH_M, suffix: "R_⊕" },
+          { label: "R☉ → km", factor: R_SUN / 1000, suffix: "km" },
+          { label: "R_⊕ → km", factor: R_EARTH_M / 1000, suffix: "km" }
+        ],
+        angle: [
+          { label: "deg → rad", factor: Math.PI / 180, suffix: "rad" },
+          { label: "rad → deg", factor: 180 / Math.PI, suffix: "deg" },
+          { label: "hr → deg (RA)", factor: 15, suffix: "deg" },
+          { label: "deg → hr (RA)", factor: 1 / 15, suffix: "hr" }
+        ]
+      };
+
+      function populateAstroUnitPairs() {
+        const catEl = document.getElementById("unitConvCategory");
+        const pairEl = document.getElementById("unitConvPair");
+        if (!catEl || !pairEl) return;
+        const list = ASTRO_UNIT_PAIRS[catEl.value] || ASTRO_UNIT_PAIRS.dist;
+        pairEl.innerHTML = list.map((p, idx) => `<option value="${idx}">${p.label}</option>`).join("");
+        updateAstroUnitConverter();
+      }
+
+      function updateAstroUnitConverter() {
+        const valEl = document.getElementById("unitConvInput");
+        const catEl = document.getElementById("unitConvCategory");
+        const pairEl = document.getElementById("unitConvPair");
+        const outEl = document.getElementById("unitConvOut");
+        if (!valEl || !catEl || !pairEl || !outEl) return;
+
+        const val = parseFloat(valEl.value) || 0;
+        const list = ASTRO_UNIT_PAIRS[catEl.value] || ASTRO_UNIT_PAIRS.dist;
+        const pair = list[parseInt(pairEl.value, 10) || 0] || list[0];
+        const res = val * pair.factor;
+        outEl.textContent = `= ${formatCompact(res, 4)} ${pair.suffix}`;
+      }
+
+      /* ======================================================================
+         TAB 1: ORBITAL MECHANICS, KEPLER, VIS-VIVA, HOHMANN & CANVAS
+         ====================================================================== */
+      let orbAnimId = null;
+      let orbAnimRunning = true;
+      let orbMeanAnomaly = 0.6;
+      let lastOrbTime = 0;
+
+      function computeOrbitalMechanics() {
+        const aAu = Math.max(0.001, parseFloat(document.getElementById("orbSemiMajor").value) || 1);
+        const e = Math.min(0.95, Math.max(0, parseFloat(document.getElementById("orbEcc").value) || 0));
+        const mMsun = Math.max(0.0001, parseFloat(document.getElementById("orbCentralMass").value) || 1);
+        const rAu = Math.max(0.001, parseFloat(document.getElementById("orbCurRadius").value) || aAu);
+        const r2Au = Math.max(0.001, parseFloat(document.getElementById("orbTargetR").value) || aAu);
+
+        const muSi = G_CONST * mMsun * M_SUN;
+        const aM = aAu * AU_M;
+        const rM = rAu * AU_M;
+
+        // Kepler's Third Law: P = 2*pi * sqrt(a^3 / mu)
+        const periodSec = 2 * Math.PI * Math.sqrt(Math.pow(aM, 3) / muSi);
+        const periodYr = periodSec / YEAR_SEC;
+
+        const rPeriAu = aAu * (1 - e);
+        const rApoAu = aAu * (1 + e);
+        const rPeriM = rPeriAu * AU_M;
+        const rApoM = rApoAu * AU_M;
+
+        // Vis-Viva: v^2 = mu * (2/r - 1/a)
+        const vCurKms = Math.sqrt(Math.max(0, muSi * (2 / rM - 1 / aM))) / 1000;
+        const vPeriKms = Math.sqrt(Math.max(0, muSi * (2 / rPeriM - 1 / aM))) / 1000;
+        const vApoKms = Math.sqrt(Math.max(0, muSi * (2 / rApoM - 1 / aM))) / 1000;
+
+        // Hohmann transfer from r1 (current or periapsis) to r2
+        const r1M = rPeriM;
+        const r2M = r2Au * AU_M;
+        const aTransM = 0.5 * (r1M + r2M);
+
+        const vCirc1 = Math.sqrt(muSi / r1M);
+        const vTransPeri = Math.sqrt(muSi * (2 / r1M - 1 / aTransM));
+        const dv1Kms = Math.abs(vTransPeri - vCirc1) / 1000;
+
+        const vCirc2 = Math.sqrt(muSi / r2M);
+        const vTransApo = Math.sqrt(muSi * (2 / r2M - 1 / aTransM));
+        const dv2Kms = Math.abs(vCirc2 - vTransApo) / 1000;
+
+        const dvTotalKms = dv1Kms + dv2Kms;
+        const tTransDays = (Math.PI * Math.sqrt(Math.pow(aTransM, 3) / muSi)) / 86400;
+
+        document.getElementById("outOrbPeriod").textContent = `${periodYr.toFixed(3)} yr`;
+        document.getElementById("outOrbApse").textContent = `${rPeriAu.toFixed(2)} / ${rApoAu.toFixed(2)} AU`;
+        document.getElementById("outOrbVisViva").textContent =
+          `${vCurKms.toFixed(1)} / ${vPeriKms.toFixed(1)} / ${vApoKms.toFixed(1)} km/s`;
+        document.getElementById("outOrbHohmannDv").textContent = `${dvTotalKms.toFixed(2)} km/s`;
+        document.getElementById("outOrbHohmannDetail").textContent =
+          `Hohmann (${rPeriAu.toFixed(2)} AU → ${r2Au.toFixed(2)} AU): t_trans = ${tTransDays.toFixed(1)} days • Δv₁ = ${dv1Kms.toFixed(2)} km/s • Δv₂ = ${dv2Kms.toFixed(2)} km/s`;
+
+        return { aAu, e, rPeriAu, rApoAu, periodSec };
+      }
+
+      function drawOrbitCanvas() {
+        const canvas = document.getElementById("orbitCanvas");
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const orbitColor = isDark ? "#60a5fa" : "#1d4ed8";
+        const starColor = "#f59e0b";
+        const bodyColor = isDark ? "#34d399" : "#059669";
+        const labelColor = isDark ? "#cbd5e1" : "#334155";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const orb = computeOrbitalMechanics();
+        const e = orb.e;
+        const bFactor = Math.sqrt(Math.max(0.05, 1 - e * e));
+
+        const maxSemiPx = Math.min(width * 0.36, height * 0.38);
+        const aPx = maxSemiPx;
+        const bPx = aPx * bFactor;
+        const cPx = aPx * e;
+
+        // Place central body at focus (cx, cy)
+        const cx = width * 0.5 + cPx * 0.45;
+        const cy = height * 0.52;
+        const ellipseCenterX = cx - cPx;
+
+        // Ellipse path
+        ctx.strokeStyle = orbitColor;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(ellipseCenterX, cy, aPx, bPx, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Periapsis (rightmost of ellipse: ellipseCenterX + aPx) & Apoapsis (leftmost)
+        const periX = ellipseCenterX + aPx;
+        const apoX = ellipseCenterX - aPx;
+
+        ctx.fillStyle = "#f97316";
+        ctx.beginPath();
+        ctx.arc(periX, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#a78bfa";
+        ctx.beginPath();
+        ctx.arc(apoX, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = "600 10px var(--font-mono)";
+        ctx.fillStyle = labelColor;
+        ctx.fillText("Peri", periX - 10, cy + 15);
+        ctx.fillText("Apo", apoX - 8, cy + 15);
+
+        // Central star/body at focus
+        ctx.fillStyle = starColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Orbiting body position from eccentric anomaly approximation
+        const E = orbMeanAnomaly + e * Math.sin(orbMeanAnomaly);
+        const bx = ellipseCenterX + aPx * Math.cos(E);
+        const by = cy - bPx * Math.sin(E);
+
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(bx, by, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function stepOrbitAnimation(now) {
+        if (!lastOrbTime) lastOrbTime = now;
+        const dtSec = Math.min(0.1, (now - lastOrbTime) / 1000);
+        lastOrbTime = now;
+
+        if (orbAnimRunning) {
+          orbMeanAnomaly = (orbMeanAnomaly + dtSec * 1.4) % (Math.PI * 2);
+        }
+        drawOrbitCanvas();
+        orbAnimId = requestAnimationFrame(stepOrbitAnimation);
+      }
+
+      function applyOrbitalPreset(preset, notify = false) {
+        if (preset === "earth") {
+          document.getElementById("orbSemiMajor").value = "1.0";
+          document.getElementById("orbEcc").value = "0.0167";
+          document.getElementById("orbCentralMass").value = "1.0";
+          document.getElementById("orbCurRadius").value = "1.0";
+          document.getElementById("orbTargetR").value = "1.0";
+        } else if (preset === "mars") {
+          document.getElementById("orbSemiMajor").value = "1.5237";
+          document.getElementById("orbEcc").value = "0.0934";
+          document.getElementById("orbCentralMass").value = "1.0";
+          document.getElementById("orbCurRadius").value = "1.45";
+          document.getElementById("orbTargetR").value = "1.5237";
+        } else if (preset === "hohmann") {
+          document.getElementById("orbSemiMajor").value = "1.0";
+          document.getElementById("orbEcc").value = "0.0167";
+          document.getElementById("orbCentralMass").value = "1.0";
+          document.getElementById("orbCurRadius").value = "1.0";
+          document.getElementById("orbTargetR").value = "1.5237";
+        }
+        computeOrbitalMechanics();
+        drawOrbitCanvas();
+        if (notify) showToast(`Loaded orbital preset: ${preset}`);
+      }
+
+      /* ======================================================================
+         TAB 2: CELESTIAL COORDINATES, JD/LST, ECLIPSES & SKY CANVAS
+         ====================================================================== */
+      function computeJulianDate(dateObj) {
+        const y = dateObj.getUTCFullYear();
+        let m = dateObj.getUTCMonth() + 1;
+        const d = dateObj.getUTCDate() +
+          (dateObj.getUTCHours() + dateObj.getUTCMinutes() / 60 + dateObj.getUTCSeconds() / 3600) / 24;
+
+        let yearAdj = y;
+        if (m <= 2) {
+          yearAdj -= 1;
+          m += 12;
+        }
+        const a = Math.floor(yearAdj / 100);
+        const b = 2 - a + Math.floor(a / 4);
+        return Math.floor(365.25 * (yearAdj + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524.5;
+      }
+
+      function eqToHoriz(raHr, decDeg, latDeg, lstHr) {
+        const haDeg = ((lstHr - raHr) * 15 + 540) % 360 - 180;
+        const ha = (haDeg * Math.PI) / 180;
+        const dec = (decDeg * Math.PI) / 180;
+        const lat = (latDeg * Math.PI) / 180;
+
+        const sinAlt = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(ha);
+        const alt = Math.asin(Math.min(1, Math.max(-1, sinAlt)));
+
+        const cosAz = (Math.sin(dec) - Math.sin(alt) * Math.sin(lat)) /
+          Math.max(1e-9, Math.cos(alt) * Math.cos(lat));
+        let az = Math.acos(Math.min(1, Math.max(-1, cosAz))) * (180 / Math.PI);
+        if (Math.sin(ha) > 0) az = 360 - az;
+
+        return { altDeg: (alt * 180) / Math.PI, azDeg: az };
+      }
+
+      function computeCoordinatesAndEclipses() {
+        const raHr = ((parseFloat(document.getElementById("cooRaHr").value) || 0) % 24 + 24) % 24;
+        const decDeg = Math.min(90, Math.max(-90, parseFloat(document.getElementById("cooDecDeg").value) || 0));
+        const latDeg = Math.min(90, Math.max(-90, parseFloat(document.getElementById("cooLatDeg").value) || 0));
+        const lonDeg = Math.min(180, Math.max(-180, parseFloat(document.getElementById("cooLonDeg").value) || 0));
+        const isoVal = document.getElementById("cooUtcIso").value;
+        const elongDeg = Math.min(180, Math.max(0, parseFloat(document.getElementById("cooElongDeg").value) || 0));
+        const distKm = Math.max(1000, parseFloat(document.getElementById("eclBodyDistKm").value) || 384400);
+        const radKm = Math.max(1, parseFloat(document.getElementById("eclBodyRadKm").value) || 1737.4);
+
+        const dt = isoVal ? new Date(isoVal + "Z") : new Date();
+        const safeDate = Number.isNaN(dt.getTime()) ? new Date() : dt;
+
+        const jd = computeJulianDate(safeDate);
+        const dSinceJ2000 = jd - 2451545.0;
+        const gmstHr = (((18.697374558 + 24.06570982441908 * dSinceJ2000) % 24) + 24) % 24;
+        const lstHr = (((gmstHr + lonDeg / 15) % 24) + 24) % 24;
+
+        const horiz = eqToHoriz(raHr, decDeg, latDeg, lstHr);
+
+        // Phase angle approx from elongation & body distance
+        const phaseDeg = Math.min(180, Math.max(0, 180 - elongDeg));
+        const illumPct = 50 * (1 + Math.cos((phaseDeg * Math.PI) / 180));
+
+        // Angular diameter & shadow geometry
+        const angDiamArcsec = 2 * Math.asin(Math.min(0.99, radKm / distKm)) * (180 / Math.PI) * 3600;
+        const rSunKm = R_SUN / 1000;
+        const sunAuKm = AU_M / 1000;
+        const umbraLenKm = (radKm * sunAuKm) / Math.max(1, rSunKm - radKm);
+
+        const lstH = Math.floor(lstHr);
+        const lstM = Math.floor((lstHr - lstH) * 60);
+
+        document.getElementById("outCooAltAz").textContent =
+          `${horiz.altDeg >= 0 ? "+" : ""}${horiz.altDeg.toFixed(1)}° / ${horiz.azDeg.toFixed(1)}°`;
+        document.getElementById("outCooJd").textContent = jd.toFixed(4);
+        document.getElementById("outCooLst").textContent =
+          `${String(lstH).padStart(2, "0")}h ${String(lstM).padStart(2, "0")}m`;
+        document.getElementById("outCooPhase").textContent =
+          `${phaseDeg.toFixed(1)}° / ${illumPct.toFixed(1)}%`;
+        document.getElementById("outCooEclipseInfo").textContent =
+          `Ang. Diam: ${angDiamArcsec.toFixed(1)}" • Shadow Umbra Length ≈ ${formatCompact(umbraLenKm, 1)} km • Saros Cycle = 18 yr 11.3 d (223 synodic months)`;
+
+        return { raHr, decDeg, latDeg, lstHr, horiz };
+      }
+
+      function drawSkyCanvas() {
+        const canvas = document.getElementById("skyCanvas");
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const horizonColor = isDark ? "#34d399" : "#059669";
+        const curveColor = isDark ? "#60a5fa" : "#1d4ed8";
+        const axisColor = isDark ? "#94a3b8" : "#475569";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const info = computeCoordinatesAndEclipses();
+        const padL = 42;
+        const padR = 16;
+        const padT = 20;
+        const padB = 30;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+
+        const altToY = (alt) => {
+          const clamped = Math.min(90, Math.max(-90, alt));
+          return padT + ((90 - clamped) / 180) * plotH;
+        };
+
+        // Horizon 0° line
+        const yZero = altToY(0);
+        ctx.strokeStyle = horizonColor;
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(padL, yZero);
+        ctx.lineTo(width - padR, yZero);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Axes
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        // 24-hour diurnal altitude curve
+        ctx.strokeStyle = curveColor;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        const steps = 72;
+        for (let i = 0; i <= steps; i++) {
+          const hourOffset = (i / steps) * 24;
+          const pt = eqToHoriz(info.raHr, info.decDeg, info.latDeg, info.lstHr + hourOffset);
+          const px = padL + (i / steps) * plotW;
+          const py = altToY(pt.altDeg);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Current target marker
+        const curPy = altToY(info.horiz.altDeg);
+        ctx.fillStyle = "#f59e0b";
+        ctx.beginPath();
+        ctx.arc(padL, curPy, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = axisColor;
+        ctx.font = "600 10px var(--font-mono)";
+        ctx.fillText("+90°", 6, padT + 8);
+        ctx.fillText("0°", 14, yZero + 3);
+        ctx.fillText("-90°", 4, height - padB);
+        ctx.fillText("Now", padL, height - 10);
+        ctx.fillText("+24h", width - padR - 24, height - 10);
+      }
+
+      function applyCoordinatePreset(preset, notify = false) {
+        if (preset === "orion") {
+          document.getElementById("cooRaHr").value = "5.603";
+          document.getElementById("cooDecDeg").value = "-1.202";
+          document.getElementById("cooLatDeg").value = "33.8938";
+          document.getElementById("cooLonDeg").value = "35.5018";
+          document.getElementById("cooElongDeg").value = "125";
+          document.getElementById("eclBodyDistKm").value = "384400";
+          document.getElementById("eclBodyRadKm").value = "1737.4";
+        } else if (preset === "polaris") {
+          document.getElementById("cooRaHr").value = "2.53";
+          document.getElementById("cooDecDeg").value = "89.264";
+          document.getElementById("cooLatDeg").value = "48.8566";
+          document.getElementById("cooLonDeg").value = "2.3522";
+          document.getElementById("cooElongDeg").value = "75";
+          document.getElementById("eclBodyDistKm").value = "384400";
+          document.getElementById("eclBodyRadKm").value = "1737.4";
+        } else if (preset === "eclipse") {
+          document.getElementById("cooRaHr").value = "15.72";
+          document.getElementById("cooDecDeg").value = "-19.5";
+          document.getElementById("cooLatDeg").value = "0";
+          document.getElementById("cooLonDeg").value = "0";
+          document.getElementById("cooElongDeg").value = "0.5";
+          document.getElementById("eclBodyDistKm").value = "363300";
+          document.getElementById("eclBodyRadKm").value = "1737.4";
+        }
+        drawSkyCanvas();
+        if (notify) showToast(`Loaded coordinate/eclipse preset: ${preset}`);
+      }
+
+      /* ======================================================================
+         TAB 3: ASTROPHYSICS, LUMINOSITY, HZ, EXOPLANETS & H-R CANVAS
+         ====================================================================== */
+      function classifySpectrum(tempK) {
+        if (tempK >= 30000) return "O";
+        if (tempK >= 10000) return "B";
+        if (tempK >= 7500) return "A";
+        if (tempK >= 6000) return "F";
+        if (tempK >= 5200) return "G";
+        if (tempK >= 3700) return "K";
+        return "M";
+      }
+
+      function computeAstrophysicsAndExoplanets() {
+        const rRsun = Math.max(0.001, parseFloat(document.getElementById("astRadiusRsun").value) || 1);
+        const tEff = Math.max(500, parseFloat(document.getElementById("astTempK").value) || 5778);
+        const mApp = parseFloat(document.getElementById("astAppMag").value) || 0;
+        const mAbs = parseFloat(document.getElementById("astAbsMag").value) || 0;
+        const pRadEarth = Math.max(0.05, parseFloat(document.getElementById("exoPlanetRad").value) || 1);
+        const starMassMsun = Math.max(0.02, parseFloat(document.getElementById("exoStarMass").value) || 1);
+        const pMsiniEarth = Math.max(0.01, parseFloat(document.getElementById("exoPlanetMsini").value) || 1);
+        const orbitAu = Math.max(0.002, parseFloat(document.getElementById("exoOrbitAu").value) || 0.1);
+
+        // Stefan-Boltzmann L/L_sun = (R/R_sun)^2 * (T/T_sun)^4
+        const lumLsun = Math.pow(rRsun, 2) * Math.pow(tEff / 5778, 4);
+
+        // Wien's Law peak wavelength
+        const peakM = WIEN_B / tEff;
+        const peakNm = peakM * 1e9;
+        const specClass = classifySpectrum(tEff);
+
+        // Distance modulus: m - M = 5 * log10(d_pc) - 5 => d_pc = 10^((m - M + 5)/5)
+        const distMod = mApp - mAbs;
+        const distPc = Math.pow(10, (distMod + 5) / 5);
+        const distLy = distPc * (PC_M / LY_M);
+
+        // Habitable Zone scaling with sqrt(L/L_sun)
+        const hzInnerCon = 0.95 * Math.sqrt(lumLsun);
+        const hzOuterCon = 1.68 * Math.sqrt(lumLsun);
+        const hzInnerOpt = 0.75 * Math.sqrt(lumLsun);
+        const hzOuterOpt = 1.77 * Math.sqrt(lumLsun);
+
+        // Transit depth delta_F = (R_p / R_star)^2
+        const rPlanetM = pRadEarth * R_EARTH_M;
+        const rStarM = rRsun * R_SUN;
+        const transitDepth = Math.pow(rPlanetM / rStarM, 2);
+        const transitPpm = transitDepth * 1e6;
+
+        // Radial velocity semi-amplitude K ~ 28.4329 m/s * (Mp sin i / M_jup) / (M_star / M_sun)^(2/3) / sqrt(a_AU)
+        const mJupInEarth = 317.828;
+        const rvMs = 28.4329 * (pMsiniEarth / mJupInEarth) / Math.pow(starMassMsun, 2 / 3) / Math.sqrt(orbitAu);
+
+        document.getElementById("outAstSpecBadge").textContent = `${specClass}-type · λ_peak = ${peakNm.toFixed(1)} nm`;
+        document.getElementById("outAstLum").textContent = `${formatCompact(lumLsun, 3)} L☉`;
+        document.getElementById("outAstDist").textContent = `${formatCompact(distPc, 2)} pc`;
+        document.getElementById("outAstHz").textContent = `${hzInnerCon.toFixed(2)} – ${hzOuterCon.toFixed(2)} AU`;
+        document.getElementById("outAstExo").textContent = `${transitPpm.toFixed(0)} ppm · ${rvMs.toFixed(2)} m/s`;
+        document.getElementById("outAstMagDetail").textContent =
+          `d ≈ ${formatCompact(distLy, 2)} ly (m−M = ${distMod.toFixed(2)}) • Conservative HZ: ${hzInnerCon.toFixed(2)}–${hzOuterCon.toFixed(2)} AU • Optimistic HZ: ${hzInnerOpt.toFixed(2)}–${hzOuterOpt.toFixed(2)} AU`;
+
+        return { tEff, lumLsun };
+      }
+
+      function drawHrCanvas() {
+        const canvas = document.getElementById("hrCanvas");
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const axisColor = isDark ? "#94a3b8" : "#475569";
+        const msColor = isDark ? "rgba(148, 163, 184, 0.35)" : "rgba(71, 85, 105, 0.25)";
+        const starMarker = "#f59e0b";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const star = computeAstrophysicsAndExoplanets();
+        const padL = 44;
+        const padR = 18;
+        const padT = 20;
+        const padB = 30;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+
+        // Temperature runs hot (left, ~35000K) to cool (right, ~2500K) in log space
+        const logTMax = Math.log10(35000);
+        const logTMin = Math.log10(2500);
+
+        // Luminosity runs from 1e-4 to 1e5 L_sun in log space
+        const logLMin = -4;
+        const logLMax = 5;
+
+        const tToX = (t) => {
+          const lt = Math.min(logTMax, Math.max(logTMin, Math.log10(Math.max(2500, t))));
+          return padL + ((logTMax - lt) / (logTMax - logTMin)) * plotW;
+        };
+
+        const lToY = (l) => {
+          const ll = Math.min(logLMax, Math.max(logLMin, Math.log10(Math.max(1e-4, l))));
+          return height - padB - ((ll - logLMin) / (logLMax - logLMin)) * plotH;
+        };
+
+        // Axes
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        // Approximate Main Sequence line
+        const msPts = [
+          [30000, 30000],
+          [10000, 80],
+          [7500, 8],
+          [5778, 1],
+          [4500, 0.15],
+          [3000, 0.003]
+        ];
+        ctx.strokeStyle = msColor;
+        ctx.lineWidth = 8;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        msPts.forEach(([t, l], idx) => {
+          const px = tToX(t);
+          const py = lToY(l);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // Current Star Marker
+        const sx = tToX(star.tEff);
+        const sy = lToY(star.lumLsun);
+        ctx.fillStyle = starMarker;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = axisColor;
+        ctx.font = "600 10px var(--font-mono)";
+        ctx.fillText("35kK", padL, height - 10);
+        ctx.fillText("2.5kK", width - padR - 30, height - 10);
+        ctx.fillText("10⁵L☉", 4, padT + 8);
+        ctx.fillText("10⁻⁴", 8, height - padB);
+      }
+
+      function applyAstroPreset(preset, notify = false) {
+        if (preset === "sun") {
+          document.getElementById("astRadiusRsun").value = "1.0";
+          document.getElementById("astTempK").value = "5778";
+          document.getElementById("astAppMag").value = "-26.74";
+          document.getElementById("astAbsMag").value = "4.83";
+          document.getElementById("exoPlanetRad").value = "1.25";
+          document.getElementById("exoStarMass").value = "1.0";
+          document.getElementById("exoPlanetMsini").value = "5.0";
+          document.getElementById("exoOrbitAu").value = "0.1";
+        } else if (preset === "vega") {
+          document.getElementById("astRadiusRsun").value = "2.36";
+          document.getElementById("astTempK").value = "9602";
+          document.getElementById("astAppMag").value = "0.03";
+          document.getElementById("astAbsMag").value = "0.58";
+          document.getElementById("exoPlanetRad").value = "2.5";
+          document.getElementById("exoStarMass").value = "2.1";
+          document.getElementById("exoPlanetMsini").value = "12.0";
+          document.getElementById("exoOrbitAu").value = "0.25";
+        } else if (preset === "trappist") {
+          document.getElementById("astRadiusRsun").value = "0.12";
+          document.getElementById("astTempK").value = "2560";
+          document.getElementById("astAppMag").value = "11.5";
+          document.getElementById("astAbsMag").value = "12.0";
+          document.getElementById("exoPlanetRad").value = "1.08";
+          document.getElementById("exoStarMass").value = "0.089";
+          document.getElementById("exoPlanetMsini").value = "1.37";
+          document.getElementById("exoOrbitAu").value = "0.029";
+        }
+        drawHrCanvas();
+        if (notify) showToast(`Loaded astrophysics preset: ${preset}`);
+      }
+
+      /* ======================================================================
+         TAB 4: FLAT ΛCDM COSMOLOGY & COMPACT OBJECTS
+         ====================================================================== */
+      function computeCosmology(notify = false) {
+        const z = Math.max(0, parseFloat(document.getElementById("cosRedshift").value) || 0);
+        const h0 = Math.max(20, parseFloat(document.getElementById("cosH0").value) || 67.4);
+        const om = Math.min(1, Math.max(0, parseFloat(document.getElementById("cosOm").value) || 0.315));
+        const ol = Math.min(1, Math.max(0, parseFloat(document.getElementById("cosOl").value) || 0.685));
+
+        // Hubble time t_H = 1 / H0 in Gyr (1 Mpc / (km/s) * Gyr conversion: 977.7922 / H0)
+        const hubbbleTimeGyr = 977.7922 / h0;
+        const dhMpc = (C_LIGHT / 1000) / h0;
+
+        // Simpson integration of 1 / E(z') from 0 to z for flat LCDM
+        const eFunc = (zp) => Math.sqrt(Math.max(1e-9, om * Math.pow(1 + zp, 3) + ol));
+        const steps = 400;
+        const hStep = z / steps;
+        let sum = 0;
+        if (z > 0) {
+          sum = eFunc(0) ? 1 / eFunc(0) : 0;
+          sum += eFunc(z) ? 1 / eFunc(z) : 0;
+          for (let i = 1; i < steps; i++) {
+            const zp = i * hStep;
+            const coeff = i % 2 === 0 ? 2 : 4;
+            sum += coeff / eFunc(zp);
+          }
+          sum *= hStep / 3;
+        }
+
+        const dcMpc = dhMpc * sum;
+        const dlMpc = (1 + z) * dcMpc;
+        const daMpc = dcMpc / (1 + z);
+        const scaleFactor = 1 / (1 + z);
+
+        document.getElementById("outCosTh").textContent = `${hubbbleTimeGyr.toFixed(2)} Gyr`;
+        document.getElementById("outCosDc").textContent = `${formatCompact(dcMpc, 1)} Mpc`;
+        document.getElementById("outCosDl").textContent = `${formatCompact(dlMpc, 1)} Mpc`;
+        document.getElementById("outCosDa").textContent = `${formatCompact(daMpc, 1)} Mpc · a=${scaleFactor.toFixed(3)}`;
+
+        if (notify) showToast("Flat ΛCDM cosmology distances calculated");
+      }
+
+      function computeCompactObject(notify = false) {
+        const massMsun = Math.max(0.01, parseFloat(document.getElementById("cmpMassMsun").value) || 1.4);
+        const rEmitKm = Math.max(0.001, parseFloat(document.getElementById("cmpEmitRadiusKm").value) || 12);
+
+        const massKg = massMsun * M_SUN;
+        const rsM = (2 * G_CONST * massKg) / (C_LIGHT * C_LIGHT);
+        const rsKm = rsM / 1000;
+        const rphKm = 1.5 * rsKm;
+
+        const rEmitM = rEmitKm * 1000;
+        const ratioRsR = rsM / rEmitM;
+
+        let zGravText = "Horizon (r ≤ r_s)";
+        let vEscText = "≥ 1.000 c";
+
+        if (ratioRsR < 1) {
+          const zGrav = 1 / Math.sqrt(1 - ratioRsR) - 1;
+          const vEscC = Math.sqrt(ratioRsR);
+          zGravText = zGrav.toFixed(4);
+          vEscText = `${vEscC.toFixed(3)} c`;
+        }
+
+        document.getElementById("outCmpRs").textContent = `${formatCompact(rsKm, 3)} km`;
+        document.getElementById("outCmpRph").textContent = `${formatCompact(rphKm, 3)} km`;
+        document.getElementById("outCmpZgrav").textContent = zGravText;
+        document.getElementById("outCmpVesc").textContent = vEscText;
+
+        if (notify) showToast("Compact object metrics calculated");
+      }
+
+      /* ======================================================================
+         DOM READY INITIALIZATION & DIRECT EVENT BINDING
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        setTheme(readStoredTheme(), false);
+
+        // Theme toggle
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        // Constants click-to-copy
+        document.getElementById("constantsBar").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-val]");
+          if (!chip) return;
+          const val = chip.dataset.val;
+          const name = chip.dataset.name;
+          document.getElementById("lastConstantReadout").textContent = `${name}: ${val}`;
+          copyToClipboard(val, `Copied ${name}`);
+        });
+
+        // Quick unit converter
+        document.getElementById("unitConvCategory").addEventListener("change", populateAstroUnitPairs);
+        document.getElementById("unitConvPair").addEventListener("change", updateAstroUnitConverter);
+        document.getElementById("unitConvInput").addEventListener("input", updateAstroUnitConverter);
+        document.getElementById("btnCopyUnitConv").addEventListener("click", () => {
+          const clean = document.getElementById("unitConvOut").textContent.replace(/^=\s*/, "");
+          copyToClipboard(clean, "Converted astro value copied");
+        });
+
+        // Domain tabs
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.dataset.tab) activateTab(btn.dataset.tab, true);
+          });
+        });
+
+        // Tab 1: Orbital & Kepler Lab
+        ["orbSemiMajor", "orbEcc", "orbCentralMass", "orbCurRadius", "orbTargetR"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            computeOrbitalMechanics();
+            drawOrbitCanvas();
+          });
+        });
+        document.getElementById("btnCalcOrb").addEventListener("click", () => {
+          computeOrbitalMechanics();
+          drawOrbitCanvas();
+          showToast("Orbital & Hohmann transfer calculated");
+        });
+        document.getElementById("btnResetOrb").addEventListener("click", () => applyOrbitalPreset("mars", true));
+        document.querySelectorAll("[data-orb-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => applyOrbitalPreset(btn.dataset.orbPreset, true));
+        });
+        document.getElementById("btnToggleOrbAnim").addEventListener("click", () => {
+          orbAnimRunning = !orbAnimRunning;
+          showToast(orbAnimRunning ? "Orbit animation resumed" : "Orbit animation paused");
+        });
+        document.getElementById("btnResetOrbView").addEventListener("click", () => {
+          orbMeanAnomaly = 0;
+          drawOrbitCanvas();
+          showToast("Orbit restarted at periapsis");
+        });
+
+        // Tab 2: Celestial Coordinates & Eclipses
+        ["cooRaHr", "cooDecDeg", "cooLatDeg", "cooLonDeg", "cooUtcIso", "cooElongDeg", "eclBodyDistKm", "eclBodyRadKm"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", drawSkyCanvas);
+        });
+        document.getElementById("btnCalcCoo").addEventListener("click", () => {
+          drawSkyCanvas();
+          showToast("Coordinates, JD/LST & eclipse geometry calculated");
+        });
+        document.getElementById("btnResetCoo").addEventListener("click", () => applyCoordinatePreset("orion", true));
+        document.querySelectorAll("[data-coo-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => applyCoordinatePreset(btn.dataset.cooPreset, true));
+        });
+        document.getElementById("btnUseNowUtc").addEventListener("click", () => {
+          const now = new Date();
+          const pad = (n) => String(n).padStart(2, "0");
+          const localStr = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}T${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}`;
+          document.getElementById("cooUtcIso").value = localStr;
+          drawSkyCanvas();
+          showToast("Updated to current UTC time");
+        });
+
+        // Tab 3: Astrophysics & Exoplanets
+        ["astRadiusRsun", "astTempK", "astAppMag", "astAbsMag", "exoPlanetRad", "exoStarMass", "exoPlanetMsini", "exoOrbitAu"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", drawHrCanvas);
+        });
+        document.getElementById("btnCalcAst").addEventListener("click", () => {
+          drawHrCanvas();
+          showToast("Luminosity, HZ & exoplanet metrics calculated");
+        });
+        document.getElementById("btnResetAst").addEventListener("click", () => applyAstroPreset("sun", true));
+        document.querySelectorAll("[data-ast-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => applyAstroPreset(btn.dataset.astPreset, true));
+        });
+
+        // Tab 4: Cosmology & Compact Objects
+        ["cosRedshift", "cosH0", "cosOm", "cosOl"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => computeCosmology(false));
+        });
+        document.getElementById("btnCalcCos").addEventListener("click", () => computeCosmology(true));
+        document.getElementById("btnResetCos").addEventListener("click", () => {
+          document.getElementById("cosRedshift").value = "1.0";
+          document.getElementById("cosH0").value = "67.4";
+          document.getElementById("cosOm").value = "0.315";
+          document.getElementById("cosOl").value = "0.685";
+          computeCosmology(true);
+        });
+        document.querySelectorAll("[data-cos-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const p = btn.dataset.cosPreset;
+            if (p === "planck") {
+              document.getElementById("cosRedshift").value = "1.0";
+              document.getElementById("cosH0").value = "67.4";
+              document.getElementById("cosOm").value = "0.315";
+              document.getElementById("cosOl").value = "0.685";
+            } else if (p === "cmb") {
+              document.getElementById("cosRedshift").value = "1089";
+              document.getElementById("cosH0").value = "67.4";
+              document.getElementById("cosOm").value = "0.315";
+              document.getElementById("cosOl").value = "0.685";
+            } else if (p === "local") {
+              document.getElementById("cosRedshift").value = "0.15";
+              document.getElementById("cosH0").value = "70.0";
+              document.getElementById("cosOm").value = "0.30";
+              document.getElementById("cosOl").value = "0.70";
+            }
+            computeCosmology(true);
+          });
+        });
+
+        ["cmpMassMsun", "cmpEmitRadiusKm"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => computeCompactObject(false));
+        });
+        document.getElementById("btnCalcCompact").addEventListener("click", () => computeCompactObject(true));
+        document.getElementById("btnResetCompact").addEventListener("click", () => {
+          document.getElementById("cmpMassMsun").value = "1.4";
+          document.getElementById("cmpEmitRadiusKm").value = "12";
+          computeCompactObject(true);
+        });
+        document.querySelectorAll("[data-cmp-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const p = btn.dataset.cmpPreset;
+            if (p === "sgrA") {
+              document.getElementById("cmpMassMsun").value = "4154000";
+              document.getElementById("cmpEmitRadiusKm").value = "25000000";
+            } else if (p === "ns") {
+              document.getElementById("cmpMassMsun").value = "1.4";
+              document.getElementById("cmpEmitRadiusKm").value = "12";
+            } else if (p === "wd") {
+              document.getElementById("cmpMassMsun").value = "0.6";
+              document.getElementById("cmpEmitRadiusKm").value = "7000";
+            }
+            computeCompactObject(true);
+          });
+        });
+
+        window.addEventListener("resize", redrawAllCanvases);
+
+        // Initial computations & animations
+        populateAstroUnitPairs();
+        computeOrbitalMechanics();
+        drawSkyCanvas();
+        drawHrCanvas();
+        computeCosmology(false);
+        computeCompactObject(false);
+        orbAnimId = requestAnimationFrame(stepOrbitAnimation);
+      });
+    })();
+  </script>
+</body>
+</html>

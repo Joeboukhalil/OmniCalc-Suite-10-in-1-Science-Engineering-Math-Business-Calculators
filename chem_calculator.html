@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Chemistry Calculator</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ========================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-code: #0f172a;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #0d9488;
+      --accent-primary-hover: #0f766e;
+      --accent-primary-soft: #ccfbf1;
+      --accent-primary-text: #115e59;
+
+      --accent-indigo: #4f46e5;
+      --accent-indigo-soft: #e0e7ff;
+      --accent-indigo-text: #3730a3;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #080d17;
+      --bg-surface: #121b2e;
+      --bg-surface-alt: #0c1322;
+      --bg-code: #060912;
+      --border-color: #233049;
+      --border-strong: #354769;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #14b8a6;
+      --accent-primary-hover: #2dd4bf;
+      --accent-primary-soft: rgba(20, 184, 166, 0.16);
+      --accent-primary-text: #5eead4;
+
+      --accent-indigo: #818cf8;
+      --accent-indigo-soft: rgba(129, 140, 248, 0.16);
+      --accent-indigo-text: #a5b4fc;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.42);
+    }
+
+    /* ==========================================================================
+       RESET & BASE
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* ==========================================================================
+       TOP HEADER BAR
+       ========================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #0d9488, #4f46e5);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.8rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ==========================================================================
+       MAIN LAYOUT & NAVIGATION TABS
+       ========================================================================== */
+    .main-container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 900px) {
+      .tab-bar {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.65rem 0.5rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       SHARED CARDS, INPUTS & BUTTONS
+       ========================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+    }
+
+    .chem-input, .chem-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 0.75rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .chem-input:focus, .chem-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.38rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.12s ease;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      background-color: var(--accent-primary-soft);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 920px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .kpi-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.8rem;
+    }
+
+    .kpi-box.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.2rem;
+    }
+
+    .kpi-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .kpi-box.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.15rem;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+
+    .chip-btn {
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    /* ==========================================================================
+       MODULE 1: FORMULA & ELEMENTAL COMPOSITION TABLE
+       ========================================================================== */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      margin-top: 0.5rem;
+    }
+
+    .comp-table th {
+      text-align: left;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background-color: var(--bg-surface-alt);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .comp-table td {
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .pct-bar-bg {
+      height: 8px;
+      border-radius: 999px;
+      background-color: var(--border-color);
+      overflow: hidden;
+      min-width: 70px;
+    }
+
+    .pct-bar-fill {
+      height: 100%;
+      background-color: var(--accent-primary);
+      border-radius: 999px;
+    }
+
+    .error-msg {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    /* ==========================================================================
+       MODULE 3: SUB-TABS FOR SOLUTIONS & pH / BUFFER LAB
+       ========================================================================== */
+    .subtab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .subtab-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .subtab-btn.active {
+      background-color: var(--accent-indigo);
+      color: #ffffff;
+      border-color: var(--accent-indigo);
+    }
+
+    .subpanel {
+      display: none;
+    }
+
+    .subpanel.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       MODULE 5: INTERACTIVE PERIODIC TABLE
+       ========================================================================== */
+    .pt-toolbar {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .pt-toolbar {
+        grid-template-columns: 1.5fr 1fr;
+      }
+    }
+
+    .pt-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 0.55rem;
+    }
+
+    .elem-tile {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.12s, background-color 0.12s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 92px;
+    }
+
+    .elem-tile:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    .elem-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .elem-sym {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.15;
+    }
+
+    .elem-name {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATION
+       ========================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP HEADER BAR WITH NAVIGATION BACK TO index.html
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">H₂O</div>
+          <div>
+            <h1>Advanced Chemistry Calculator</h1>
+            <span class="brand-sub">Formula Parser • Stoichiometry • Solutions &amp; pH • Gases &amp; Nernst • Periodic Table</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="btnQuickPeriodic" title="Jump to Periodic Table">
+          <span>⚛️ Elements</span>
+        </button>
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN WORKSPACE CONTAINER
+       ======================================================================== -->
+  <main class="main-container">
+    <!-- Top 5-Module Navigation -->
+    <nav class="tab-bar" role="tablist" aria-label="Chemistry Calculator Modules">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-mw">
+        <span>🧪 Molar Mass &amp; % Comp</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-stoich">
+        <span>⚖️ Stoichiometry &amp; Yield</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-sol">
+        <span>🧫 Solutions, Molarity &amp; pH</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-thermo">
+        <span>🌡️ Gas Laws, ΔG &amp; Nernst</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-ptable">
+        <span>⚛️ Periodic Table</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================================
+         MODULE 1: MOLECULAR WEIGHT, FORMULA PARSER & ELEMENTAL COMPOSITION
+         ====================================================================== -->
+    <section id="panel-mw" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧪 Chemical Formula Parser</div>
+            <button type="button" class="btn-sm btn-primary" id="btnSendMwToStoich">Use in Stoichiometry →</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.6fr 0.8fr; gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="formulaInput">Chemical Formula (Supports (), [], hydrates with . or ·)</label>
+              <input type="text" id="formulaInput" class="chem-input mono" value="CuSO4.5H2O" placeholder="e.g., Ca(OH)2, K4[Fe(CN)6], C6H12O6" />
+            </div>
+            <div>
+              <label class="field-label" for="sampleMoles">Sample Moles (mol)</label>
+              <input type="number" id="sampleMoles" class="chem-input mono" value="1" min="0" step="any" />
+            </div>
+          </div>
+
+          <div class="preset-chips" id="formulaPresets">
+            <button type="button" class="chip-btn" data-formula="H2SO4">H₂SO₄</button>
+            <button type="button" class="chip-btn" data-formula="Ca(OH)2">Ca(OH)₂</button>
+            <button type="button" class="chip-btn" data-formula="CuSO4.5H2O">CuSO₄·5H₂O</button>
+            <button type="button" class="chip-btn" data-formula="C6H12O6">C₆H₁₂O₆ (Glucose)</button>
+            <button type="button" class="chip-btn" data-formula="K4[Fe(CN)6]">K₄[Fe(CN)₆]</button>
+            <button type="button" class="chip-btn" data-formula="(NH4)2SO4">(NH₄)₂SO₄</button>
+            <button type="button" class="chip-btn" data-formula="NaHCO3">NaHCO₃</button>
+          </div>
+
+          <div id="formulaError" class="error-msg"></div>
+
+          <div class="kpi-grid mono" style="margin-top: 1rem;">
+            <div class="kpi-box highlight">
+              <div class="kpi-label">Molar Mass (MW)</div>
+              <div class="kpi-val" id="outMolarMass">249.685 g/mol</div>
+              <div class="kpi-sub" id="outTotalAtoms">Total Atoms: 21</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">Sample Mass</div>
+              <div class="kpi-val" id="outSampleMass">249.685 g</div>
+              <div class="kpi-sub" id="outMoleculeCount">6.022 × 10²³ entities</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Elemental Mass &amp; Atom Breakdown</div>
+            <button type="button" class="btn-sm" id="btnCopyComp">Copy Composition</button>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="comp-table mono">
+              <thead>
+                <tr>
+                  <th>Element</th>
+                  <th style="text-align:right;">Atoms</th>
+                  <th style="text-align:right;">Atomic Wt</th>
+                  <th style="text-align:right;">Mass %</th>
+                  <th>Share</th>
+                </tr>
+              </thead>
+              <tbody id="compTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MODULE 2: STOICHIOMETRY, LIMITING REAGENT & YIELD ANALYZER
+         ====================================================================== -->
+    <section id="panel-stoich" class="panel" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚖️ Limiting Reagent, Excess &amp; Percent Yield Analyzer</div>
+          <span style="font-size: 0.78rem; color: var(--text-secondary);">Stoichiometric Reaction: <strong class="mono">aA + bB → cC</strong></span>
+        </div>
+
+        <div class="two-col">
+          <!-- Reactant A & Reactant B -->
+          <div>
+            <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 0.85rem;">
+              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">Reactant A</div>
+              <div style="display: grid; grid-template-columns: 0.6fr 1.2fr 1.2fr; gap: 0.5rem;">
+                <div>
+                  <label class="field-label" for="stoichCoeffA">Coeff (a)</label>
+                  <input type="number" id="stoichCoeffA" class="chem-input mono" value="2" min="0.01" step="any" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichFormulaA">Formula A</label>
+                  <input type="text" id="stoichFormulaA" class="chem-input mono" value="H2" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichMassA">Given Mass (g)</label>
+                  <input type="number" id="stoichMassA" class="chem-input mono" value="10" min="0" step="any" />
+                </div>
+              </div>
+              <div class="mono" id="stoichMwA" style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 0.35rem;">
+                MW(A): 2.016 g/mol • Given: 4.960 mol
+              </div>
+            </div>
+
+            <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem;">
+              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">Reactant B</div>
+              <div style="display: grid; grid-template-columns: 0.6fr 1.2fr 1.2fr; gap: 0.5rem;">
+                <div>
+                  <label class="field-label" for="stoichCoeffB">Coeff (b)</label>
+                  <input type="number" id="stoichCoeffB" class="chem-input mono" value="1" min="0.01" step="any" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichFormulaB">Formula B</label>
+                  <input type="text" id="stoichFormulaB" class="chem-input mono" value="O2" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichMassB">Given Mass (g)</label>
+                  <input type="number" id="stoichMassB" class="chem-input mono" value="50" min="0" step="any" />
+                </div>
+              </div>
+              <div class="mono" id="stoichMwB" style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 0.35rem;">
+                MW(B): 31.998 g/mol • Given: 1.563 mol
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Product C & Actual Yield -->
+          <div>
+            <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 0.85rem;">
+              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">Target Product C &amp; Actual Yield</div>
+              <div style="display: grid; grid-template-columns: 0.6fr 1.2fr 1.2fr; gap: 0.5rem;">
+                <div>
+                  <label class="field-label" for="stoichCoeffC">Coeff (c)</label>
+                  <input type="number" id="stoichCoeffC" class="chem-input mono" value="2" min="0.01" step="any" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichFormulaC">Product C</label>
+                  <input type="text" id="stoichFormulaC" class="chem-input mono" value="H2O" />
+                </div>
+                <div>
+                  <label class="field-label" for="stoichActualC">Actual Yield (g)</label>
+                  <input type="number" id="stoichActualC" class="chem-input mono" value="75" min="0" step="any" />
+                </div>
+              </div>
+              <div class="mono" id="stoichMwC" style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 0.35rem;">
+                MW(C): 18.015 g/mol
+              </div>
+            </div>
+
+            <div class="kpi-grid mono">
+              <div class="kpi-box highlight">
+                <div class="kpi-label">Limiting Reagent</div>
+                <div class="kpi-val" id="outLimiting">O2</div>
+                <div class="kpi-sub" id="outExcessRem">Excess A left: 33.74 g</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">Theoretical Yield</div>
+                <div class="kpi-val" id="outTheoYield">56.29 g</div>
+                <div class="kpi-sub" id="outTheoMoles">3.125 mol C</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">Percent Yield</div>
+                <div class="kpi-val" id="outPctYield">133.2%</div>
+                <div class="kpi-sub" id="outYieldNote">Actual vs Theoretical</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MODULE 3: SOLUTIONS, MOLARITY, DILUTIONS & pH / BUFFER LAB
+         ====================================================================== -->
+    <section id="panel-sol" class="panel" role="tabpanel">
+      <div class="subtab-bar">
+        <button type="button" class="subtab-btn active" data-subtab="sub-molarity">Molarity &amp; Mass % / ppm</button>
+        <button type="button" class="subtab-btn" data-subtab="sub-dilution">C₁V₁ = C₂V₂ Dilution Solver</button>
+        <button type="button" class="subtab-btn" data-subtab="sub-ph">Strong / Weak pH &amp; Buffer Lab</button>
+      </div>
+
+      <!-- Subpanel 3A: Molarity & Concentration -->
+      <div id="sub-molarity" class="subpanel active card">
+        <div class="card-header">
+          <div class="card-title">🧫 Molarity (M = n / V), Mass % &amp; ppm Calculator</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <label class="field-label" for="solFormula">Solute Formula (Optional MW)</label>
+            <input type="text" id="solFormula" class="chem-input mono" value="NaCl" />
+          </div>
+          <div>
+            <label class="field-label" for="solMass">Solute Mass (g)</label>
+            <input type="number" id="solMass" class="chem-input mono" value="58.44" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="solVol">Solution Volume (mL)</label>
+            <input type="number" id="solVol" class="chem-input mono" value="1000" min="0.001" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="solDensity">Solution Density (g/mL)</label>
+            <input type="number" id="solDensity" class="chem-input mono" value="1.00" min="0.01" step="any" />
+          </div>
+        </div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-box highlight">
+            <div class="kpi-label">Molarity (M)</div>
+            <div class="kpi-val" id="outMolarity">1.0000 mol/L</div>
+            <div class="kpi-sub" id="outMolesSolute">Moles: 1.0000 mol</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Weight / Volume (% w/v)</div>
+            <div class="kpi-val" id="outWvPct">5.844%</div>
+            <div class="kpi-sub" id="outWwPct">Weight / Weight (% w/w): 5.844%</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Parts Per Million (ppm)</div>
+            <div class="kpi-val" id="outPpm">58,440 ppm</div>
+            <div class="kpi-sub" id="outPpb">ppb: 58,440,000 ppb</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subpanel 3B: C1V1 = C2V2 Dilution Solver -->
+      <div id="sub-dilution" class="subpanel card">
+        <div class="card-header">
+          <div class="card-title">💧 C₁V₁ = C₂V₂ Serial &amp; Stock Dilution Solver</div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
+          Select which variable to solve for, then enter the other three values (use consistent concentration units like M or % and volume units like mL or L).
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <label class="field-label" for="dilSolveFor">Solve For Missing Variable</label>
+            <select id="dilSolveFor" class="chem-select mono">
+              <option value="V1">V₁ (Stock Volume Needed)</option>
+              <option value="C2">C₂ (Final Concentration)</option>
+              <option value="V2">V₂ (Final Total Volume)</option>
+              <option value="C1">C₁ (Initial Stock Conc.)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="dilC1">C₁ (Initial Conc.)</label>
+            <input type="number" id="dilC1" class="chem-input mono" value="12" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="dilV1">V₁ (Initial Vol.)</label>
+            <input type="number" id="dilV1" class="chem-input mono" value="50" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="dilC2">C₂ (Final Conc.)</label>
+            <input type="number" id="dilC2" class="chem-input mono" value="1.5" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="dilV2">V₂ (Final Vol.)</label>
+            <input type="number" id="dilV2" class="chem-input mono" value="400" step="any" />
+          </div>
+        </div>
+
+        <div class="kpi-box highlight mono">
+          <div class="kpi-label">Dilution Solution</div>
+          <div class="kpi-val" id="outDilResult">V₁ = 50.0000</div>
+          <div class="kpi-sub" id="outDilSolvent">Diluent (solvent) to add: 350.0000 volume units</div>
+        </div>
+      </div>
+
+      <!-- Subpanel 3C: Strong / Weak pH & Henderson-Hasselbalch Buffer Lab -->
+      <div id="sub-ph" class="subpanel card">
+        <div class="card-header">
+          <div class="card-title">🧪 Strong / Weak Acid-Base pH &amp; Buffer Lab</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <label class="field-label" for="phMode">Equilibrium Model</label>
+            <select id="phMode" class="chem-select">
+              <option value="strong-acid">Strong Monoprotic Acid (HCl, HNO₃)</option>
+              <option value="strong-base">Strong Base (NaOH, KOH)</option>
+              <option value="weak-acid">Weak Acid ICE (Ka: CH₃COOH, HF)</option>
+              <option value="weak-base">Weak Base ICE (Kb: NH₃)</option>
+              <option value="buffer">Henderson-Hasselbalch Buffer</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="phConcA">Acid / Base Conc. [HA] or [B] (M)</label>
+            <input type="number" id="phConcA" class="chem-input mono" value="0.10" min="0" step="any" />
+          </div>
+
+          <div>
+            <label class="field-label" for="phConcB">Conjugate Base / Salt [A⁻] or [BH⁺] (M)</label>
+            <input type="number" id="phConcB" class="chem-input mono" value="0.15" min="0" step="any" />
+          </div>
+
+          <div>
+            <label class="field-label" for="phKaVal">Ka or Kb (e.g., 1.8e-5)</label>
+            <input type="number" id="phKaVal" class="chem-input mono" value="1.8e-5" step="any" />
+          </div>
+        </div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-box highlight">
+            <div class="kpi-label">pH (at 25 °C)</div>
+            <div class="kpi-val" id="outPh">4.93</div>
+            <div class="kpi-sub" id="outPoh">pOH: 9.07</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">[H₃O⁺] Molarity</div>
+            <div class="kpi-val" id="outHPlus">1.20e-5 M</div>
+            <div class="kpi-sub" id="outOhMinus">[OH⁻]: 8.33e-10 M</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MODULE 4: GAS LAWS, THERMODYNAMICS (ΔG) & NERNST ELECTROCHEMISTRY
+         ====================================================================== -->
+    <section id="panel-thermo" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Ideal & Van der Waals Gas Law -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎈 Ideal &amp; Van der Waals Gas Solver</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="gasSolve">Solve For</label>
+              <select id="gasSolve" class="chem-select mono">
+                <option value="P">Pressure P (atm)</option>
+                <option value="V">Volume V (L)</option>
+                <option value="n">Moles n (mol)</option>
+                <option value="T">Temperature T (K)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="gasP">Pressure P (atm)</label>
+              <input type="number" id="gasP" class="chem-input mono" value="1.0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gasV">Volume V (L)</label>
+              <input type="number" id="gasV" class="chem-input mono" value="22.414" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gasN">Moles n (mol)</label>
+              <input type="number" id="gasN" class="chem-input mono" value="1.0" step="any" />
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <label class="field-label" for="gasT">Temperature T (Kelvin)</label>
+              <input type="number" id="gasT" class="chem-input mono" value="273.15" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-box highlight mono">
+            <div class="kpi-label">Ideal Gas Result (R = 0.082057 L·atm/(mol·K))</div>
+            <div class="kpi-val" id="outGasIdeal">P = 1.0000 atm</div>
+            <div class="kpi-sub" id="outGasVdw">Van der Waals real pressure (CO₂ a=3.59, b=0.0427): 0.996 atm</div>
+          </div>
+        </div>
+
+        <!-- Gibbs Free Energy (ΔG) & Nernst Cell Potential -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Gibbs Free Energy (ΔG) &amp; Nernst Potential</div>
+          </div>
+
+          <!-- Gibbs ΔG = ΔH - TΔS -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.85rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Gibbs Free Energy (ΔG° = ΔH° − TΔS°)</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="gibbsH">ΔH° (kJ/mol)</label>
+                <input type="number" id="gibbsH" class="chem-input mono" value="-285.8" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="gibbsS">ΔS° (J/(mol·K))</label>
+                <input type="number" id="gibbsS" class="chem-input mono" value="-163.3" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="gibbsT">Temp T (K)</label>
+                <input type="number" id="gibbsT" class="chem-input mono" value="298.15" min="0.1" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outGibbsRes" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--accent-primary-text);">
+              ΔG° = -237.12 kJ/mol • Spontaneous (Exergonic)
+            </div>
+          </div>
+
+          <!-- Nernst Equation E = E0 - (RT/nF) ln(Q) -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 0.45rem;">Nernst Equation (E = E° − (RT/nF) ln Q)</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem;">
+              <div>
+                <label class="field-label" for="nernstE0">E° (V)</label>
+                <input type="number" id="nernstE0" class="chem-input mono" value="1.10" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="nernstN">Electrons (n)</label>
+                <input type="number" id="nernstN" class="chem-input mono" value="2" min="1" step="1" />
+              </div>
+              <div>
+                <label class="field-label" for="nernstQ">Quotient (Q)</label>
+                <input type="number" id="nernstQ" class="chem-input mono" value="0.01" min="1e-30" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="nernstT">Temp (K)</label>
+                <input type="number" id="nernstT" class="chem-input mono" value="298.15" min="1" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outNernstRes" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--accent-indigo-text);">
+              Cell Potential E = +1.1592 V
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MODULE 5: EMBEDDED PERIODIC TABLE REFERENCE
+         ====================================================================== -->
+    <section id="panel-ptable" class="panel" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚛️ Periodic Table Reference (Click Element to Insert Symbol)</div>
+          <span style="font-size: 0.78rem; color: var(--text-secondary);">Standard Atomic Weights (g/mol)</span>
+        </div>
+
+        <div class="pt-toolbar">
+          <input type="text" id="ptSearch" class="chem-input" placeholder="Search by symbol, name, or atomic number (e.g., Fe, Gold, 79)..." />
+          <select id="ptCategory" class="chem-select">
+            <option value="all">All Categories</option>
+            <option value="nonmetal">Nonmetals &amp; Halogens</option>
+            <option value="noble">Noble Gases</option>
+            <option value="metal">Metals &amp; Transition</option>
+            <option value="metalloid">Metalloids</option>
+          </select>
+        </div>
+
+        <div id="ptGrid" class="pt-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         ATOMIC MASS & PERIODIC TABLE DATASET (Z = 1..118)
+         ====================================================================== */
+      const ELEMENTS = [
+        { z: 1, sym: "H", name: "Hydrogen", mass: 1.008, cat: "nonmetal" },
+        { z: 2, sym: "He", name: "Helium", mass: 4.0026, cat: "noble" },
+        { z: 3, sym: "Li", name: "Lithium", mass: 6.94, cat: "metal" },
+        { z: 4, sym: "Be", name: "Beryllium", mass: 9.0122, cat: "metal" },
+        { z: 5, sym: "B", name: "Boron", mass: 10.81, cat: "metalloid" },
+        { z: 6, sym: "C", name: "Carbon", mass: 12.011, cat: "nonmetal" },
+        { z: 7, sym: "N", name: "Nitrogen", mass: 14.007, cat: "nonmetal" },
+        { z: 8, sym: "O", name: "Oxygen", mass: 15.999, cat: "nonmetal" },
+        { z: 9, sym: "F", name: "Fluorine", mass: 18.998, cat: "nonmetal" },
+        { z: 10, sym: "Ne", name: "Neon", mass: 20.180, cat: "noble" },
+        { z: 11, sym: "Na", name: "Sodium", mass: 22.990, cat: "metal" },
+        { z: 12, sym: "Mg", name: "Magnesium", mass: 24.305, cat: "metal" },
+        { z: 13, sym: "Al", name: "Aluminium", mass: 26.982, cat: "metal" },
+        { z: 14, sym: "Si", name: "Silicon", mass: 28.085, cat: "metalloid" },
+        { z: 15, sym: "P", name: "Phosphorus", mass: 30.974, cat: "nonmetal" },
+        { z: 16, sym: "S", name: "Sulfur", mass: 32.06, cat: "nonmetal" },
+        { z: 17, sym: "Cl", name: "Chlorine", mass: 35.45, cat: "nonmetal" },
+        { z: 18, sym: "Ar", name: "Argon", mass: 39.948, cat: "noble" },
+        { z: 19, sym: "K", name: "Potassium", mass: 39.098, cat: "metal" },
+        { z: 20, sym: "Ca", name: "Calcium", mass: 40.078, cat: "metal" },
+        { z: 21, sym: "Sc", name: "Scandium", mass: 44.956, cat: "metal" },
+        { z: 22, sym: "Ti", name: "Titanium", mass: 47.867, cat: "metal" },
+        { z: 23, sym: "V", name: "Vanadium", mass: 50.942, cat: "metal" },
+        { z: 24, sym: "Cr", name: "Chromium", mass: 51.996, cat: "metal" },
+        { z: 25, sym: "Mn", name: "Manganese", mass: 54.938, cat: "metal" },
+        { z: 26, sym: "Fe", name: "Iron", mass: 55.845, cat: "metal" },
+        { z: 27, sym: "Co", name: "Cobalt", mass: 58.933, cat: "metal" },
+        { z: 28, sym: "Ni", name: "Nickel", mass: 58.693, cat: "metal" },
+        { z: 29, sym: "Cu", name: "Copper", mass: 63.546, cat: "metal" },
+        { z: 30, sym: "Zn", name: "Zinc", mass: 65.38, cat: "metal" },
+        { z: 31, sym: "Ga", name: "Gallium", mass: 69.723, cat: "metal" },
+        { z: 32, sym: "Ge", name: "Germanium", mass: 72.630, cat: "metalloid" },
+        { z: 33, sym: "As", name: "Arsenic", mass: 74.922, cat: "metalloid" },
+        { z: 34, sym: "Se", name: "Selenium", mass: 78.971, cat: "nonmetal" },
+        { z: 35, sym: "Br", name: "Bromine", mass: 79.904, cat: "nonmetal" },
+        { z: 36, sym: "Kr", name: "Krypton", mass: 83.798, cat: "noble" },
+        { z: 37, sym: "Rb", name: "Rubidium", mass: 85.468, cat: "metal" },
+        { z: 38, sym: "Sr", name: "Strontium", mass: 87.62, cat: "metal" },
+        { z: 39, sym: "Y", name: "Yttrium", mass: 88.906, cat: "metal" },
+        { z: 40, sym: "Zr", name: "Zirconium", mass: 91.224, cat: "metal" },
+        { z: 41, sym: "Nb", name: "Niobium", mass: 92.906, cat: "metal" },
+        { z: 42, sym: "Mo", name: "Molybdenum", mass: 95.95, cat: "metal" },
+        { z: 43, sym: "Tc", name: "Technetium", mass: 98, cat: "metal" },
+        { z: 44, sym: "Ru", name: "Ruthenium", mass: 101.07, cat: "metal" },
+        { z: 45, sym: "Rh", name: "Rhodium", mass: 102.91, cat: "metal" },
+        { z: 46, sym: "Pd", name: "Palladium", mass: 106.42, cat: "metal" },
+        { z: 47, sym: "Ag", name: "Silver", mass: 107.87, cat: "metal" },
+        { z: 48, sym: "Cd", name: "Cadmium", mass: 112.41, cat: "metal" },
+        { z: 49, sym: "In", name: "Indium", mass: 114.82, cat: "metal" },
+        { z: 50, sym: "Sn", name: "Tin", mass: 118.71, cat: "metal" },
+        { z: 51, sym: "Sb", name: "Antimony", mass: 121.76, cat: "metalloid" },
+        { z: 52, sym: "Te", name: "Tellurium", mass: 127.60, cat: "metalloid" },
+        { z: 53, sym: "I", name: "Iodine", mass: 126.90, cat: "nonmetal" },
+        { z: 54, sym: "Xe", name: "Xenon", mass: 131.29, cat: "noble" },
+        { z: 55, sym: "Cs", name: "Cesium", mass: 132.91, cat: "metal" },
+        { z: 56, sym: "Ba", name: "Barium", mass: 137.33, cat: "metal" },
+        { z: 57, sym: "La", name: "Lanthanum", mass: 138.91, cat: "metal" },
+        { z: 58, sym: "Ce", name: "Cerium", mass: 140.12, cat: "metal" },
+        { z: 59, sym: "Pr", name: "Praseodymium", mass: 140.91, cat: "metal" },
+        { z: 60, sym: "Nd", name: "Neodymium", mass: 144.24, cat: "metal" },
+        { z: 61, sym: "Pm", name: "Promethium", mass: 145, cat: "metal" },
+        { z: 62, sym: "Sm", name: "Samarium", mass: 150.36, cat: "metal" },
+        { z: 63, sym: "Eu", name: "Europium", mass: 151.96, cat: "metal" },
+        { z: 64, sym: "Gd", name: "Gadolinium", mass: 157.25, cat: "metal" },
+        { z: 65, sym: "Tb", name: "Terbium", mass: 158.93, cat: "metal" },
+        { z: 66, sym: "Dy", name: "Dysprosium", mass: 162.50, cat: "metal" },
+        { z: 67, sym: "Ho", name: "Holmium", mass: 164.93, cat: "metal" },
+        { z: 68, sym: "Er", name: "Erbium", mass: 167.26, cat: "metal" },
+        { z: 69, sym: "Tm", name: "Thulium", mass: 168.93, cat: "metal" },
+        { z: 70, sym: "Yb", name: "Ytterbium", mass: 173.05, cat: "metal" },
+        { z: 71, sym: "Lu", name: "Lutetium", mass: 174.97, cat: "metal" },
+        { z: 72, sym: "Hf", name: "Hafnium", mass: 178.49, cat: "metal" },
+        { z: 73, sym: "Ta", name: "Tantalum", mass: 180.95, cat: "metal" },
+        { z: 74, sym: "W", name: "Tungsten", mass: 183.84, cat: "metal" },
+        { z: 75, sym: "Re", name: "Rhenium", mass: 186.21, cat: "metal" },
+        { z: 76, sym: "Os", name: "Osmium", mass: 190.23, cat: "metal" },
+        { z: 77, sym: "Ir", name: "Iridium", mass: 192.22, cat: "metal" },
+        { z: 78, sym: "Pt", name: "Platinum", mass: 195.08, cat: "metal" },
+        { z: 79, sym: "Au", name: "Gold", mass: 196.97, cat: "metal" },
+        { z: 80, sym: "Hg", name: "Mercury", mass: 200.59, cat: "metal" },
+        { z: 81, sym: "Tl", name: "Thallium", mass: 204.38, cat: "metal" },
+        { z: 82, sym: "Pb", name: "Lead", mass: 207.2, cat: "metal" },
+        { z: 83, sym: "Bi", name: "Bismuth", mass: 208.98, cat: "metal" },
+        { z: 84, sym: "Po", name: "Polonium", mass: 209, cat: "metalloid" },
+        { z: 85, sym: "At", name: "Astatine", mass: 210, cat: "metalloid" },
+        { z: 86, sym: "Rn", name: "Radon", mass: 222, cat: "noble" },
+        { z: 87, sym: "Fr", name: "Francium", mass: 223, cat: "metal" },
+        { z: 88, sym: "Ra", name: "Radium", mass: 226, cat: "metal" },
+        { z: 89, sym: "Ac", name: "Actinium", mass: 227, cat: "metal" },
+        { z: 90, sym: "Th", name: "Thorium", mass: 232.04, cat: "metal" },
+        { z: 91, sym: "Pa", name: "Protactinium", mass: 231.04, cat: "metal" },
+        { z: 92, sym: "U", name: "Uranium", mass: 238.03, cat: "metal" },
+        { z: 93, sym: "Np", name: "Neptunium", mass: 237, cat: "metal" },
+        { z: 94, sym: "Pu", name: "Plutonium", mass: 244, cat: "metal" },
+        { z: 95, sym: "Am", name: "Americium", mass: 243, cat: "metal" },
+        { z: 96, sym: "Cm", name: "Curium", mass: 247, cat: "metal" },
+        { z: 97, sym: "Bk", name: "Berkelium", mass: 247, cat: "metal" },
+        { z: 98, sym: "Cf", name: "Californium", mass: 251, cat: "metal" },
+        { z: 99, sym: "Es", name: "Einsteinium", mass: 252, cat: "metal" },
+        { z: 100, sym: "Fm", name: "Fermium", mass: 257, cat: "metal" },
+        { z: 101, sym: "Md", name: "Mendelevium", mass: 258, cat: "metal" },
+        { z: 102, sym: "No", name: "Nobelium", mass: 259, cat: "metal" },
+        { z: 103, sym: "Lr", name: "Lawrencium", mass: 266, cat: "metal" },
+        { z: 104, sym: "Rf", name: "Rutherfordium", mass: 267, cat: "metal" },
+        { z: 105, sym: "Db", name: "Dubnium", mass: 268, cat: "metal" },
+        { z: 106, sym: "Sg", name: "Seaborgium", mass: 269, cat: "metal" },
+        { z: 107, sym: "Bh", name: "Bohrium", mass: 270, cat: "metal" },
+        { z: 108, sym: "Hs", name: "Hassium", mass: 277, cat: "metal" },
+        { z: 109, sym: "Mt", name: "Meitnerium", mass: 278, cat: "metal" },
+        { z: 110, sym: "Ds", name: "Darmstadtium", mass: 281, cat: "metal" },
+        { z: 111, sym: "Rg", name: "Roentgenium", mass: 282, cat: "metal" },
+        { z: 112, sym: "Cn", name: "Copernicium", mass: 285, cat: "metal" },
+        { z: 113, sym: "Nh", name: "Nihonium", mass: 286, cat: "metal" },
+        { z: 114, sym: "Fl", name: "Flerovium", mass: 289, cat: "metal" },
+        { z: 115, sym: "Mc", name: "Moscovium", mass: 290, cat: "metal" },
+        { z: 116, sym: "Lv", name: "Livermorium", mass: 293, cat: "metal" },
+        { z: 117, sym: "Ts", name: "Tennessine", mass: 294, cat: "nonmetal" },
+        { z: 118, sym: "Og", name: "Oganesson", mass: 294, cat: "noble" }
+      ];
+
+      const ELEMENT_MAP = {};
+      ELEMENTS.forEach((el) => {
+        ELEMENT_MAP[el.sym] = el;
+      });
+
+      /* ======================================================================
+         UTILITIES, THEME & TOAST
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function copyText(text, label = "Copied to clipboard") {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (e) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      const savedTheme = localStorage.getItem("acc_theme") || "light";
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeIcon").textContent = theme === "dark" ? "☀️" : "🌙";
+        document.getElementById("themeLabel").textContent = theme === "dark" ? "Light" : "Dark";
+        localStorage.setItem("acc_theme", theme);
+      }
+      applyTheme(savedTheme);
+
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const cur = document.documentElement.getAttribute("data-theme");
+        applyTheme(cur === "dark" ? "light" : "dark");
+      });
+
+      /* ======================================================================
+         MAIN TAB & SUBTAB NAVIGATION
+         ====================================================================== */
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const panels = document.querySelectorAll(".panel");
+
+      function openTab(tabId) {
+        tabBtns.forEach((b) => {
+          const match = b.dataset.tab === tabId;
+          b.classList.toggle("active", match);
+          b.setAttribute("aria-selected", match ? "true" : "false");
+        });
+        panels.forEach((p) => p.classList.toggle("active", p.id === tabId));
+      }
+
+      tabBtns.forEach((btn) => btn.addEventListener("click", () => openTab(btn.dataset.tab)));
+      document.getElementById("btnQuickPeriodic").addEventListener("click", () => openTab("panel-ptable"));
+
+      const subBtns = document.querySelectorAll(".subtab-btn");
+      const subPanels = document.querySelectorAll(".subpanel");
+      subBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.subtab;
+          subBtns.forEach((b) => b.classList.toggle("active", b === btn));
+          subPanels.forEach((p) => p.classList.toggle("active", p.id === target));
+        });
+      });
+
+      /* ======================================================================
+         MODULE 1: FORMULA PARSER (PARENTHESES, BRACKETS, HYDRATES)
+         ====================================================================== */
+      function parseFormula(rawFormula) {
+        const cleaned = rawFormula.trim().replace(/[·•*]/g, ".");
+        if (!cleaned) {
+          throw new Error("Please enter a chemical formula.");
+        }
+
+        const parts = cleaned.split(".");
+        const totalCounts = {};
+
+        for (const rawPart of parts) {
+          const part = rawPart.trim();
+          if (!part) throw new Error("Invalid hydrate separator '.' in formula.");
+
+          let leadMult = 1;
+          let i = 0;
+          const leadNumMatch = part.match(/^(\d+(?:\.\d+)?)(?=[A-Z(\[])/);
+          if (leadNumMatch) {
+            leadMult = parseFloat(leadNumMatch[1]);
+            i = leadNumMatch[0].length;
+          }
+
+          function parseGroup(stopChar) {
+            const map = {};
+            while (i < part.length) {
+              const ch = part[i];
+              if (stopChar && ch === stopChar) {
+                i++;
+                let mult = 1;
+                const numMatch = part.slice(i).match(/^(\d+(?:\.\d+)?)/);
+                if (numMatch) {
+                  mult = parseFloat(numMatch[1]);
+                  i += numMatch[0].length;
+                }
+                for (const k in map) map[k] *= mult;
+                return map;
+              }
+              if (ch === "(") {
+                i++;
+                const inner = parseGroup(")");
+                for (const k in inner) map[k] = (map[k] || 0) + inner[k];
+              } else if (ch === "[") {
+                i++;
+                const inner = parseGroup("]");
+                for (const k in inner) map[k] = (map[k] || 0) + inner[k];
+              } else if (ch === ")" || ch === "]") {
+                throw new Error(`Unexpected closing bracket '${ch}'.`);
+              } else if (/[A-Z]/.test(ch)) {
+                let sym = ch;
+                i++;
+                if (i < part.length && /[a-z]/.test(part[i])) {
+                  sym += part[i];
+                  i++;
+                }
+                if (!ELEMENT_MAP[sym]) {
+                  throw new Error(`Unknown element symbol '${sym}'.`);
+                }
+                let count = 1;
+                const numMatch = part.slice(i).match(/^(\d+(?:\.\d+)?)/);
+                if (numMatch) {
+                  count = parseFloat(numMatch[1]);
+                  i += numMatch[0].length;
+                }
+                map[sym] = (map[sym] || 0) + count;
+              } else {
+                throw new Error(`Unexpected character '${ch}' in formula.`);
+              }
+            }
+            if (stopChar) {
+              throw new Error(`Missing closing bracket '${stopChar}'.`);
+            }
+            return map;
+          }
+
+          const groupCounts = parseGroup(null);
+          for (const sym in groupCounts) {
+            totalCounts[sym] = (totalCounts[sym] || 0) + groupCounts[sym] * leadMult;
+          }
+        }
+
+        let molarMass = 0;
+        let totalAtoms = 0;
+        const elements = [];
+
+        for (const sym in totalCounts) {
+          const atoms = totalCounts[sym];
+          const el = ELEMENT_MAP[sym];
+          const elMass = atoms * el.mass;
+          molarMass += elMass;
+          totalAtoms += atoms;
+          elements.push({
+            sym,
+            name: el.name,
+            atoms,
+            atomicWeight: el.mass,
+            massContribution: elMass
+          });
+        }
+
+        elements.sort((a, b) => b.massContribution - a.massContribution);
+        elements.forEach((e) => {
+          e.pct = molarMass > 0 ? (e.massContribution / molarMass) * 100 : 0;
+        });
+
+        return { molarMass, totalAtoms, elements };
+      }
+
+      const formulaInput = document.getElementById("formulaInput");
+      const sampleMolesInput = document.getElementById("sampleMoles");
+      const formulaError = document.getElementById("formulaError");
+
+      let currentParsedFormula = null;
+
+      function updateFormulaCalculator() {
+        const moles = Math.max(0, parseFloat(sampleMolesInput.value) || 0);
+        try {
+          const parsed = parseFormula(formulaInput.value);
+          currentParsedFormula = parsed;
+          formulaError.style.display = "none";
+
+          document.getElementById("outMolarMass").textContent = `${parsed.molarMass.toFixed(3)} g/mol`;
+          document.getElementById("outTotalAtoms").textContent = `Total Atoms: ${Number(parsed.totalAtoms.toFixed(3))}`;
+
+          const sampleMass = parsed.molarMass * moles;
+          document.getElementById("outSampleMass").textContent = `${sampleMass.toFixed(3)} g`;
+
+          const entities = moles * 6.02214076e23;
+          document.getElementById("outMoleculeCount").textContent =
+            entities === 0 ? "0 entities" : `${entities.toExponential(3)} entities`;
+
+          const tbody = document.getElementById("compTableBody");
+          tbody.innerHTML = parsed.elements
+            .map(
+              (el) => `<tr>
+                <td><strong>${el.sym}</strong> <span style="color:var(--text-secondary); font-family:var(--font-sans); font-size:0.78rem;">${el.name}</span></td>
+                <td style="text-align:right;">${Number(el.atoms.toFixed(3))}</td>
+                <td style="text-align:right;">${el.atomicWeight.toFixed(3)}</td>
+                <td style="text-align:right; font-weight:700;">${el.pct.toFixed(2)}%</td>
+                <td><div class="pct-bar-bg"><div class="pct-bar-fill" style="width:${Math.min(100, el.pct).toFixed(1)}%;"></div></div></td>
+              </tr>`
+            )
+            .join("");
+        } catch (err) {
+          currentParsedFormula = null;
+          formulaError.textContent = err.message;
+          formulaError.style.display = "block";
+        }
+      }
+
+      formulaInput.addEventListener("input", updateFormulaCalculator);
+      sampleMolesInput.addEventListener("input", updateFormulaCalculator);
+
+      document.getElementById("formulaPresets").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-formula]");
+        if (!chip) return;
+        formulaInput.value = chip.dataset.formula;
+        updateFormulaCalculator();
+      });
+
+      document.getElementById("btnCopyComp").addEventListener("click", () => {
+        if (!currentParsedFormula) return;
+        const lines = [
+          `Formula: ${formulaInput.value.trim()} | MW: ${currentParsedFormula.molarMass.toFixed(3)} g/mol`,
+          ...currentParsedFormula.elements.map(
+            (e) => `${e.sym} (${e.name}): ${e.atoms} atoms | ${e.pct.toFixed(2)}%`
+          )
+        ];
+        copyText(lines.join("\n"), "Elemental composition copied");
+      });
+
+      document.getElementById("btnSendMwToStoich").addEventListener("click", () => {
+        document.getElementById("stoichFormulaA").value = formulaInput.value.trim();
+        updateStoich();
+        openTab("panel-stoich");
+        showToast("Sent formula to Stoichiometry Reactor A");
+      });
+
+      /* ======================================================================
+         MODULE 2: STOICHIOMETRY, LIMITING REAGENT & YIELD ANALYZER
+         ====================================================================== */
+      function updateStoich() {
+        const cA = Math.max(0.0001, parseFloat(document.getElementById("stoichCoeffA").value) || 1);
+        const cB = Math.max(0.0001, parseFloat(document.getElementById("stoichCoeffB").value) || 1);
+        const cC = Math.max(0.0001, parseFloat(document.getElementById("stoichCoeffC").value) || 1);
+
+        const fA = document.getElementById("stoichFormulaA").value.trim() || "A";
+        const fB = document.getElementById("stoichFormulaB").value.trim() || "B";
+        const fC = document.getElementById("stoichFormulaC").value.trim() || "C";
+
+        const massA = Math.max(0, parseFloat(document.getElementById("stoichMassA").value) || 0);
+        const massB = Math.max(0, parseFloat(document.getElementById("stoichMassB").value) || 0);
+        const actualC = Math.max(0, parseFloat(document.getElementById("stoichActualC").value) || 0);
+
+        let mwA = 1, mwB = 1, mwC = 1;
+        try { mwA = parseFormula(fA).molarMass; } catch (_) {}
+        try { mwB = parseFormula(fB).molarMass; } catch (_) {}
+        try { mwC = parseFormula(fC).molarMass; } catch (_) {}
+
+        const molA = massA / mwA;
+        const molB = massB / mwB;
+
+        document.getElementById("stoichMwA").textContent = `MW(${fA}): ${mwA.toFixed(3)} g/mol • Given: ${molA.toFixed(4)} mol`;
+        document.getElementById("stoichMwB").textContent = `MW(${fB}): ${mwB.toFixed(3)} g/mol • Given: ${molB.toFixed(4)} mol`;
+        document.getElementById("stoichMwC").textContent = `MW(${fC}): ${mwC.toFixed(3)} g/mol`;
+
+        const extentA = molA / cA;
+        const extentB = molB / cB;
+
+        let limitingExtent = extentA;
+        let limitingName = fA;
+        let excessInfo = "";
+
+        if (extentA <= extentB) {
+          limitingExtent = extentA;
+          limitingName = fA;
+          const excessMolB = Math.max(0, molB - extentA * cB);
+          excessInfo = `Excess ${fB} left: ${(excessMolB * mwB).toFixed(2)} g (${excessMolB.toFixed(3)} mol)`;
+        } else {
+          limitingExtent = extentB;
+          limitingName = fB;
+          const excessMolA = Math.max(0, molA - extentB * cA);
+          excessInfo = `Excess ${fA} left: ${(excessMolA * mwA).toFixed(2)} g (${excessMolA.toFixed(3)} mol)`;
+        }
+
+        const theoMolesC = limitingExtent * cC;
+        const theoYieldG = theoMolesC * mwC;
+        const pctYield = theoYieldG > 0 ? (actualC / theoYieldG) * 100 : 0;
+
+        document.getElementById("outLimiting").textContent = limitingName;
+        document.getElementById("outExcessRem").textContent = excessInfo;
+        document.getElementById("outTheoYield").textContent = `${theoYieldG.toFixed(2)} g`;
+        document.getElementById("outTheoMoles").textContent = `${theoMolesC.toFixed(4)} mol ${fC}`;
+        document.getElementById("outPctYield").textContent = `${pctYield.toFixed(1)}%`;
+      }
+
+      [
+        "stoichCoeffA", "stoichFormulaA", "stoichMassA",
+        "stoichCoeffB", "stoichFormulaB", "stoichMassB",
+        "stoichCoeffC", "stoichFormulaC", "stoichActualC"
+      ].forEach((id) => document.getElementById(id).addEventListener("input", updateStoich));
+
+      /* ======================================================================
+         MODULE 3: SOLUTIONS, MOLARITY, DILUTIONS & pH / BUFFER LAB
+         ====================================================================== */
+      function updateMolarity() {
+        const formula = document.getElementById("solFormula").value.trim();
+        const massG = Math.max(0, parseFloat(document.getElementById("solMass").value) || 0);
+        const volMl = Math.max(0.001, parseFloat(document.getElementById("solVol").value) || 1);
+        const density = Math.max(0.01, parseFloat(document.getElementById("solDensity").value) || 1);
+
+        let mw = 58.44;
+        if (formula) {
+          try { mw = parseFormula(formula).molarMass; } catch (_) {}
+        }
+
+        const moles = massG / mw;
+        const volL = volMl / 1000;
+        const molarity = moles / volL;
+
+        const wvPct = (massG / volMl) * 100;
+        const totalSolMassG = volMl * density;
+        const wwPct = (massG / totalSolMassG) * 100;
+
+        const ppm = (massG / totalSolMassG) * 1e6;
+        const ppb = (massG / totalSolMassG) * 1e9;
+
+        document.getElementById("outMolarity").textContent = `${molarity.toFixed(4)} mol/L`;
+        document.getElementById("outMolesSolute").textContent = `Moles: ${moles.toFixed(4)} mol (MW ${mw.toFixed(2)})`;
+        document.getElementById("outWvPct").textContent = `${wvPct.toFixed(3)}%`;
+        document.getElementById("outWwPct").textContent = `Weight / Weight (% w/w): ${wwPct.toFixed(3)}%`;
+        document.getElementById("outPpm").textContent = `${ppm.toLocaleString("en-US", { maximumFractionDigits: 1 })} ppm`;
+        document.getElementById("outPpb").textContent = `ppb: ${ppb.toLocaleString("en-US", { maximumFractionDigits: 0 })} ppb`;
+      }
+
+      ["solFormula", "solMass", "solVol", "solDensity"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", updateMolarity)
+      );
+
+      function updateDilution() {
+        const solveFor = document.getElementById("dilSolveFor").value;
+        const c1 = parseFloat(document.getElementById("dilC1").value) || 0;
+        const v1 = parseFloat(document.getElementById("dilV1").value) || 0;
+        const c2 = parseFloat(document.getElementById("dilC2").value) || 0;
+        const v2 = parseFloat(document.getElementById("dilV2").value) || 0;
+
+        let resText = "";
+        let extraText = "";
+
+        if (solveFor === "V1") {
+          const val = c1 !== 0 ? (c2 * v2) / c1 : 0;
+          resText = `V₁ = ${val.toFixed(4)}`;
+          extraText = `Diluent (solvent) to add: ${Math.max(0, v2 - val).toFixed(4)} volume units`;
+        } else if (solveFor === "C2") {
+          const val = v2 !== 0 ? (c1 * v1) / v2 : 0;
+          resText = `C₂ = ${val.toFixed(4)}`;
+          extraText = `Dilution factor: ${val !== 0 ? (c1 / val).toFixed(2) + "x" : "N/A"}`;
+        } else if (solveFor === "V2") {
+          const val = c2 !== 0 ? (c1 * v1) / c2 : 0;
+          resText = `V₂ = ${val.toFixed(4)}`;
+          extraText = `Diluent (solvent) to add: ${Math.max(0, val - v1).toFixed(4)} volume units`;
+        } else if (solveFor === "C1") {
+          const val = v1 !== 0 ? (c2 * v2) / v1 : 0;
+          resText = `C₁ = ${val.toFixed(4)}`;
+          extraText = `Stock concentration required for target dilution`;
+        }
+
+        document.getElementById("outDilResult").textContent = resText;
+        document.getElementById("outDilSolvent").textContent = extraText;
+      }
+
+      ["dilSolveFor", "dilC1", "dilV1", "dilC2", "dilV2"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", updateDilution)
+      );
+
+      function updatePhCalculator() {
+        const mode = document.getElementById("phMode").value;
+        const cA = Math.max(0, parseFloat(document.getElementById("phConcA").value) || 0);
+        const cB = Math.max(0, parseFloat(document.getElementById("phConcB").value) || 0);
+        const kVal = Math.max(1e-30, parseFloat(document.getElementById("phKaVal").value) || 1e-5);
+        const kw = 1e-14;
+
+        let hPlus = 1e-7;
+
+        if (mode === "strong-acid") {
+          hPlus = Math.max(cA, 1e-14);
+        } else if (mode === "strong-base") {
+          const oh = Math.max(cA, 1e-14);
+          hPlus = kw / oh;
+        } else if (mode === "weak-acid") {
+          const disc = kVal * kVal + 4 * kVal * cA;
+          hPlus = (-kVal + Math.sqrt(disc)) / 2;
+          hPlus = Math.max(hPlus, 1e-14);
+        } else if (mode === "weak-base") {
+          const disc = kVal * kVal + 4 * kVal * cA;
+          const oh = Math.max((-kVal + Math.sqrt(disc)) / 2, 1e-14);
+          hPlus = kw / oh;
+        } else if (mode === "buffer") {
+          const pKa = -Math.log10(kVal);
+          const ratio = cA > 0 ? Math.max(cB / cA, 1e-12) : 1;
+          const phVal = pKa + Math.log10(ratio);
+          hPlus = 10 ** -phVal;
+        }
+
+        const ph = -Math.log10(hPlus);
+        const ohMinus = kw / hPlus;
+        const poh = -Math.log10(ohMinus);
+
+        document.getElementById("outPh").textContent = ph.toFixed(2);
+        document.getElementById("outPoh").textContent = `pOH: ${poh.toFixed(2)}`;
+        document.getElementById("outHPlus").textContent = `${hPlus.toExponential(2)} M`;
+        document.getElementById("outOhMinus").textContent = `[OH⁻]: ${ohMinus.toExponential(2)} M`;
+      }
+
+      ["phMode", "phConcA", "phConcB", "phKaVal"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", updatePhCalculator)
+      );
+
+      /* ======================================================================
+         MODULE 4: GAS LAWS, GIBBS FREE ENERGY (ΔG) & NERNST POTENTIAL
+         ====================================================================== */
+      const R_GAS = 0.082057366;
+
+      function updateGasLaws() {
+        const solveFor = document.getElementById("gasSolve").value;
+        let P = parseFloat(document.getElementById("gasP").value) || 0;
+        let V = parseFloat(document.getElementById("gasV").value) || 0;
+        let n = parseFloat(document.getElementById("gasN").value) || 0;
+        let T = parseFloat(document.getElementById("gasT").value) || 0;
+
+        let outStr = "";
+        if (solveFor === "P") {
+          P = V !== 0 ? (n * R_GAS * T) / V : 0;
+          outStr = `P = ${P.toFixed(4)} atm`;
+        } else if (solveFor === "V") {
+          V = P !== 0 ? (n * R_GAS * T) / P : 0;
+          outStr = `V = ${V.toFixed(4)} L`;
+        } else if (solveFor === "n") {
+          n = R_GAS * T !== 0 ? (P * V) / (R_GAS * T) : 0;
+          outStr = `n = ${n.toFixed(4)} mol`;
+        } else if (solveFor === "T") {
+          T = n * R_GAS !== 0 ? (P * V) / (n * R_GAS) : 0;
+          outStr = `T = ${T.toFixed(2)} K (${(T - 273.15).toFixed(2)} °C)`;
+        }
+
+        document.getElementById("outGasIdeal").textContent = outStr;
+
+        const a = 3.59;
+        const b = 0.0427;
+        const denom = V - n * b;
+        if (denom > 0 && V > 0) {
+          const pVdw = (n * R_GAS * T) / denom - (a * n * n) / (V * V);
+          document.getElementById("outGasVdw").textContent =
+            `Van der Waals real P (a=3.59, b=0.0427): ${pVdw.toFixed(4)} atm`;
+        } else {
+          document.getElementById("outGasVdw").textContent = "Van der Waals: Volume ≤ nb compression limit";
+        }
+      }
+
+      ["gasSolve", "gasP", "gasV", "gasN", "gasT"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", updateGasLaws)
+      );
+
+      function updateThermoAndNernst() {
+        const dH_kJ = parseFloat(document.getElementById("gibbsH").value) || 0;
+        const dS_J = parseFloat(document.getElementById("gibbsS").value) || 0;
+        const tempK = Math.max(0.1, parseFloat(document.getElementById("gibbsT").value) || 298.15);
+
+        const dG_kJ = dH_kJ - tempK * (dS_J / 1000);
+        const spont =
+          dG_kJ < -1e-6 ? "Spontaneous (Exergonic)" : dG_kJ > 1e-6 ? "Non-Spontaneous (Endergonic)" : "At Equilibrium";
+        document.getElementById("outGibbsRes").textContent = `ΔG° = ${dG_kJ.toFixed(2)} kJ/mol • ${spont}`;
+
+        const e0 = parseFloat(document.getElementById("nernstE0").value) || 0;
+        const nElec = Math.max(1, parseFloat(document.getElementById("nernstN").value) || 1);
+        const qVal = Math.max(1e-30, parseFloat(document.getElementById("nernstQ").value) || 1);
+        const nTemp = Math.max(1, parseFloat(document.getElementById("nernstT").value) || 298.15);
+
+        const R_SI = 8.314462618;
+        const F_FARADAY = 96485.33212;
+        const cellE = e0 - ((R_SI * nTemp) / (nElec * F_FARADAY)) * Math.log(qVal);
+        const signStr = cellE >= 0 ? `+${cellE.toFixed(4)}` : cellE.toFixed(4);
+        document.getElementById("outNernstRes").textContent = `Cell Potential E = ${signStr} V`;
+      }
+
+      ["gibbsH", "gibbsS", "gibbsT", "nernstE0", "nernstN", "nernstQ", "nernstT"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", updateThermoAndNernst)
+      );
+
+      /* ======================================================================
+         MODULE 5: EMBEDDED PERIODIC TABLE RENDERER & FILTER
+         ====================================================================== */
+      const ptGrid = document.getElementById("ptGrid");
+      const ptSearch = document.getElementById("ptSearch");
+      const ptCategory = document.getElementById("ptCategory");
+
+      function renderPeriodicTable() {
+        const query = ptSearch.value.trim().toLowerCase();
+        const cat = ptCategory.value;
+
+        const filtered = ELEMENTS.filter((el) => {
+          const catMatch = cat === "all" || el.cat === cat;
+          const textMatch =
+            !query ||
+            el.sym.toLowerCase().includes(query) ||
+            el.name.toLowerCase().includes(query) ||
+            String(el.z) === query;
+          return catMatch && textMatch;
+        });
+
+        ptGrid.innerHTML = filtered
+          .map(
+            (el) => `<button type="button" class="elem-tile" data-sym="${el.sym}" title="Click to append ${el.sym} (${el.name}) to formula">
+              <div class="elem-top">
+                <span class="mono">${el.z}</span>
+                <span class="mono">${el.mass}</span>
+              </div>
+              <div class="elem-sym">${el.sym}</div>
+              <div class="elem-name">${el.name}</div>
+            </button>`
+          )
+          .join("");
+      }
+
+      ptSearch.addEventListener("input", renderPeriodicTable);
+      ptCategory.addEventListener("change", renderPeriodicTable);
+
+      ptGrid.addEventListener("click", (e) => {
+        const tile = e.target.closest("[data-sym]");
+        if (!tile) return;
+        const sym = tile.dataset.sym;
+        formulaInput.value = formulaInput.value.trim() ? `${formulaInput.value.trim()}${sym}` : sym;
+        updateFormulaCalculator();
+        openTab("panel-mw");
+        showToast(`Inserted element ${sym} into Formula Parser`);
+      });
+
+      // Initialize all calculators on load
+      updateFormulaCalculator();
+      updateStoich();
+      updateMolarity();
+      updateDilution();
+      updatePhCalculator();
+      updateGasLaws();
+      updateThermoAndNernst();
+      renderPeriodicTable();
+    })();
+  </script>
+</body>
+</html>

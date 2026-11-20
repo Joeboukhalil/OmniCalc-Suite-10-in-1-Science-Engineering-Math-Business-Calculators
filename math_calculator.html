@@ -1,0 +1,2656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Mathematics Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --accent-violet: #7c3aed;
+      --accent-violet-soft: #ede9fe;
+      --accent-violet-text: #5b21b6;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #070c16;
+      --bg-surface: #10192b;
+      --bg-surface-alt: #0a1120;
+      --bg-canvas: #060b14;
+      --border-color: #1e2d47;
+      --border-strong: #32476b;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --accent-violet: #a78bfa;
+      --accent-violet-soft: rgba(167, 139, 250, 0.16);
+      --accent-violet-text: #c4b5fd;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ========================================================================
+       RESET & BASE
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       1. STICKY TOP HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      cursor: pointer;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & CONSTANTS / HELPER UTILITY STRIP
+       ======================================================================== */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .util-strip {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.95rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1060px) {
+      .util-strip {
+        grid-template-columns: 1.3fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .strip-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chip {
+      padding: 0.3rem 0.56rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 34px;
+      transition: all 0.12s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .helper-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 680px) {
+      .helper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ========================================================================
+       NAVIGATION TABS & PANELS
+       ======================================================================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 880px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.68rem 0.55rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, INPUTS, BUTTONS & KPI CARDS
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 980px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .math-input, .math-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.62rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.88rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .math-input:focus, .math-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 0.55rem;
+      margin-top: 0.8rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.65rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-card.pos {
+      background-color: var(--accent-emerald-soft);
+      border-color: var(--accent-emerald);
+    }
+
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.12rem;
+    }
+
+    .kpi-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .kpi-card.pos .kpi-val {
+      color: var(--accent-emerald-text);
+    }
+
+    .formula-box {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 6px;
+      padding: 0.55rem 0.72rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.7rem;
+    }
+
+    .alert-box {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.7rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 0.55rem;
+      display: none;
+    }
+
+    .sub-block {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .sub-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .sub-block-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .matrix-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+    }
+
+    .matrix-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+    }
+
+    .sim-canvas {
+      width: 100%;
+      height: 270px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       1. STICKY TOP HEADER BAR
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">∫∑</div>
+          <div>
+            <h1>Advanced Mathematics Calculator</h1>
+            <span class="brand-sub">Calculus &amp; Series • Linear Algebra &amp; Vectors • Number Theory &amp; Combinatorics • Geometry &amp; Parametric Curves</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE CONTAINER
+       ====================================================================== -->
+  <main class="main-container">
+
+    <!-- CONSTANTS & QUICK MATH HELPER UTILITY STRIP -->
+    <section class="util-strip" aria-label="Mathematical Constants and Quick Math Helper">
+      <div>
+        <div class="strip-label">
+          <span>π Mathematical Constants (Click to View &amp; Copy)</span>
+          <span id="constReadout" class="mono" style="color: var(--accent-primary-text);"></span>
+        </div>
+        <div class="preset-chips mono" id="constChipsBar">
+          <button type="button" class="preset-chip" data-const="pi">π ≈ 3.141593</button>
+          <button type="button" class="preset-chip" data-const="e">e ≈ 2.718282</button>
+          <button type="button" class="preset-chip" data-const="phi">φ ≈ 1.618034</button>
+          <button type="button" class="preset-chip" data-const="sqrt2">√2 ≈ 1.414214</button>
+          <button type="button" class="preset-chip" data-const="gamma">γ ≈ 0.577216</button>
+          <button type="button" class="preset-chip" data-const="ln2">ln(2) ≈ 0.693147</button>
+          <button type="button" class="preset-chip" data-const="degPerRad">180/π ≈ 57.29578°</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="strip-label">
+          <span>⚡ Quick Math Helper</span>
+          <span id="quickHelperOut" class="mono" style="color: var(--accent-emerald-text); font-weight: 800;">= 180°</span>
+        </div>
+        <div class="helper-grid">
+          <select id="quickHelperMode" class="math-select mono" aria-label="Quick math helper tool">
+            <option value="rad2deg" selected>Rad → Deg</option>
+            <option value="deg2rad">Deg → Rad</option>
+            <option value="fact">Factorial n!</option>
+            <option value="modinv">a⁻¹ mod m</option>
+            <option value="vecnorm">||v|| (x,y,z)</option>
+          </select>
+          <input type="text" id="quickHelperA" class="math-input mono" value="3.14159265" aria-label="Helper input A" />
+          <input type="text" id="quickHelperB" class="math-input mono" value="13, 4, 3" placeholder="m or y,z" aria-label="Helper input B" />
+          <button type="button" class="btn-sm" id="btnCopyQuickHelper">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOUR MAIN CALCULATOR TABS -->
+    <nav class="tab-bar" role="tablist" aria-label="Mathematics Calculator Tabs">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-calc">
+        <span>∫ Calculus &amp; Series</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-linalg">
+        <span>⊞ Linear Algebra &amp; Vectors</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-numth">
+        <span>🔢 Number Theory &amp; Comb.</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-geom">
+        <span>🧭 Geometry &amp; Parametric</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: CALCULUS & SERIES
+         ==================================================================== -->
+    <section id="panel-calc" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Numerical Calculus & Taylor Series + Live Canvas -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">∫ Derivatives, Simpson Integral &amp; Taylor</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCalculus">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCalculus">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 0.55rem;">
+            <div style="grid-column: span 2;">
+              <label class="field-label" for="calcExpr">Function f(x)</label>
+              <input type="text" id="calcExpr" class="math-input mono" value="sin(x) + 0.2 * x^2" />
+            </div>
+            <div>
+              <label class="field-label" for="calcX0">Point x₀ (deriv/Taylor)</label>
+              <input type="number" id="calcX0" class="math-input mono" value="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="calcA">Integral Lower a</label>
+              <input type="number" id="calcA" class="math-input mono" value="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="calcB">Integral Upper b</label>
+              <input type="number" id="calcB" class="math-input mono" value="3.14159265" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="calcTaylorDeg">Taylor Degree n (0..10)</label>
+              <input type="number" id="calcTaylorDeg" class="math-input mono" value="5" min="0" max="10" step="1" />
+            </div>
+          </div>
+
+          <div id="calcError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">f'(x₀) / f''(x₀)</div>
+              <div class="kpi-val" id="outCalcDerivs" style="font-size: 0.88rem;">0.9403 / -0.4415</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">∫ₐᵇ f(x) dx (Simpson)</div>
+              <div class="kpi-val" id="outCalcIntegral">4.06454</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Taylor Tₙ(x) at x₀+0.5</div>
+              <div class="kpi-val" id="outCalcTaylorVal">1.4608</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outTaylorPoly" style="word-break: break-word;">
+            T₅(x) around x₀ = 1: ...
+          </div>
+
+          <div style="margin-top: 0.75rem;">
+            <canvas id="calcCanvas" class="sim-canvas" aria-label="Calculus function, derivative, and Taylor plot"></canvas>
+          </div>
+        </div>
+
+        <!-- Card B: Sequences & Infinite Series Analyzer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">∑ Sequences &amp; Infinite Series Analyzer</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcSeries">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetSeries">Reset</button>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Arithmetic &amp; Geometric Progressions</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="seqA1">First Term a₁</label>
+                <input type="number" id="seqA1" class="math-input mono" value="3" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="seqD">Arith. Diff d</label>
+                <input type="number" id="seqD" class="math-input mono" value="4" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="seqR">Geom. Ratio r</label>
+                <input type="number" id="seqR" class="math-input mono" value="0.5" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="seqN">Term Index n (≥1)</label>
+                <input type="number" id="seqN" class="math-input mono" value="8" min="1" max="75" step="1" />
+              </div>
+              <div>
+                <label class="field-label" for="seqP">p-Series Exponent p</label>
+                <input type="number" id="seqP" class="math-input mono" value="2" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="seqAltK">Alt. Terms K</label>
+                <input type="number" id="seqAltK" class="math-input mono" value="20" min="1" max="500" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">Arith. aₙ / Sₙ</div>
+              <div class="kpi-val" id="outArithRes" style="font-size: 0.88rem;">31 · 136</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Geom. aₙ / S_∞</div>
+              <div class="kpi-val" id="outGeomRes" style="font-size: 0.88rem;">0.0234 · 6.000</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Fibonacci Fₙ</div>
+              <div class="kpi-val" id="outFibRes">21</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">p-Series ∑ 1/nᵖ</div>
+              <div class="kpi-val" id="outPSeriesRes" style="font-size: 0.86rem;">Conv (π²/6)</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outAltSeriesNote">
+            Alternating harmonic partial sum (K=20): S₂₀ ≈ 0.6688 (converges conditionally to ln(2) ≈ 0.6931)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: LINEAR ALGEBRA & VECTORS
+         ==================================================================== -->
+    <section id="panel-linalg" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: 2x2 and 3x3 Matrix Calculator -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⊞ Matrix Calculator (2×2 &amp; 3×3)</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcMat">Calculate</button>
+              <button type="button" class="btn-sm" id="btnSwapMat">Swap A/B</button>
+              <button type="button" class="btn-sm" id="btnResetMat">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 0.7rem;">
+            <div>
+              <label class="field-label" for="matSize">Matrix Dimension</label>
+              <select id="matSize" class="math-select mono">
+                <option value="2" selected>2 × 2 Matrix</option>
+                <option value="3">3 × 3 Matrix</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="matOp">Binary Operation (A op B)</label>
+              <select id="matOp" class="math-select mono">
+                <option value="mul" selected>Multiply (A × B)</option>
+                <option value="add">Add (A + B)</option>
+                <option value="sub">Subtract (A − B)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem;">
+            <div class="sub-block" style="margin: 0;">
+              <div class="sub-block-title"><span>Matrix A</span></div>
+              <div id="matAInputs" class="matrix-grid-2 mono"></div>
+            </div>
+            <div class="sub-block" style="margin: 0;">
+              <div class="sub-block-title"><span>Matrix B</span></div>
+              <div id="matBInputs" class="matrix-grid-2 mono"></div>
+            </div>
+          </div>
+
+          <div id="matError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">det(A) / tr(A)</div>
+              <div class="kpi-val" id="outMatDetTr" style="font-size: 0.9rem;">-2 · 5</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Binary Result</div>
+              <div class="kpi-val" id="outMatBin" style="font-size: 0.84rem;">[19, 22; 43, 50]</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outMatUnary" style="word-break: break-word;">
+            Aᵀ: ... • A⁻¹: ...
+          </div>
+        </div>
+
+        <!-- Card B: 3D Vector & Analytic Geometry Lab -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧭 3D Vectors &amp; Analytic Geometry</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcVec">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetVec">Reset</button>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>3D Vectors u = (ux, uy, uz) &amp; v = (vx, vy, vz)</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; margin-bottom: 0.45rem;">
+              <div>
+                <label class="field-label" for="vecUx">uₓ</label>
+                <input type="number" id="vecUx" class="math-input mono" value="3" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="vecUy">uᵧ</label>
+                <input type="number" id="vecUy" class="math-input mono" value="4" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="vecUz">u₂</label>
+                <input type="number" id="vecUz" class="math-input mono" value="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="vecVx">vₓ</label>
+                <input type="number" id="vecVx" class="math-input mono" value="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="vecVy">vᵧ</label>
+                <input type="number" id="vecVy" class="math-input mono" value="2" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="vecVz">v₂</label>
+                <input type="number" id="vecVz" class="math-input mono" value="2" step="any" />
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">||u|| / ||v||</div>
+              <div class="kpi-val" id="outVecNorms" style="font-size: 0.9rem;">5.000 · 3.000</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Dot u · v / Angle θ</div>
+              <div class="kpi-val" id="outVecDotAng" style="font-size: 0.86rem;">11 · 45.57°</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Cross u × v</div>
+              <div class="kpi-val" id="outVecCross" style="font-size: 0.84rem;">(8, -6, 2)</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Projᵥ(u)</div>
+              <div class="kpi-val" id="outVecProj" style="font-size: 0.82rem;">(1.22, 2.44, 2.44)</div>
+            </div>
+          </div>
+
+          <div class="sub-block" style="margin-top: 0.75rem;">
+            <div class="sub-block-title"><span>2D Points P₁(x₁,y₁) &amp; P₂(x₂,y₂) + Line Intersection</span></div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem;">
+              <div>
+                <label class="field-label" for="ptX1">x₁</label>
+                <input type="number" id="ptX1" class="math-input mono" value="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="ptY1">y₁</label>
+                <input type="number" id="ptY1" class="math-input mono" value="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="ptX2">x₂</label>
+                <input type="number" id="ptX2" class="math-input mono" value="6" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="ptY2">y₂</label>
+                <input type="number" id="ptY2" class="math-input mono" value="8" step="any" />
+              </div>
+            </div>
+            <div class="formula-box mono" id="outLine2DInfo">
+              Dist(P₁, P₂) = 10.000 • Midpoint = (3, 4) • Slope m = 1.3333 • Intersect (y=x &amp; y=-x+6): (3, 3)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: NUMBER THEORY & COMBINATORICS
+         ==================================================================== -->
+    <section id="panel-numth" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: Number Theory Lab -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔢 Prime, GCD/LCM, ModExp &amp; φ(n)</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcNumTh">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetNumTh">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.55rem;">
+            <div>
+              <label class="field-label" for="ntN">Integer n (≥ 1)</label>
+              <input type="number" id="ntN" class="math-input mono" value="84" min="1" max="1000000000" step="1" />
+            </div>
+            <div>
+              <label class="field-label" for="ntBInt">Second Integer b (for GCD/LCM)</label>
+              <input type="number" id="ntBInt" class="math-input mono" value="30" min="0" max="1000000000" step="1" />
+            </div>
+            <div>
+              <label class="field-label" for="ntExp">Exponent e (for n^e mod m)</label>
+              <input type="number" id="ntExp" class="math-input mono" value="13" min="0" max="1000000000" step="1" />
+            </div>
+            <div>
+              <label class="field-label" for="ntMod">Modulus m (≥ 1)</label>
+              <input type="number" id="ntMod" class="math-input mono" value="97" min="1" max="1000000000" step="1" />
+            </div>
+          </div>
+
+          <div id="ntError" class="alert-box"></div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">Is n Prime?</div>
+              <div class="kpi-val" id="outNtPrime">Composite</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">GCD / LCM</div>
+              <div class="kpi-val" id="outNtGcdLcm" style="font-size: 0.9rem;">6 · 420</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">n^e mod m</div>
+              <div class="kpi-val" id="outNtModExp">32</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Totient φ(n)</div>
+              <div class="kpi-val" id="outNtPhi">24</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Divisors τ / σ</div>
+              <div class="kpi-val" id="outNtDivs" style="font-size: 0.9rem;">12 · 224</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outNtFactors">
+            Prime factorization of 84: 2² × 3 × 7
+          </div>
+        </div>
+
+        <!-- Card B: Combinatorics & Binomial Distribution -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎲 Combinatorics &amp; Binomial Dist.</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcComb">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetComb">Reset</button>
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Permutations, Combinations, Catalan &amp; Pascal</span></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem;">
+              <div>
+                <label class="field-label" for="cbN">Total n (0..170)</label>
+                <input type="number" id="cbN" class="math-input mono" value="8" min="0" max="170" step="1" />
+              </div>
+              <div>
+                <label class="field-label" for="cbK">Select k (0..n)</label>
+                <input type="number" id="cbK" class="math-input mono" value="3" min="0" max="170" step="1" />
+              </div>
+            </div>
+            <div class="formula-box mono" id="outCbSummary">
+              P(8,3)=336 • C(8,3)=56 • Catalan C₈=1430 • Pascal row 8: [1,8,28,56,70,56,28,8,1]
+            </div>
+          </div>
+
+          <div class="sub-block">
+            <div class="sub-block-title"><span>Binomial Distribution X ~ Bin(trials, p)</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="binTrials">Trials N (1..500)</label>
+                <input type="number" id="binTrials" class="math-input mono" value="10" min="1" max="500" step="1" />
+              </div>
+              <div>
+                <label class="field-label" for="binP">Success Prob p (0..1)</label>
+                <input type="number" id="binP" class="math-input mono" value="0.4" min="0" max="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="binK">Successes k (0..N)</label>
+                <input type="number" id="binK" class="math-input mono" value="4" min="0" max="500" step="1" />
+              </div>
+            </div>
+
+            <div class="kpi-grid mono">
+              <div class="kpi-card highlight">
+                <div class="kpi-label">P(X = k)</div>
+                <div class="kpi-val" id="outBinPmk">25.082%</div>
+              </div>
+              <div class="kpi-card pos">
+                <div class="kpi-label">P(X ≤ k)</div>
+                <div class="kpi-val" id="outBinCdf">63.310%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Mean E[X]</div>
+                <div class="kpi-val" id="outBinMean">4.000</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Variance Var(X)</div>
+                <div class="kpi-val" id="outBinVar">2.400</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: GEOMETRY & PARAMETRIC CURVES
+         ==================================================================== -->
+    <section id="panel-geom" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Card A: 2D / 3D Euclidean & Analytic Shapes -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📐 2D &amp; 3D Euclidean Shapes</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcGeom">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetGeom">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+            <div>
+              <label class="field-label" for="gmRadius">Radius r</label>
+              <input type="number" id="gmRadius" class="math-input mono" value="5" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gmAngleDeg">Sector Angle θ°</label>
+              <input type="number" id="gmAngleDeg" class="math-input mono" value="72" min="0" max="360" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gmHeight">Height h (Cyl/Cone)</label>
+              <input type="number" id="gmHeight" class="math-input mono" value="10" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gmSideA">Triangle Side a</label>
+              <input type="number" id="gmSideA" class="math-input mono" value="6" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gmSideB">Triangle Side b</label>
+              <input type="number" id="gmSideB" class="math-input mono" value="8" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="gmSideC">Triangle Side c</label>
+              <input type="number" id="gmSideC" class="math-input mono" value="10" min="0.001" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Circle Area / Circ.</div>
+              <div class="kpi-val" id="outGmCircle" style="font-size: 0.86rem;">78.54 · 31.42</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Sector Area / Arc</div>
+              <div class="kpi-val" id="outGmSector" style="font-size: 0.86rem;">15.71 · 6.28</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Triangle Area (Heron)</div>
+              <div class="kpi-val" id="outGmTriArea">24.000</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Sphere Vol / Surf</div>
+              <div class="kpi-val" id="outGmSphere" style="font-size: 0.84rem;">523.6 · 314.2</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Cylinder Vol / Surf</div>
+              <div class="kpi-val" id="outGmCyl" style="font-size: 0.84rem;">785.4 · 471.2</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Cone Vol / Surf</div>
+              <div class="kpi-val" id="outGmCone" style="font-size: 0.84rem;">261.8 · 255.7</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outGmTriAngles">
+            Triangle perimeter: 24 • Angles: A=36.87°, B=53.13°, C=90.00°
+          </div>
+        </div>
+
+        <!-- Card B: Parametric & Polar Curve Studio -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌀 Parametric &amp; Polar Curve Studio</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcCurve">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetCurve">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-chips mono" id="curvePresets">
+            <button type="button" class="preset-chip" data-curve="lissajous">Lissajous</button>
+            <button type="button" class="preset-chip" data-curve="rose">Rose Curve</button>
+            <button type="button" class="preset-chip" data-curve="cardioid">Cardioid</button>
+            <button type="button" class="preset-chip" data-curve="cycloid">Cycloid</button>
+            <button type="button" class="preset-chip" data-curve="spiral">Archimedean Spiral</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 0.45rem;">
+            <div>
+              <label class="field-label" for="curveMode">Curve Type</label>
+              <select id="curveMode" class="math-select mono">
+                <option value="param" selected>Parametric (x(t), y(t))</option>
+                <option value="polar">Polar r(theta)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="curveParamT">Parameter Range [tMin, tMax]</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem;">
+                <input type="number" id="curveTMin" class="math-input mono" value="0" step="any" aria-label="Parameter start" />
+                <input type="number" id="curveTMax" class="math-input mono" value="6.2831853" step="any" aria-label="Parameter end" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" id="curveLabel1" for="curveExpr1">x(t) Expression</label>
+              <input type="text" id="curveExpr1" class="math-input mono" value="3 * sin(3 * t)" />
+            </div>
+            <div>
+              <label class="field-label" id="curveLabel2" for="curveExpr2">y(t) Expression</label>
+              <input type="text" id="curveExpr2" class="math-input mono" value="3 * sin(4 * t)" />
+            </div>
+          </div>
+
+          <canvas id="curveCanvas" class="sim-canvas" aria-label="Parametric and Polar Curve Canvas"></canvas>
+
+          <div class="formula-box mono" id="outCurveMetrics">
+            Arc Length ≈ 0.00 • Bounding Box: x ∈ [0, 0], y ∈ [0, 0]
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         SAFE STORAGE, CLIPBOARD & TOAST HELPERS
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function readStoredTheme() {
+        try {
+          return localStorage.getItem("amc_math_theme") || "light";
+        } catch (_) {
+          return "light";
+        }
+      }
+
+      function writeStoredTheme(theme) {
+        try {
+          localStorage.setItem("amc_math_theme", theme);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(label),
+            () => fallbackExecCopy(text, label)
+          );
+          return;
+        }
+        fallbackExecCopy(text, label);
+      }
+
+      function fallbackExecCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (_) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function fmtNum(n, digits = 5) {
+        if (!Number.isFinite(n)) return "Error";
+        if (Math.abs(n) >= 1e9 || (Math.abs(n) > 0 && Math.abs(n) < 1e-6)) {
+          return n.toExponential(digits);
+        }
+        return Number(n.toFixed(digits)).toString();
+      }
+
+      /* ======================================================================
+         CACHED DOM REFERENCES & DEBOUNCED RESIZE
+         ====================================================================== */
+      const els = {};
+      let resizeTimer = null;
+      let matAInputsCache = [];
+      let matBInputsCache = [];
+
+      function cacheDomElements() {
+        const ids = [
+          "themeIcon", "themeLabel", "toast", "constReadout",
+          "quickHelperMode", "quickHelperA", "quickHelperB", "quickHelperOut",
+          "calcExpr", "calcX0", "calcA", "calcB", "calcTaylorDeg", "calcError",
+          "outCalcDerivs", "outCalcIntegral", "outCalcTaylorVal", "outTaylorPoly", "calcCanvas",
+          "seqA1", "seqD", "seqR", "seqN", "seqP", "seqAltK",
+          "outArithRes", "outGeomRes", "outFibRes", "outPSeriesRes", "outAltSeriesNote",
+          "matSize", "matOp", "matAInputs", "matBInputs", "matError",
+          "outMatDetTr", "outMatBin", "outMatUnary",
+          "vecUx", "vecUy", "vecUz", "vecVx", "vecVy", "vecVz",
+          "outVecNorms", "outVecDotAng", "outVecCross", "outVecProj",
+          "ptX1", "ptY1", "ptX2", "ptY2", "outLine2DInfo",
+          "ntN", "ntBInt", "ntExp", "ntMod", "ntError",
+          "outNtPrime", "outNtGcdLcm", "outNtModExp", "outNtPhi", "outNtDivs", "outNtFactors",
+          "cbN", "cbK", "outCbSummary", "binTrials", "binP", "binK",
+          "outBinPmk", "outBinCdf", "outBinMean", "outBinVar",
+          "gmRadius", "gmAngleDeg", "gmHeight", "gmSideA", "gmSideB", "gmSideC",
+          "outGmCircle", "outGmSector", "outGmTriArea", "outGmSphere", "outGmCyl", "outGmCone", "outGmTriAngles",
+          "curveMode", "curveTMin", "curveTMax", "curveExpr1", "curveExpr2",
+          "curveLabel1", "curveLabel2", "curveCanvas", "outCurveMetrics"
+        ];
+        ids.forEach((id) => {
+          els[id] = document.getElementById(id);
+        });
+      }
+
+      function redrawActiveCanvases() {
+        const activePanel = document.querySelector(".panel.active");
+        if (!activePanel) return;
+        if (activePanel.id === "panel-calc") drawCalculusCanvas(false);
+        if (activePanel.id === "panel-geom") drawCurveCanvas(false);
+      }
+
+      function scheduleDebouncedResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          requestAnimationFrame(redrawActiveCanvases);
+        }, 120);
+      }
+
+      /* ======================================================================
+         THEME & TAB SWITCHING
+         ====================================================================== */
+      function setTheme(theme, notify = false) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        if (els.themeIcon) els.themeIcon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (els.themeLabel) els.themeLabel.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        writeStoredTheme(safeTheme);
+        requestAnimationFrame(redrawActiveCanvases);
+        if (notify) {
+          showToast(safeTheme === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      function activateTab(targetTabId, notify = false) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          const active = btn.dataset.tab === targetTabId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        document.querySelectorAll(".panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetTabId);
+        });
+        requestAnimationFrame(redrawActiveCanvases);
+        if (notify) {
+          const activeBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+          if (activeBtn) showToast(`Switched to ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         SAFE MATHEMATICAL EXPRESSION EVALUATOR (NO eval() / NO new Function())
+         ====================================================================== */
+      const PHI_VAL = (1 + Math.sqrt(5)) / 2;
+
+      function tokenizeMath(expr) {
+        const tokens = [];
+        let i = 0;
+        const len = expr.length;
+
+        while (i < len) {
+          const ch = expr[i];
+          if (/\s/.test(ch)) {
+            i++;
+            continue;
+          }
+          if (/[0-9.]/.test(ch)) {
+            let numStr = "";
+            let dotSeen = false;
+            while (i < len && /[0-9.]/.test(expr[i])) {
+              if (expr[i] === ".") {
+                if (dotSeen) throw new Error("Invalid decimal point.");
+                dotSeen = true;
+              }
+              numStr += expr[i++];
+            }
+            if (numStr === ".") throw new Error("Standalone decimal point.");
+            tokens.push({ type: "num", value: parseFloat(numStr) });
+            continue;
+          }
+          if (/[a-zA-Z_]/.test(ch)) {
+            let ident = "";
+            while (i < len && /[a-zA-Z0-9_]/.test(expr[i])) {
+              ident += expr[i++];
+            }
+            tokens.push({ type: "ident", value: ident });
+            continue;
+          }
+          if ("+-*/^()".includes(ch)) {
+            tokens.push({ type: "op", value: ch });
+            i++;
+            continue;
+          }
+          throw new Error(`Unexpected token '${ch}'`);
+        }
+        return tokens;
+      }
+
+      function evalMathExpr(exprStr, scope = {}) {
+        if (!exprStr || !exprStr.trim()) throw new Error("Expression is empty.");
+        const tokens = tokenizeMath(exprStr);
+        let pos = 0;
+
+        const peek = () => tokens[pos] || null;
+        const consume = () => tokens[pos++] || null;
+
+        function parseAddSub() {
+          let left = parseMulDiv();
+          while (peek() && peek().type === "op" && (peek().value === "+" || peek().value === "-")) {
+            const op = consume().value;
+            const right = parseMulDiv();
+            left = op === "+" ? left + right : left - right;
+          }
+          return left;
+        }
+
+        function parseMulDiv() {
+          let left = parseUnary();
+          while (peek() && peek().type === "op" && (peek().value === "*" || peek().value === "/")) {
+            const op = consume().value;
+            const right = parseUnary();
+            if (op === "*") left *= right;
+            else {
+              if (right === 0) throw new Error("Division by zero.");
+              left /= right;
+            }
+          }
+          return left;
+        }
+
+        function parseUnary() {
+          if (peek() && peek().type === "op" && (peek().value === "+" || peek().value === "-")) {
+            const op = consume().value;
+            const val = parseUnary();
+            return op === "-" ? -val : val;
+          }
+          return parsePower();
+        }
+
+        function parsePower() {
+          const base = parsePrimary();
+          if (peek() && peek().type === "op" && peek().value === "^") {
+            consume();
+            const exp = parseUnary();
+            return Math.pow(base, exp);
+          }
+          return base;
+        }
+
+        function parsePrimary() {
+          const tok = peek();
+          if (!tok) throw new Error("Unexpected end of expression.");
+
+          if (tok.type === "num") {
+            consume();
+            return tok.value;
+          }
+
+          if (tok.type === "op" && tok.value === "(") {
+            consume();
+            const val = parseAddSub();
+            const close = consume();
+            if (!close || close.value !== ")") {
+              throw new Error("Missing closing parenthesis ')'.");
+            }
+            return val;
+          }
+
+          if (tok.type === "ident") {
+            consume();
+            const name = tok.value;
+            if (Object.prototype.hasOwnProperty.call(scope, name)) {
+              return scope[name];
+            }
+
+            const lower = name.toLowerCase();
+            if (lower === "pi") return Math.PI;
+            if (lower === "e") return Math.E;
+            if (lower === "phi") return PHI_VAL;
+
+            const open = peek();
+            if (!open || open.type !== "op" || open.value !== "(") {
+              throw new Error(`Unknown variable or missing '(' after '${name}'.`);
+            }
+            consume();
+            const arg = parseAddSub();
+            const close = consume();
+            if (!close || close.value !== ")") {
+              throw new Error(`Missing ')' for function '${name}'.`);
+            }
+
+            switch (lower) {
+              case "sin": return Math.sin(arg);
+              case "cos": return Math.cos(arg);
+              case "tan": return Math.tan(arg);
+              case "asin": return Math.asin(arg);
+              case "acos": return Math.acos(arg);
+              case "atan": return Math.atan(arg);
+              case "sinh": return Math.sinh(arg);
+              case "cosh": return Math.cosh(arg);
+              case "tanh": return Math.tanh(arg);
+              case "ln":
+              case "log": return Math.log(arg);
+              case "log10": return Math.log10(arg);
+              case "log2": return Math.log2(arg);
+              case "sqrt": return Math.sqrt(arg);
+              case "cbrt": return Math.cbrt(arg);
+              case "abs": return Math.abs(arg);
+              case "exp": return Math.exp(arg);
+              case "floor": return Math.floor(arg);
+              case "ceil": return Math.ceil(arg);
+              case "round": return Math.round(arg);
+              default:
+                throw new Error(`Unsupported function '${name}'.`);
+            }
+          }
+
+          throw new Error(`Unexpected token '${tok.value}'.`);
+        }
+
+        const out = parseAddSub();
+        if (pos < tokens.length) throw new Error("Unexpected trailing tokens.");
+        if (!Number.isFinite(out)) throw new Error("Non-finite evaluation result.");
+        return out;
+      }
+
+      /* ======================================================================
+         CONSTANTS & QUICK MATH HELPER
+         ====================================================================== */
+      const CONSTANTS = {
+        pi: { name: "π", val: Math.PI, str: Math.PI.toFixed(10) },
+        e: { name: "e", val: Math.E, str: Math.E.toFixed(10) },
+        phi: { name: "φ", val: PHI_VAL, str: PHI_VAL.toFixed(10) },
+        sqrt2: { name: "√2", val: Math.SQRT2, str: Math.SQRT2.toFixed(10) },
+        gamma: { name: "γ", val: 0.5772156649, str: "0.5772156649" },
+        ln2: { name: "ln(2)", val: Math.LN2, str: Math.LN2.toFixed(10) },
+        degPerRad: { name: "180/π", val: 180 / Math.PI, str: (180 / Math.PI).toFixed(8) }
+      };
+
+      function gcdBig(a, b) {
+        let x = a < 0n ? -a : a;
+        let y = b < 0n ? -b : b;
+        while (y !== 0n) {
+          const t = y;
+          y = x % y;
+          x = t;
+        }
+        return x;
+      }
+
+      function modInverseBig(a, m) {
+        if (m <= 1n) return null;
+        let r0 = ((a % m) + m) % m;
+        let r1 = m;
+        let t0 = 0n;
+        let t1 = 1n;
+        while (r1 !== 0n) {
+          const q = r0 / r1;
+          [r0, r1] = [r1, r0 - q * r1];
+          [t0, t1] = [t1, t0 - q * t1];
+        }
+        if (r0 !== 1n) return null;
+        return ((t0 % m) + m) % m;
+      }
+
+      function updateQuickHelper() {
+        const mode = els.quickHelperMode.value;
+        const aRaw = (els.quickHelperA.value || "").trim();
+        const bRaw = (els.quickHelperB.value || "").trim();
+        const aNum = parseFloat(aRaw) || 0;
+
+        if (mode === "rad2deg") {
+          els.quickHelperOut.textContent = `= ${fmtNum((aNum * 180) / Math.PI, 4)}°`;
+        } else if (mode === "deg2rad") {
+          els.quickHelperOut.textContent = `= ${fmtNum((aNum * Math.PI) / 180, 5)} rad`;
+        } else if (mode === "fact") {
+          const n = Math.min(170, Math.max(0, Math.trunc(aNum)));
+          let f = 1;
+          for (let i = 2; i <= n; i++) f *= i;
+          els.quickHelperOut.textContent = `= ${fmtNum(f, 0)}`;
+        } else if (mode === "modinv") {
+          try {
+            const aBig = BigInt(aRaw || "0");
+            const mBig = BigInt(bRaw.split(",")[0] || "1");
+            const inv = modInverseBig(aBig, mBig);
+            els.quickHelperOut.textContent = inv !== null ? `= ${inv.toString()}` : "= No inverse";
+          } catch (_) {
+            els.quickHelperOut.textContent = "= Invalid int";
+          }
+        } else if (mode === "vecnorm") {
+          const parts = bRaw.split(",").map((s) => parseFloat(s.trim()) || 0);
+          const y = parts[0] || 0;
+          const z = parts[1] || 0;
+          const mag = Math.hypot(aNum, y, z);
+          els.quickHelperOut.textContent = `= ${fmtNum(mag, 5)}`;
+        }
+      }
+
+      /* ======================================================================
+         TAB 1: CALCULUS & SERIES
+         ====================================================================== */
+      function factSmall(k) {
+        let r = 1;
+        for (let i = 2; i <= k; i++) r *= i;
+        return r;
+      }
+
+      function computeCalculus(notify = false, redraw = true) {
+        els.calcError.style.display = "none";
+        const exprStr = els.calcExpr.value.trim() || "sin(x) + 0.2 * x^2";
+        const x0 = parseFloat(els.calcX0.value) || 0;
+        const a = parseFloat(els.calcA.value) || 0;
+        const b = parseFloat(els.calcB.value) || 0;
+        const deg = Math.min(10, Math.max(0, parseInt(els.calcTaylorDeg.value, 10) || 0));
+
+        try {
+          const fx0 = evalMathExpr(exprStr, { x: x0 });
+          const h = 1e-4;
+          const f1 = (evalMathExpr(exprStr, { x: x0 + h }) - evalMathExpr(exprStr, { x: x0 - h })) / (2 * h);
+          const f2 = (evalMathExpr(exprStr, { x: x0 + h }) - 2 * fx0 + evalMathExpr(exprStr, { x: x0 - h })) / (h * h);
+
+          // Composite Simpson's rule (even subintervals N = 200)
+          const N = 200;
+          const step = (b - a) / N;
+          let sumS = evalMathExpr(exprStr, { x: a }) + evalMathExpr(exprStr, { x: b });
+          for (let i = 1; i < N; i++) {
+            const xi = a + i * step;
+            sumS += (i % 2 === 0 ? 2 : 4) * evalMathExpr(exprStr, { x: xi });
+          }
+          const integralVal = (step / 3) * sumS;
+
+          // Numerical Taylor coefficients around x0 up to degree `deg`
+          const coeffs = [];
+          const hT = 1e-3;
+          const polyTerms = [];
+          for (let k = 0; k <= deg; k++) {
+            // Central-like finite difference of order k via binomial expansion
+            let dk = 0;
+            for (let j = 0; j <= k; j++) {
+              let cBin = 1;
+              for (let m = 0; m < j; m++) cBin = (cBin * (k - m)) / (m + 1);
+              const sign = (k - j) % 2 === 0 ? 1 : -1;
+              const xSample = x0 + (j - k / 2) * hT;
+              dk += sign * cBin * evalMathExpr(exprStr, { x: xSample });
+            }
+            const derivK = dk / Math.pow(hT, k);
+            const ck = derivK / factSmall(k);
+            coeffs.push(ck);
+            if (Math.abs(ck) > 1e-7) {
+              const termStr = k === 0
+                ? `${fmtNum(ck, 4)}`
+                : `${fmtNum(ck, 4)}*(x - ${fmtNum(x0, 2)})^${k}`;
+              polyTerms.push(termStr);
+            }
+          }
+
+          const evalTaylorAt = (xv) => {
+            let acc = 0;
+            const dx = xv - x0;
+            let powDx = 1;
+            for (let k = 0; k < coeffs.length; k++) {
+              acc += coeffs[k] * powDx;
+              powDx *= dx;
+            }
+            return acc;
+          };
+
+          const tAtProbe = evalTaylorAt(x0 + 0.5);
+
+          els.outCalcDerivs.textContent = `${fmtNum(f1, 4)} / ${fmtNum(f2, 4)}`;
+          els.outCalcIntegral.textContent = fmtNum(integralVal, 5);
+          els.outCalcTaylorVal.textContent = fmtNum(tAtProbe, 4);
+          els.outTaylorPoly.textContent =
+            `T_${deg}(x) at x₀=${fmtNum(x0, 2)}: ${polyTerms.length ? polyTerms.join(" + ") : "0"}`;
+
+          if (redraw) requestAnimationFrame(() => drawCalculusCanvas(false, coeffs, x0));
+          if (notify) showToast("Calculus & Taylor series computed");
+          return { coeffs, x0 };
+        } catch (err) {
+          els.calcError.textContent = err.message;
+          els.calcError.style.display = "block";
+          return null;
+        }
+      }
+
+      function drawCalculusCanvas(notify = false, presetCoeffs = null, presetX0 = null) {
+        const canvas = els.calcCanvas;
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 270;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const fColor = isDark ? "#60a5fa" : "#2563eb";
+        const dColor = isDark ? "#34d399" : "#059669";
+        const tColor = isDark ? "#c084fc" : "#7c3aed";
+        const axisColor = isDark ? "#64748b" : "#94a3b8";
+        const textColor = isDark ? "#cbd5e1" : "#334155";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const exprStr = els.calcExpr.value.trim() || "sin(x) + 0.2 * x^2";
+        const x0 = presetX0 !== null ? presetX0 : (parseFloat(els.calcX0.value) || 0);
+        const xMin = x0 - 3.5;
+        const xMax = x0 + 3.5;
+
+        let coeffs = presetCoeffs;
+        if (!coeffs) {
+          const deg = Math.min(10, Math.max(0, parseInt(els.calcTaylorDeg.value, 10) || 0));
+          coeffs = [];
+          const hT = 1e-3;
+          for (let k = 0; k <= deg; k++) {
+            let dk = 0;
+            for (let j = 0; j <= k; j++) {
+              let cBin = 1;
+              for (let m = 0; m < j; m++) cBin = (cBin * (k - m)) / (m + 1);
+              const sign = (k - j) % 2 === 0 ? 1 : -1;
+              dk += sign * cBin * evalMathExpr(exprStr, { x: x0 + (j - k / 2) * hT });
+            }
+            coeffs.push((dk / Math.pow(hT, k)) / factSmall(k));
+          }
+        }
+
+        const samples = 160;
+        const fPts = [];
+        const dPts = [];
+        const tPts = [];
+        let yMin = Infinity;
+        let yMax = -Infinity;
+        const hDeriv = 1e-3;
+
+        for (let i = 0; i <= samples; i++) {
+          const x = xMin + ((xMax - xMin) * i) / samples;
+          let yF = NaN;
+          let yD = NaN;
+          try {
+            yF = evalMathExpr(exprStr, { x });
+            yD = (evalMathExpr(exprStr, { x: x + hDeriv }) - evalMathExpr(exprStr, { x: x - hDeriv })) / (2 * hDeriv);
+          } catch (_) {
+            yF = NaN;
+            yD = NaN;
+          }
+
+          let yT = 0;
+          const dx = x - x0;
+          let powDx = 1;
+          for (let k = 0; k < coeffs.length; k++) {
+            yT += coeffs[k] * powDx;
+            powDx *= dx;
+          }
+
+          const validF = Number.isFinite(yF) && Math.abs(yF) < 250;
+          const validD = Number.isFinite(yD) && Math.abs(yD) < 250;
+          const validT = Number.isFinite(yT) && Math.abs(yT) < 250;
+
+          fPts.push(validF ? yF : null);
+          dPts.push(validD ? yD : null);
+          tPts.push(validT ? yT : null);
+
+          [validF ? yF : null, validT ? yT : null].forEach((v) => {
+            if (v !== null) {
+              if (v < yMin) yMin = v;
+              if (v > yMax) yMax = v;
+            }
+          });
+        }
+
+        if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMax === yMin) {
+          yMin = -5;
+          yMax = 5;
+        } else {
+          const pad = (yMax - yMin) * 0.14 || 1;
+          yMin -= pad;
+          yMax += pad;
+        }
+
+        const padL = 40;
+        const padR = 14;
+        const padT = 24;
+        const padB = 22;
+        const plotW = Math.max(60, width - padL - padR);
+        const plotH = Math.max(60, height - padT - padB);
+
+        const toPx = (x, y) => [
+          padL + ((x - xMin) / (xMax - xMin)) * plotW,
+          height - padB - ((y - yMin) / (yMax - yMin)) * plotH
+        ];
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1;
+        if (yMin <= 0 && yMax >= 0) {
+          const [, y0] = toPx(xMin, 0);
+          ctx.beginPath();
+          ctx.moveTo(padL, y0);
+          ctx.lineTo(width - padR, y0);
+          ctx.stroke();
+        }
+
+        const drawSeries = (arr, color, dash = []) => {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash(dash);
+          ctx.beginPath();
+          let down = false;
+          for (let i = 0; i <= samples; i++) {
+            const val = arr[i];
+            if (val === null) {
+              down = false;
+              continue;
+            }
+            const x = xMin + ((xMax - xMin) * i) / samples;
+            const [px, py] = toPx(x, val);
+            if (!down) {
+              ctx.moveTo(px, py);
+              down = true;
+            } else {
+              ctx.lineTo(px, py);
+            }
+          }
+          ctx.stroke();
+          ctx.restore();
+        };
+
+        drawSeries(fPts, fColor, []);
+        drawSeries(dPts, dColor, [4, 3]);
+        drawSeries(tPts, tColor, [2, 2]);
+
+        ctx.fillStyle = textColor;
+        ctx.font = "700 10px var(--font-mono)";
+        ctx.fillText("— f(x)   -- f'(x)   ·· Taylor", padL, 14);
+        if (notify) showToast("Calculus plot updated");
+      }
+
+      function computeSeries(notify = false) {
+        const a1 = parseFloat(els.seqA1.value) || 0;
+        const d = parseFloat(els.seqD.value) || 0;
+        const r = parseFloat(els.seqR.value) || 0;
+        const n = Math.min(75, Math.max(1, parseInt(els.seqN.value, 10) || 1));
+        const p = parseFloat(els.seqP.value) || 0;
+        const kTerms = Math.min(500, Math.max(1, parseInt(els.seqAltK.value, 10) || 20));
+
+        const anArith = a1 + (n - 1) * d;
+        const snArith = (n / 2) * (2 * a1 + (n - 1) * d);
+
+        const anGeom = a1 * Math.pow(r, n - 1);
+        const geomInfStr = Math.abs(r) < 1
+          ? fmtNum(a1 / (1 - r), 4)
+          : "Div.";
+
+        // Fibonacci F_1 = 1, F_2 = 1
+        let fibPrev = 0;
+        let fibCur = 1;
+        if (n === 1) fibCur = 1;
+        else {
+          for (let i = 2; i <= n; i++) {
+            const nxt = fibPrev + fibCur;
+            fibPrev = fibCur;
+            fibCur = nxt;
+          }
+        }
+
+        let pSeriesStr = "Div.";
+        if (p > 1) {
+          if (Math.abs(p - 2) < 1e-9) pSeriesStr = `Conv (${fmtNum((Math.PI * Math.PI) / 6, 4)})`;
+          else {
+            let approx = 0;
+            for (let i = 1; i <= 2000; i++) approx += 1 / Math.pow(i, p);
+            pSeriesStr = `Conv (~${fmtNum(approx, 4)})`;
+          }
+        }
+
+        let altSum = 0;
+        for (let i = 1; i <= kTerms; i++) {
+          altSum += (i % 2 === 1 ? 1 : -1) / i;
+        }
+
+        els.outArithRes.textContent = `${fmtNum(anArith, 3)} · ${fmtNum(snArith, 3)}`;
+        els.outGeomRes.textContent = `${fmtNum(anGeom, 4)} · ${geomInfStr}`;
+        els.outFibRes.textContent = fmtNum(fibCur, 0);
+        els.outPSeriesRes.textContent = pSeriesStr;
+        els.outAltSeriesNote.textContent =
+          `Alternating harmonic sum (K=${kTerms}): S_${kTerms} ≈ ${fmtNum(altSum, 5)} (converges to ln(2) ≈ ${Math.LN2.toFixed(5)})`;
+
+        if (notify) showToast("Sequences & series analyzed");
+      }
+
+      /* ======================================================================
+         TAB 2: LINEAR ALGEBRA & VECTORS
+         ====================================================================== */
+      const MAT2_A = ["1", "2", "3", "4"];
+      const MAT2_B = ["5", "6", "7", "8"];
+      const MAT3_A = ["2", "1", "0", "0", "3", "1", "1", "0", "2"];
+      const MAT3_B = ["1", "0", "2", "2", "1", "0", "0", "1", "1"];
+
+      function buildMatrixGrid(container, size, values) {
+        container.className = size === 3 ? "matrix-grid-3 mono" : "matrix-grid-2 mono";
+        container.innerHTML = Array.from({ length: size * size }, (_, idx) => {
+          const val = values[idx] !== undefined ? values[idx] : "0";
+          return `<input type="number" class="math-input mono" value="${val}" step="any" aria-label="Matrix entry ${idx + 1}" />`;
+        }).join("");
+        return Array.from(container.querySelectorAll("input"));
+      }
+
+      function rebuildMatrices(size, preserve = false) {
+        const oldA = preserve ? matAInputsCache.map((el) => el.value) : null;
+        const oldB = preserve ? matBInputsCache.map((el) => el.value) : null;
+        const defA = size === 3 ? MAT3_A : MAT2_A;
+        const defB = size === 3 ? MAT3_B : MAT2_B;
+        matAInputsCache = buildMatrixGrid(els.matAInputs, size, oldA || defA);
+        matBInputsCache = buildMatrixGrid(els.matBInputs, size, oldB || defB);
+      }
+
+      function readSquareMatrix(inputs, size) {
+        const m = [];
+        for (let r = 0; r < size; r++) {
+          const row = [];
+          for (let c = 0; c < size; c++) {
+            row.push(parseFloat(inputs[r * size + c].value) || 0);
+          }
+          m.push(row);
+        }
+        return m;
+      }
+
+      function detSquare(m) {
+        const n = m.length;
+        if (n === 2) return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+        return (
+          m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+          m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+          m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+        );
+      }
+
+      function inverseSquare(m) {
+        const det = detSquare(m);
+        if (Math.abs(det) < 1e-12) return null;
+        const n = m.length;
+        if (n === 2) {
+          return [
+            [m[1][1] / det, -m[0][1] / det],
+            [-m[1][0] / det, m[0][0] / det]
+          ];
+        }
+        // Cofactor / adjugate for 3x3
+        const co = [
+          [
+            m[1][1] * m[2][2] - m[1][2] * m[2][1],
+            -(m[1][0] * m[2][2] - m[1][2] * m[2][0]),
+            m[1][0] * m[2][1] - m[1][1] * m[2][0]
+          ],
+          [
+            -(m[0][1] * m[2][2] - m[0][2] * m[2][1]),
+            m[0][0] * m[2][2] - m[0][2] * m[2][0],
+            -(m[0][0] * m[2][1] - m[0][1] * m[2][0])
+          ],
+          [
+            m[0][1] * m[1][2] - m[0][2] * m[1][1],
+            -(m[0][0] * m[1][2] - m[0][2] * m[1][0]),
+            m[0][0] * m[1][1] - m[0][1] * m[1][0]
+          ]
+        ];
+        const inv = [];
+        for (let r = 0; r < 3; r++) {
+          const row = [];
+          for (let c = 0; c < 3; c++) row.push(co[c][r] / det);
+          inv.push(row);
+        }
+        return inv;
+      }
+
+      function formatMatCompact(m) {
+        return `[${m.map((row) => row.map((v) => fmtNum(v, 2)).join(", ")).join("; ")}]`;
+      }
+
+      function computeMatrices(notify = false) {
+        els.matError.style.display = "none";
+        const size = parseInt(els.matSize.value, 10) || 2;
+        const op = els.matOp.value;
+        const A = readSquareMatrix(matAInputsCache, size);
+        const B = readSquareMatrix(matBInputsCache, size);
+
+        const detA = detSquare(A);
+        let trA = 0;
+        for (let i = 0; i < size; i++) trA += A[i][i];
+
+        const resMat = [];
+        for (let r = 0; r < size; r++) {
+          const row = [];
+          for (let c = 0; c < size; c++) {
+            if (op === "add") row.push(A[r][c] + B[r][c]);
+            else if (op === "sub") row.push(A[r][c] - B[r][c]);
+            else {
+              let sum = 0;
+              for (let k = 0; k < size; k++) sum += A[r][k] * B[k][c];
+              row.push(sum);
+            }
+          }
+          resMat.push(row);
+        }
+
+        const transA = [];
+        for (let r = 0; r < size; r++) {
+          const row = [];
+          for (let c = 0; c < size; c++) row.push(A[c][r]);
+          transA.push(row);
+        }
+
+        const invA = inverseSquare(A);
+        els.outMatDetTr.textContent = `${fmtNum(detA, 2)} · ${fmtNum(trA, 2)}`;
+        els.outMatBin.textContent = formatMatCompact(resMat);
+        els.outMatUnary.textContent =
+          `Aᵀ: ${formatMatCompact(transA)} • A⁻¹: ${invA ? formatMatCompact(invA) : "Singular (det = 0)"}`;
+
+        if (notify) showToast("Matrix operations calculated");
+      }
+
+      function computeVectorsAndGeom2D(notify = false) {
+        const ux = parseFloat(els.vecUx.value) || 0;
+        const uy = parseFloat(els.vecUy.value) || 0;
+        const uz = parseFloat(els.vecUz.value) || 0;
+        const vx = parseFloat(els.vecVx.value) || 0;
+        const vy = parseFloat(els.vecVy.value) || 0;
+        const vz = parseFloat(els.vecVz.value) || 0;
+
+        const normU = Math.hypot(ux, uy, uz);
+        const normV = Math.hypot(vx, vy, vz);
+        const dot = ux * vx + uy * vy + uz * vz;
+
+        let angleDeg = 0;
+        if (normU > 0 && normV > 0) {
+          const cosTheta = Math.min(1, Math.max(-1, dot / (normU * normV)));
+          angleDeg = (Math.acos(cosTheta) * 180) / Math.PI;
+        }
+
+        const cx = uy * vz - uz * vy;
+        const cy = uz * vx - ux * vz;
+        const cz = ux * vy - uy * vx;
+
+        const vMagSq = vx * vx + vy * vy + vz * vz;
+        const scale = vMagSq > 0 ? dot / vMagSq : 0;
+        const px = vx * scale;
+        const py = vy * scale;
+        const pz = vz * scale;
+
+        els.outVecNorms.textContent = `${fmtNum(normU, 3)} · ${fmtNum(normV, 3)}`;
+        els.outVecDotAng.textContent = `${fmtNum(dot, 2)} · ${fmtNum(angleDeg, 2)}°`;
+        els.outVecCross.textContent = `(${fmtNum(cx, 2)}, ${fmtNum(cy, 2)}, ${fmtNum(cz, 2)})`;
+        els.outVecProj.textContent = `(${fmtNum(px, 2)}, ${fmtNum(py, 2)}, ${fmtNum(pz, 2)})`;
+
+        // 2D points P1(x1,y1), P2(x2,y2) + sample line intersection (y = x and y = -x + 6)
+        const x1 = parseFloat(els.ptX1.value) || 0;
+        const y1 = parseFloat(els.ptY1.value) || 0;
+        const x2 = parseFloat(els.ptX2.value) || 0;
+        const y2 = parseFloat(els.ptY2.value) || 0;
+
+        const dist = Math.hypot(x2 - x1, y2 - y1);
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const dx = x2 - x1;
+        const slopeStr = Math.abs(dx) > 1e-12 ? fmtNum((y2 - y1) / dx, 3) : "∞ (vertical)";
+
+        // Intersection of line through P1,P2 with y = 0.5*x + 2
+        // Line 1: (y2 - y1)x - (x2 - x1)y = (y2 - y1)x1 - (x2 - x1)y1
+        const aL1 = y2 - y1;
+        const bL1 = -(x2 - x1);
+        const cL1 = aL1 * x1 + bL1 * y1;
+        // Line 2: x + y = 6
+        const aL2 = 1;
+        const bL2 = 1;
+        const cL2 = 6;
+        const detL = aL1 * bL2 - aL2 * bL1;
+        const intStr = Math.abs(detL) > 1e-12
+          ? `(${fmtNum((cL1 * bL2 - cL2 * bL1) / detL, 2)}, ${fmtNum((aL1 * cL2 - aL2 * cL1) / detL, 2)})`
+          : "Parallel";
+
+        els.outLine2DInfo.textContent =
+          `Dist=${fmtNum(dist, 3)} • Mid=(${fmtNum(midX, 2)}, ${fmtNum(midY, 2)}) • Slope=${slopeStr} • Intersect w/ x+y=6: ${intStr}`;
+
+        if (notify) showToast("3D vectors & 2D geometry computed");
+      }
+
+      /* ======================================================================
+         TAB 3: NUMBER THEORY & COMBINATORICS
+         ====================================================================== */
+      function isPrimeInt(n) {
+        if (n < 2) return false;
+        if (n === 2 || n === 3) return true;
+        if (n % 2 === 0 || n % 3 === 0) return false;
+        for (let i = 5; i * i <= n; i += 6) {
+          if (n % i === 0 || n % (i + 2) === 0) return false;
+        }
+        return true;
+      }
+
+      function primeFactorizeMap(n) {
+        const factors = new Map();
+        let cur = n;
+        while (cur % 2 === 0) {
+          factors.set(2, (factors.get(2) || 0) + 1);
+          cur /= 2;
+        }
+        for (let d = 3; d * d <= cur; d += 2) {
+          while (cur % d === 0) {
+            factors.set(d, (factors.get(d) || 0) + 1);
+            cur /= d;
+          }
+        }
+        if (cur > 1) factors.set(cur, (factors.get(cur) || 0) + 1);
+        return factors;
+      }
+
+      function modPowBig(base, exp, mod) {
+        if (mod === 1n) return 0n;
+        let res = 1n;
+        let b = ((base % mod) + mod) % mod;
+        let e = exp;
+        while (e > 0n) {
+          if (e % 2n === 1n) res = (res * b) % mod;
+          e /= 2n;
+          b = (b * b) % mod;
+        }
+        return res;
+      }
+
+      function computeNumberTheory(notify = false) {
+        els.ntError.style.display = "none";
+        const n = Math.min(1000000000, Math.max(1, Math.trunc(parseFloat(els.ntN.value) || 1)));
+        const b = Math.min(1000000000, Math.max(0, Math.trunc(parseFloat(els.ntBInt.value) || 0)));
+        const exp = Math.min(1000000000, Math.max(0, Math.trunc(parseFloat(els.ntExp.value) || 0)));
+        const mod = Math.min(1000000000, Math.max(1, Math.trunc(parseFloat(els.ntMod.value) || 1)));
+
+        const primeFlag = isPrimeInt(n);
+        const factors = primeFactorizeMap(n);
+
+        let phi = n;
+        let tau = 1;
+        let sigma = 1;
+        const factorParts = [];
+
+        factors.forEach((pow, pPrime) => {
+          phi = (phi / pPrime) * (pPrime - 1);
+          tau *= pow + 1;
+          sigma *= (Math.pow(pPrime, pow + 1) - 1) / (pPrime - 1);
+          factorParts.push(pow > 1 ? `${pPrime}^${pow}` : `${pPrime}`);
+        });
+
+        const gBig = gcdBig(BigInt(n), BigInt(b));
+        const lcmVal = gBig > 0n ? (BigInt(n) * BigInt(b)) / gBig : 0n;
+        const modExpRes = modPowBig(BigInt(n), BigInt(exp), BigInt(mod));
+
+        els.outNtPrime.textContent = primeFlag ? "Prime ✓" : "Composite";
+        els.outNtGcdLcm.textContent = `${gBig.toString()} · ${lcmVal.toString()}`;
+        els.outNtModExp.textContent = modExpRes.toString();
+        els.outNtPhi.textContent = Math.round(phi).toString();
+        els.outNtDivs.textContent = `${Math.round(tau)} · ${Math.round(sigma)}`;
+        els.outNtFactors.textContent =
+          `Prime factorization of ${n}: ${factorParts.length ? factorParts.join(" × ") : "1"}`;
+
+        if (notify) showToast("Number theory metrics computed");
+      }
+
+      function combExact(n, r) {
+        if (r < 0 || r > n) return 0;
+        const k = Math.min(r, n - r);
+        let num = 1;
+        let den = 1;
+        for (let i = 1; i <= k; i++) {
+          num *= n - k + i;
+          den *= i;
+        }
+        return Math.round(num / den);
+      }
+
+      function computeCombinatorics(notify = false) {
+        const n = Math.min(170, Math.max(0, parseInt(els.cbN.value, 10) || 0));
+        const k = Math.min(n, Math.max(0, parseInt(els.cbK.value, 10) || 0));
+
+        let npr = 1;
+        for (let i = 0; i < k; i++) npr *= n - i;
+        const ncr = combExact(n, k);
+
+        // Catalan C_n = C(2n, n) / (n + 1) for n <= 25
+        const catStr = n <= 25 ? fmtNum(combExact(2 * n, n) / (n + 1), 0) : "Large";
+        const pascalRow = n <= 16
+          ? `[${Array.from({ length: n + 1 }, (_, j) => combExact(n, j)).join(", ")}]`
+          : `Row ${n} (${n + 1} items)`;
+
+        els.outCbSummary.textContent =
+          `P(${n},${k})=${fmtNum(npr, 0)} • C(${n},${k})=${fmtNum(ncr, 0)} • Catalan C_${n}=${catStr} • Pascal: ${pascalRow}`;
+
+        const trials = Math.min(500, Math.max(1, parseInt(els.binTrials.value, 10) || 1));
+        const p = Math.min(1, Math.max(0, parseFloat(els.binP.value) || 0));
+        const bk = Math.min(trials, Math.max(0, parseInt(els.binK.value, 10) || 0));
+
+        const binPmf = (nT, j, prob) => {
+          if (prob === 0) return j === 0 ? 1 : 0;
+          if (prob === 1) return j === nT ? 1 : 0;
+          let c = 1;
+          const m = Math.min(j, nT - j);
+          for (let i = 1; i <= m; i++) c = (c * (nT - m + i)) / i;
+          return c * Math.pow(prob, j) * Math.pow(1 - prob, nT - j);
+        };
+
+        const pmk = binPmf(trials, bk, p);
+        let cdf = 0;
+        for (let j = 0; j <= bk; j++) cdf += binPmf(trials, j, p);
+
+        const mean = trials * p;
+        const variance = trials * p * (1 - p);
+
+        els.outBinPmk.textContent = `${(pmk * 100).toFixed(3)}%`;
+        els.outBinCdf.textContent = `${(Math.min(1, cdf) * 100).toFixed(3)}%`;
+        els.outBinMean.textContent = fmtNum(mean, 3);
+        els.outBinVar.textContent = fmtNum(variance, 3);
+
+        if (notify) showToast("Combinatorics & Binomial stats updated");
+      }
+
+      /* ======================================================================
+         TAB 4: GEOMETRY & PARAMETRIC CURVES
+         ====================================================================== */
+      function computeGeometry(notify = false) {
+        const r = Math.max(0, parseFloat(els.gmRadius.value) || 0);
+        const deg = Math.max(0, parseFloat(els.gmAngleDeg.value) || 0);
+        const h = Math.max(0, parseFloat(els.gmHeight.value) || 0);
+        const a = Math.max(0.001, parseFloat(els.gmSideA.value) || 1);
+        const b = Math.max(0.001, parseFloat(els.gmSideB.value) || 1);
+        const c = Math.max(0.001, parseFloat(els.gmSideC.value) || 1);
+
+        const circArea = Math.PI * r * r;
+        const circLen = 2 * Math.PI * r;
+        const fracCircle = deg / 360;
+        const secArea = circArea * fracCircle;
+        const arcLen = circLen * fracCircle;
+
+        const sphVol = (4 / 3) * Math.PI * Math.pow(r, 3);
+        const sphSurf = 4 * Math.PI * r * r;
+
+        const cylVol = Math.PI * r * r * h;
+        const cylSurf = 2 * Math.PI * r * (r + h);
+
+        const slant = Math.hypot(r, h);
+        const coneVol = (1 / 3) * Math.PI * r * r * h;
+        const coneSurf = Math.PI * r * (r + slant);
+
+        els.outGmCircle.textContent = `${fmtNum(circArea, 2)} · ${fmtNum(circLen, 2)}`;
+        els.outGmSector.textContent = `${fmtNum(secArea, 2)} · ${fmtNum(arcLen, 2)}`;
+        els.outGmSphere.textContent = `${fmtNum(sphVol, 1)} · ${fmtNum(sphSurf, 1)}`;
+        els.outGmCyl.textContent = `${fmtNum(cylVol, 1)} · ${fmtNum(cylSurf, 1)}`;
+        els.outGmCone.textContent = `${fmtNum(coneVol, 1)} · ${fmtNum(coneSurf, 1)}`;
+
+        const s = (a + b + c) / 2;
+        const areaSq = s * (s - a) * (s - b) * (s - c);
+        if (areaSq > 0 && a + b > c && a + c > b && b + c > a) {
+          const triArea = Math.sqrt(areaSq);
+          const angA = (Math.acos(Math.min(1, Math.max(-1, (b * b + c * c - a * a) / (2 * b * c)))) * 180) / Math.PI;
+          const angB = (Math.acos(Math.min(1, Math.max(-1, (a * a + c * c - b * b) / (2 * a * c)))) * 180) / Math.PI;
+          const angC = 180 - angA - angB;
+          els.outGmTriArea.textContent = fmtNum(triArea, 3);
+          els.outGmTriAngles.textContent =
+            `Perimeter: ${fmtNum(a + b + c, 2)} • Angles: A=${angA.toFixed(1)}°, B=${angB.toFixed(1)}°, C=${angC.toFixed(1)}°`;
+        } else {
+          els.outGmTriArea.textContent = "Invalid";
+          els.outGmTriAngles.textContent = "Sides do not satisfy triangle inequality (sum of two > third).";
+        }
+
+        if (notify) showToast("2D & 3D geometry calculated");
+      }
+
+      const CURVE_PRESETS = {
+        lissajous: { mode: "param", tMin: "0", tMax: "6.2831853", e1: "3 * sin(3 * t)", e2: "3 * sin(4 * t)" },
+        rose: { mode: "polar", tMin: "0", tMax: "6.2831853", e1: "4 * cos(3 * theta)", e2: "" },
+        cardioid: { mode: "polar", tMin: "0", tMax: "6.2831853", e1: "2 * (1 + cos(theta))", e2: "" },
+        cycloid: { mode: "param", tMin: "0", tMax: "12.5663706", e1: "t - sin(t)", e2: "1 - cos(t)" },
+        spiral: { mode: "polar", tMin: "0", tMax: "18.8495559", e1: "0.25 * theta", e2: "" }
+      };
+
+      function syncCurveModeLabels() {
+        const isPolar = els.curveMode.value === "polar";
+        els.curveLabel1.textContent = isPolar ? "r(theta) Expression" : "x(t) Expression";
+        els.curveLabel2.textContent = isPolar ? "Polar Mode (uses theta)" : "y(t) Expression";
+        els.curveExpr2.disabled = isPolar;
+      }
+
+      function drawCurveCanvas(notify = false) {
+        syncCurveModeLabels();
+        const canvas = els.curveCanvas;
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 270;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const curveColor = isDark ? "#a78bfa" : "#7c3aed";
+        const axisColor = isDark ? "#64748b" : "#94a3b8";
+        const textColor = isDark ? "#cbd5e1" : "#334155";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const isPolar = els.curveMode.value === "polar";
+        const tMin = parseFloat(els.curveTMin.value) || 0;
+        const tMax = parseFloat(els.curveTMax.value) || (2 * Math.PI);
+        const expr1 = els.curveExpr1.value.trim() || "3 * sin(3 * t)";
+        const expr2 = els.curveExpr2.value.trim() || "3 * sin(4 * t)";
+
+        const steps = 360;
+        const pts = [];
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        let arcLen = 0;
+        let prevPt = null;
+
+        for (let i = 0; i <= steps; i++) {
+          const param = tMin + ((tMax - tMin) * i) / steps;
+          let x = NaN;
+          let y = NaN;
+          try {
+            if (isPolar) {
+              const rVal = evalMathExpr(expr1, { theta: param, t: param });
+              x = rVal * Math.cos(param);
+              y = rVal * Math.sin(param);
+            } else {
+              x = evalMathExpr(expr1, { t: param, theta: param });
+              y = evalMathExpr(expr2, { t: param, theta: param });
+            }
+          } catch (_) {
+            x = NaN;
+            y = NaN;
+          }
+
+          if (Number.isFinite(x) && Number.isFinite(y) && Math.abs(x) < 1e4 && Math.abs(y) < 1e4) {
+            pts.push({ x, y });
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            if (prevPt) arcLen += Math.hypot(x - prevPt.x, y - prevPt.y);
+            prevPt = { x, y };
+          } else {
+            pts.push(null);
+            prevPt = null;
+          }
+        }
+
+        if (!Number.isFinite(minX) || !Number.isFinite(maxX) || maxX === minX) {
+          minX = -5;
+          maxX = 5;
+        }
+        if (!Number.isFinite(minY) || !Number.isFinite(maxY) || maxY === minY) {
+          minY = -5;
+          maxY = 5;
+        }
+
+        const spanX = (maxX - minX) * 1.15 || 1;
+        const spanY = (maxY - minY) * 1.15 || 1;
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+
+        const pad = 22;
+        const plotW = Math.max(60, width - pad * 2);
+        const plotH = Math.max(60, height - pad * 2);
+        const scale = Math.min(plotW / spanX, plotH / spanY);
+
+        const toPx = (x, y) => [
+          width / 2 + (x - cx) * scale,
+          height / 2 - (y - cy) * scale
+        ];
+
+        // Axes
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1;
+        const [ox, oy] = toPx(0, 0);
+        if (oy >= pad && oy <= height - pad) {
+          ctx.beginPath();
+          ctx.moveTo(pad, oy);
+          ctx.lineTo(width - pad, oy);
+          ctx.stroke();
+        }
+        if (ox >= pad && ox <= width - pad) {
+          ctx.beginPath();
+          ctx.moveTo(ox, pad);
+          ctx.lineTo(ox, height - pad);
+          ctx.stroke();
+        }
+
+        // Curve path
+        ctx.strokeStyle = curveColor;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        let down = false;
+        pts.forEach((p) => {
+          if (!p) {
+            down = false;
+            return;
+          }
+          const [px, py] = toPx(p.x, p.y);
+          if (!down) {
+            ctx.moveTo(px, py);
+            down = true;
+          } else {
+            ctx.lineTo(px, py);
+          }
+        });
+        ctx.stroke();
+
+        ctx.fillStyle = textColor;
+        ctx.font = "600 10px var(--font-mono)";
+        ctx.fillText(isPolar ? "Polar Curve" : "Parametric Curve", 10, 14);
+
+        els.outCurveMetrics.textContent =
+          `Arc Length ≈ ${fmtNum(arcLen, 3)} • Box: x∈[${fmtNum(minX, 2)}, ${fmtNum(maxX, 2)}], y∈[${fmtNum(minY, 2)}, ${fmtNum(maxY, 2)}]`;
+
+        if (notify) showToast("Curve plotted & metrics updated");
+      }
+
+      /* ======================================================================
+         DOM READY INITIALIZATION & EVENT WIRING
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        cacheDomElements();
+        setTheme(readStoredTheme(), false);
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        document.getElementById("constChipsBar").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-const]");
+          if (!chip) return;
+          const item = CONSTANTS[chip.dataset.const];
+          if (!item) return;
+          els.constReadout.textContent = `${item.name} = ${item.str}`;
+          copyToClipboard(item.str, `Copied ${item.name} = ${item.str}`);
+        });
+
+        ["quickHelperMode", "quickHelperA", "quickHelperB"].forEach((id) => {
+          els[id].addEventListener("input", updateQuickHelper);
+          els[id].addEventListener("change", updateQuickHelper);
+        });
+        document.getElementById("btnCopyQuickHelper").addEventListener("click", () => {
+          const out = els.quickHelperOut.textContent.replace(/^=\s*/, "");
+          copyToClipboard(out, `Copied ${out}`);
+        });
+
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.dataset.tab) activateTab(btn.dataset.tab, true);
+          });
+        });
+
+        // Tab 1: Calculus & Series
+        ["calcExpr", "calcX0", "calcA", "calcB", "calcTaylorDeg"].forEach((id) => {
+          els[id].addEventListener("input", () => computeCalculus(false, true));
+        });
+        document.getElementById("btnCalcCalculus").addEventListener("click", () => computeCalculus(true, true));
+        document.getElementById("btnResetCalculus").addEventListener("click", () => {
+          els.calcExpr.value = "sin(x) + 0.2 * x^2";
+          els.calcX0.value = "1";
+          els.calcA.value = "0";
+          els.calcB.value = "3.14159265";
+          els.calcTaylorDeg.value = "5";
+          computeCalculus(true, true);
+        });
+
+        ["seqA1", "seqD", "seqR", "seqN", "seqP", "seqAltK"].forEach((id) => {
+          els[id].addEventListener("input", () => computeSeries(false));
+        });
+        document.getElementById("btnCalcSeries").addEventListener("click", () => computeSeries(true));
+        document.getElementById("btnResetSeries").addEventListener("click", () => {
+          els.seqA1.value = "3";
+          els.seqD.value = "4";
+          els.seqR.value = "0.5";
+          els.seqN.value = "8";
+          els.seqP.value = "2";
+          els.seqAltK.value = "20";
+          computeSeries(true);
+        });
+
+        // Tab 2: Linear Algebra & Vectors
+        els.matSize.addEventListener("change", () => {
+          rebuildMatrices(parseInt(els.matSize.value, 10) || 2, false);
+          computeMatrices(false);
+        });
+        els.matOp.addEventListener("change", () => computeMatrices(false));
+        els.matAInputs.addEventListener("input", () => computeMatrices(false));
+        els.matBInputs.addEventListener("input", () => computeMatrices(false));
+        document.getElementById("btnCalcMat").addEventListener("click", () => computeMatrices(true));
+        document.getElementById("btnSwapMat").addEventListener("click", () => {
+          const aVals = matAInputsCache.map((el) => el.value);
+          const bVals = matBInputsCache.map((el) => el.value);
+          matAInputsCache.forEach((el, i) => { el.value = bVals[i]; });
+          matBInputsCache.forEach((el, i) => { el.value = aVals[i]; });
+          computeMatrices(true);
+        });
+        document.getElementById("btnResetMat").addEventListener("click", () => {
+          els.matSize.value = "2";
+          els.matOp.value = "mul";
+          rebuildMatrices(2, false);
+          computeMatrices(true);
+        });
+
+        ["vecUx", "vecUy", "vecUz", "vecVx", "vecVy", "vecVz", "ptX1", "ptY1", "ptX2", "ptY2"].forEach((id) => {
+          els[id].addEventListener("input", () => computeVectorsAndGeom2D(false));
+        });
+        document.getElementById("btnCalcVec").addEventListener("click", () => computeVectorsAndGeom2D(true));
+        document.getElementById("btnResetVec").addEventListener("click", () => {
+          els.vecUx.value = "3"; els.vecUy.value = "4"; els.vecUz.value = "0";
+          els.vecVx.value = "1"; els.vecVy.value = "2"; els.vecVz.value = "2";
+          els.ptX1.value = "0"; els.ptY1.value = "0"; els.ptX2.value = "6"; els.ptY2.value = "8";
+          computeVectorsAndGeom2D(true);
+        });
+
+        // Tab 3: Number Theory & Combinatorics
+        ["ntN", "ntBInt", "ntExp", "ntMod"].forEach((id) => {
+          els[id].addEventListener("input", () => computeNumberTheory(false));
+        });
+        document.getElementById("btnCalcNumTh").addEventListener("click", () => computeNumberTheory(true));
+        document.getElementById("btnResetNumTh").addEventListener("click", () => {
+          els.ntN.value = "84"; els.ntBInt.value = "30"; els.ntExp.value = "13"; els.ntMod.value = "97";
+          computeNumberTheory(true);
+        });
+
+        ["cbN", "cbK", "binTrials", "binP", "binK"].forEach((id) => {
+          els[id].addEventListener("input", () => computeCombinatorics(false));
+        });
+        document.getElementById("btnCalcComb").addEventListener("click", () => computeCombinatorics(true));
+        document.getElementById("btnResetComb").addEventListener("click", () => {
+          els.cbN.value = "8"; els.cbK.value = "3";
+          els.binTrials.value = "10"; els.binP.value = "0.4"; els.binK.value = "4";
+          computeCombinatorics(true);
+        });
+
+        // Tab 4: Geometry & Parametric Curves
+        ["gmRadius", "gmAngleDeg", "gmHeight", "gmSideA", "gmSideB", "gmSideC"].forEach((id) => {
+          els[id].addEventListener("input", () => computeGeometry(false));
+        });
+        document.getElementById("btnCalcGeom").addEventListener("click", () => computeGeometry(true));
+        document.getElementById("btnResetGeom").addEventListener("click", () => {
+          els.gmRadius.value = "5"; els.gmAngleDeg.value = "72"; els.gmHeight.value = "10";
+          els.gmSideA.value = "6"; els.gmSideB.value = "8"; els.gmSideC.value = "10";
+          computeGeometry(true);
+        });
+
+        ["curveMode", "curveTMin", "curveTMax", "curveExpr1", "curveExpr2"].forEach((id) => {
+          els[id].addEventListener("input", () => drawCurveCanvas(false));
+          els[id].addEventListener("change", () => drawCurveCanvas(false));
+        });
+        document.getElementById("btnCalcCurve").addEventListener("click", () => drawCurveCanvas(true));
+        document.getElementById("btnResetCurve").addEventListener("click", () => {
+          const p = CURVE_PRESETS.lissajous;
+          els.curveMode.value = p.mode;
+          els.curveTMin.value = p.tMin;
+          els.curveTMax.value = p.tMax;
+          els.curveExpr1.value = p.e1;
+          els.curveExpr2.value = p.e2;
+          drawCurveCanvas(true);
+        });
+        document.getElementById("curvePresets").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-curve]");
+          if (!chip) return;
+          const p = CURVE_PRESETS[chip.dataset.curve];
+          if (!p) return;
+          els.curveMode.value = p.mode;
+          els.curveTMin.value = p.tMin;
+          els.curveTMax.value = p.tMax;
+          els.curveExpr1.value = p.e1;
+          els.curveExpr2.value = p.e2;
+          drawCurveCanvas(true);
+        });
+
+        window.addEventListener("resize", scheduleDebouncedResize, { passive: true });
+
+        // Initial single-pass setup
+        rebuildMatrices(2, false);
+        updateQuickHelper();
+        computeCalculus(false, true);
+        computeSeries(false);
+        computeMatrices(false);
+        computeVectorsAndGeom2D(false);
+        computeNumberTheory(false);
+        computeCombinatorics(false);
+        computeGeometry(false);
+        drawCurveCanvas(false);
+      });
+    })();
+  </script>
+</body>
+</html>

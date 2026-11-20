@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Marketing Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --accent-violet: #7c3aed;
+      --accent-violet-soft: #ede9fe;
+      --accent-violet-text: #5b21b6;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #070c16;
+      --bg-surface: #10192b;
+      --bg-surface-alt: #0a1120;
+      --bg-canvas: #060b14;
+      --border-color: #1e2d47;
+      --border-strong: #32476b;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.16);
+      --accent-primary-text: #93c5fd;
+
+      --accent-violet: #a78bfa;
+      --accent-violet-soft: rgba(167, 139, 250, 0.16);
+      --accent-violet-text: #c4b5fd;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.16);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ========================================================================
+       RESET & BASE
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       STICKY TOP HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      cursor: pointer;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #059669);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+    }
+
+    /* ========================================================================
+       MAIN CONTAINER & QUICK FORMULA / RATIO STRIP
+       ======================================================================== */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .util-strip {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.95rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1040px) {
+      .util-strip {
+        grid-template-columns: 1.25fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .strip-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .preset-chip {
+      padding: 0.32rem 0.58rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 34px;
+      transition: all 0.12s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .ratio-helper-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1.15fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .ratio-helper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ========================================================================
+       NAVIGATION TABS & PANELS
+       ======================================================================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 880px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.68rem 0.55rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, INPUTS, BUTTONS & KPI CARDS
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 980px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .mkt-input, .mkt-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .mkt-input:focus, .mkt-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-sm {
+      padding: 0.42rem 0.78rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.7rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-card.pos {
+      background-color: var(--accent-emerald-soft);
+      border-color: var(--accent-emerald);
+    }
+
+    .kpi-card.neg {
+      background-color: var(--accent-danger-soft);
+      border-color: var(--accent-danger);
+    }
+
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+
+    .kpi-val {
+      font-size: 1.06rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .kpi-card.pos .kpi-val {
+      color: var(--accent-emerald-text);
+    }
+
+    .kpi-card.neg .kpi-val {
+      color: var(--accent-danger);
+    }
+
+    .formula-box {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 6px;
+      padding: 0.58rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    .sig-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .sig-badge.pass {
+      background-color: var(--accent-emerald-soft);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald-text);
+    }
+
+    .sig-badge.warn {
+      background-color: var(--accent-amber-soft);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber-text);
+    }
+
+    .sig-badge.low {
+      background-color: var(--bg-surface-alt);
+      color: var(--text-secondary);
+    }
+
+    /* ========================================================================
+       CHANNEL MIX TABLE & CANVAS
+       ======================================================================== */
+    .mix-table-wrap {
+      overflow-x: auto;
+      margin-top: 0.5rem;
+    }
+
+    .mix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .mix-table th, .mix-table td {
+      padding: 0.5rem 0.45rem;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .mix-table th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .mix-table input {
+      width: 82px;
+      height: 34px;
+      padding: 0 0.4rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-weight: 600;
+    }
+
+    .sim-canvas {
+      width: 100%;
+      height: 290px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      touch-action: manipulation;
+    }
+
+    /* ========================================================================
+       TOAST NOTIFICATION
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       1. STICKY TOP HEADER BAR
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">📈%</div>
+          <div>
+            <h1>Advanced Marketing Calculator</h1>
+            <span class="brand-sub">Funnel &amp; ROAS • LTV, CAC &amp; Payback • A/B, Email &amp; Pricing • Media Mix Planner</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN WORKSPACE CONTAINER
+       ====================================================================== -->
+  <main class="main-container">
+
+    <!-- 2. QUICK FORMULA PRESETS & CAMPAIGN EFFICIENCY RATIO HELPER -->
+    <section class="util-strip" aria-label="Quick Marketing Formulas and Ratio Helper">
+      <div>
+        <div class="strip-label">
+          <span>⚡ Formula Presets (Click to Load Example &amp; Copy Formula)</span>
+          <span id="lastFormulaReadout" class="mono" style="color: var(--accent-primary-text);"></span>
+        </div>
+        <div class="preset-chips mono" id="formulaPresetsBar">
+          <button type="button" class="preset-chip" data-preset="roas">ROAS = Rev / Spend</button>
+          <button type="button" class="preset-chip" data-preset="cpa">CPA = Spend / Orders</button>
+          <button type="button" class="preset-chip" data-preset="ltv">LTV = ARPU × GM / Churn</button>
+          <button type="button" class="preset-chip" data-preset="payback">Payback = CAC / (ARPU × GM)</button>
+          <button type="button" class="preset-chip" data-preset="cvr">CVR = Orders / Clicks</button>
+          <button type="button" class="preset-chip" data-preset="bel">BE Leads = Fixed / CM</button>
+          <button type="button" class="preset-chip" data-preset="ctr">CTR = Clicks / Impr.</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="strip-label">
+          <span>🧮 Quick Campaign Efficiency Ratio Helper</span>
+          <span id="ratioHelperOut" class="mono" style="color: var(--accent-emerald-text); font-weight: 800;">= $0.50 CPC • $25.00 CPA</span>
+        </div>
+        <div class="ratio-helper-grid">
+          <input type="number" id="ratioValA" class="mkt-input mono" value="25.00" step="any" aria-label="Primary ratio input" />
+          <input type="number" id="ratioValB" class="mkt-input mono" value="2.00" step="any" aria-label="Secondary ratio input" />
+          <select id="ratioMode" class="mkt-select mono" aria-label="Efficiency ratio mode">
+            <option value="cpm_ctr_cpc" selected>CPM ($) &amp; CTR (%) → CPC</option>
+            <option value="roas_aov_cpa">ROAS (x) &amp; AOV ($) → CPA</option>
+            <option value="impr_ctr_cvr">Impr. &amp; CTR (%) → Clicks/Orders</option>
+          </select>
+          <button type="button" class="btn-sm" id="btnCopyRatio" title="Copy efficiency calculation">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. FOUR MAIN CALCULATOR TABS -->
+    <nav class="tab-bar" role="tablist" aria-label="Marketing Calculator Labs">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-funnel">
+        <span>📊 Funnel, ROAS &amp; Ad Spend</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-ltv">
+        <span>💎 LTV, CAC &amp; Payback</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-ab">
+        <span>🧪 A/B Test, Email &amp; Discount</span>
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="panel-mix">
+        <span>🎛️ Media Mix &amp; Budget</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: FUNNEL, ROAS & AD SPEND LAB
+         ==================================================================== -->
+    <section id="panel-funnel" class="panel active" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: Ad Funnel & ROAS / Profitability Inputs + KPIs -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Funnel, ROAS &amp; Ad Spend Lab</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcFunnel">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetFunnel">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="fnSpend">Ad Spend ($)</label>
+              <input type="number" id="fnSpend" class="mkt-input mono" value="5000" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="fnImpressions">Impressions</label>
+              <input type="number" id="fnImpressions" class="mkt-input mono" value="250000" min="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="fnClicks">Clicks</label>
+              <input type="number" id="fnClicks" class="mkt-input mono" value="5000" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="fnOrders">Leads / Orders</label>
+              <input type="number" id="fnOrders" class="mkt-input mono" value="150" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="fnAov">Avg Order Value AOV ($)</label>
+              <input type="number" id="fnAov" class="mkt-input mono" value="85" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="fnMargin">Gross Margin (%)</label>
+              <input type="number" id="fnMargin" class="mkt-input mono" value="65" min="0.1" max="100" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">CTR / CPC / CPM</div>
+              <div class="kpi-val" id="outFnTraffic" style="font-size: 0.88rem;">2.00% · $1.00 · $20.00</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">CVR / CPA (CPL)</div>
+              <div class="kpi-val" id="outFnConv" style="font-size: 0.88rem;">3.00% · $33.33</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">ROAS / BE ROAS</div>
+              <div class="kpi-val" id="outFnRoas" style="font-size: 0.92rem;">2.55x · BE 1.54x</div>
+            </div>
+            <div class="kpi-card" id="outFnNetCard">
+              <div class="kpi-label">Net Ad Profit</div>
+              <div class="kpi-val" id="outFnNetProfit">+$3,287.50</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outFnDetail">
+            Gross Rev: $12,750.00 • Gross Profit: $8,287.50 • Break-Even CPA: $55.25 (AOV × Margin%)
+          </div>
+        </div>
+
+        <!-- Right Card: Interactive HTML5 Canvas Funnel & Unit Economics Visualizer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📉 Funnel &amp; Unit-Economics Visualizer</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm" id="btnToggleFnView">Switch View</button>
+            </div>
+          </div>
+
+          <canvas id="funnelCanvas" class="sim-canvas" aria-label="Marketing Funnel and Unit Economics Canvas"></canvas>
+
+          <div class="formula-box mono" id="outFnCanvasNote">
+            Mode: Funnel Stages (Impressions → Clicks → Orders) vs. Dollar Economics (Spend, Gross Profit, Net Profit)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: LTV, CAC & PAYBACK LAB
+         ==================================================================== -->
+    <section id="panel-ltv" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: LTV, CAC & Payback Inputs -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💎 LTV, CAC &amp; Payback Calculator</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcLtv">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetLtv">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="ltvArpu">Monthly ARPU ($)</label>
+              <input type="number" id="ltvArpu" class="mkt-input mono" value="90" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ltvMargin">Gross Margin (%)</label>
+              <input type="number" id="ltvMargin" class="mkt-input mono" value="75" min="1" max="100" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ltvChurn">Monthly Churn (%)</label>
+              <input type="number" id="ltvChurn" class="mkt-input mono" value="5" min="0.1" max="100" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ltvCustomers">New Customers Acquired</label>
+              <input type="number" id="ltvCustomers" class="mkt-input mono" value="250" min="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ltvSpend">Total Marketing + Sales Spend ($)</label>
+              <input type="number" id="ltvSpend" class="mkt-input mono" value="60000" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="ltvTargetRatio">Target LTV:CAC Ratio</label>
+              <input type="number" id="ltvTargetRatio" class="mkt-input mono" value="3.0" min="0.5" step="any" />
+            </div>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">LTV / CAC</div>
+              <div class="kpi-val" id="outLtvCacPair" style="font-size: 0.92rem;">$1,350 · $240</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">LTV : CAC Ratio</div>
+              <div class="kpi-val" id="outLtvRatio">5.63x</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Payback Months</div>
+              <div class="kpi-val" id="outLtvPayback">3.56 mos</div>
+            </div>
+            <div class="kpi-card pos">
+              <div class="kpi-label">Max Allowable CAC</div>
+              <div class="kpi-val" id="outLtvMaxCac">$450.00</div>
+            </div>
+          </div>
+
+          <div class="formula-box mono" id="outLtvCohortNote">
+            Net Cohort Value (250 customers × (LTV − CAC)): +$277,500.00 • Monthly Gross Profit/User: $67.50
+          </div>
+        </div>
+
+        <!-- Right Card: Formula Reference & Unit Economics Guardrails -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📘 LTV, CAC &amp; Payback Formulas</div>
+          </div>
+          <div style="display: grid; gap: 0.65rem; font-size: 0.84rem;">
+            <div class="formula-box mono" style="margin: 0;">
+              <strong>LTV</strong> = (Monthly ARPU × Gross Margin %) / Monthly Churn %
+            </div>
+            <div class="formula-box mono" style="margin: 0;">
+              <strong>CAC</strong> = Total Marketing + Sales Spend / New Customers Acquired
+            </div>
+            <div class="formula-box mono" style="margin: 0;">
+              <strong>Payback Months</strong> = CAC / (Monthly ARPU × Gross Margin %)
+            </div>
+            <div class="formula-box mono" style="margin: 0;">
+              <strong>Max Allowable CAC</strong> = LTV / Target LTV:CAC Ratio
+            </div>
+            <div class="formula-box mono" style="margin: 0;">
+              <strong>Net Cohort Value</strong> = New Customers × (LTV − CAC)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: A/B TESTING, EMAIL & DISCOUNT LAB
+         ==================================================================== -->
+    <section id="panel-ab" class="panel" role="tabpanel">
+      <div class="two-col">
+        <!-- Left Card: A/B Test Significance Calculator -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧪 A/B Test Statistical Significance</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcAb">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetAb">Reset</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
+            <div>
+              <label class="field-label" for="abVisA">Variant A Visitors</label>
+              <input type="number" id="abVisA" class="mkt-input mono" value="4000" min="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="abConvA">Variant A Conversions</label>
+              <input type="number" id="abConvA" class="mkt-input mono" value="180" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="abVisB">Variant B Visitors</label>
+              <input type="number" id="abVisB" class="mkt-input mono" value="4000" min="1" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="abConvB">Variant B Conversions</label>
+              <input type="number" id="abConvB" class="mkt-input mono" value="224" min="0" step="any" />
+            </div>
+          </div>
+
+          <div style="margin-top: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+            <span class="field-label" style="margin: 0;">Significance Status:</span>
+            <span class="sig-badge pass mono" id="outAbSigBadge">97.6% Confidence (≥95% Pass)</span>
+          </div>
+
+          <div class="kpi-grid mono">
+            <div class="kpi-card">
+              <div class="kpi-label">CVR A / CVR B</div>
+              <div class="kpi-val" id="outAbRates" style="font-size: 0.92rem;">4.50% / 5.60%</div>
+            </div>
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Relative Lift %</div>
+              <div class="kpi-val" id="outAbLift">+24.44%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Z-Score</div>
+              <div class="kpi-val" id="outAbZ">2.256</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Confidence %</div>
+              <div class="kpi-val" id="outAbConf">97.59%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Card: Email Campaign & Discount Break-Even Lift -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">✉️ Email Metrics &amp; Discount Break-Even Lift</div>
+            <div class="card-actions">
+              <button type="button" class="btn-sm btn-primary" id="btnCalcEmailPrice">Calculate</button>
+              <button type="button" class="btn-sm" id="btnResetEmailPrice">Reset</button>
+            </div>
+          </div>
+
+          <!-- Email Metrics (Sent, Delivered, Opens, Clicks, Orders, Revenue) -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.8rem;">
+            <div style="font-weight: 700; font-size: 0.84rem; margin-bottom: 0.45rem;">Email Campaign Performance</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem;">
+              <div>
+                <label class="field-label" for="emSent">Emails Sent</label>
+                <input type="number" id="emSent" class="mkt-input mono" value="21000" min="1" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emDelivered">Delivered</label>
+                <input type="number" id="emDelivered" class="mkt-input mono" value="20000" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emOpens">Opens</label>
+                <input type="number" id="emOpens" class="mkt-input mono" value="5400" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emClicks">Clicks</label>
+                <input type="number" id="emClicks" class="mkt-input mono" value="620" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emOrders">Orders</label>
+                <input type="number" id="emOrders" class="mkt-input mono" value="55" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="emRev">Revenue ($)</label>
+                <input type="number" id="emRev" class="mkt-input mono" value="4650" min="0" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outEmailSummary" style="margin-top: 0.45rem; font-size: 0.8rem; font-weight: 700; color: var(--accent-primary-text);">
+              Open Rate: 27.00% • Click Rate: 3.10% • CTOR: 11.48% • Rev/Email: $0.221
+            </div>
+          </div>
+
+          <!-- Promotional Discount Break-Even Lift % -->
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.84rem; margin-bottom: 0.45rem;">Promo Discount Break-Even Lift %</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label class="field-label" for="prDisc">Promo Discount (%)</label>
+                <input type="number" id="prDisc" class="mkt-input mono" value="15" min="0" max="99" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="prMargin">Gross Margin (%)</label>
+                <input type="number" id="prMargin" class="mkt-input mono" value="50" min="1" max="100" step="any" />
+              </div>
+            </div>
+            <div class="mono" id="outPromoSummary" style="margin-top: 0.45rem; font-size: 0.8rem; font-weight: 700; color: var(--accent-emerald-text);">
+              Break-Even Lift Needed: +42.86% unit volume to maintain gross profit
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: MEDIA MIX & BUDGET PLANNER
+         ==================================================================== -->
+    <section id="panel-mix" class="panel" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎛️ Media Mix &amp; Budget Planner</div>
+          <div class="card-actions">
+            <button type="button" class="btn-sm btn-primary" id="btnCalcMix">Calculate</button>
+            <button type="button" class="btn-sm" id="btnResetMix">Reset</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.65rem; margin-bottom: 0.75rem;">
+          <div>
+            <label class="field-label" for="mixTotalBudget">Total Monthly Budget ($)</label>
+            <input type="number" id="mixTotalBudget" class="mkt-input mono" value="40000" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="mixAvgAov">Avg Order Value ($)</label>
+            <input type="number" id="mixAvgAov" class="mkt-input mono" value="110" min="1" step="any" />
+          </div>
+        </div>
+
+        <div class="mix-table-wrap">
+          <table class="mix-table mono" id="mediaMixTable">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Weight %</th>
+                <th>Alloc. Spend</th>
+                <th>CPC ($)</th>
+                <th>CVR (%)</th>
+                <th>Est. Clicks</th>
+                <th>Est. Orders</th>
+                <th>Est. Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-ch="search">
+                <td>Paid Search</td>
+                <td><input type="number" class="mix-w" value="30" min="0" max="100" step="any" aria-label="Paid Search weight percent" /></td>
+                <td class="mix-alloc">$12,000</td>
+                <td><input type="number" class="mix-cpc" value="1.80" min="0.01" step="any" aria-label="Paid Search CPC" /></td>
+                <td><input type="number" class="mix-cvr" value="4.5" min="0.01" max="100" step="any" aria-label="Paid Search CVR percent" /></td>
+                <td class="mix-clk">6,667</td>
+                <td class="mix-ord">300</td>
+                <td class="mix-rev">$33,000</td>
+              </tr>
+              <tr data-ch="social">
+                <td>Paid Social</td>
+                <td><input type="number" class="mix-w" value="25" min="0" max="100" step="any" aria-label="Paid Social weight percent" /></td>
+                <td class="mix-alloc">$10,000</td>
+                <td><input type="number" class="mix-cpc" value="1.10" min="0.01" step="any" aria-label="Paid Social CPC" /></td>
+                <td><input type="number" class="mix-cvr" value="2.4" min="0.01" max="100" step="any" aria-label="Paid Social CVR percent" /></td>
+                <td class="mix-clk">9,091</td>
+                <td class="mix-ord">218</td>
+                <td class="mix-rev">$24,000</td>
+              </tr>
+              <tr data-ch="creator">
+                <td>Creator/Affiliate</td>
+                <td><input type="number" class="mix-w" value="20" min="0" max="100" step="any" aria-label="Creator/Affiliate weight percent" /></td>
+                <td class="mix-alloc">$8,000</td>
+                <td><input type="number" class="mix-cpc" value="0.95" min="0.01" step="any" aria-label="Creator/Affiliate CPC" /></td>
+                <td><input type="number" class="mix-cvr" value="3.2" min="0.01" max="100" step="any" aria-label="Creator/Affiliate CVR percent" /></td>
+                <td class="mix-clk">8,421</td>
+                <td class="mix-ord">269</td>
+                <td class="mix-rev">$29,642</td>
+              </tr>
+              <tr data-ch="seo">
+                <td>SEO/Content</td>
+                <td><input type="number" class="mix-w" value="15" min="0" max="100" step="any" aria-label="SEO/Content weight percent" /></td>
+                <td class="mix-alloc">$6,000</td>
+                <td><input type="number" class="mix-cpc" value="0.55" min="0.01" step="any" aria-label="SEO/Content CPC" /></td>
+                <td><input type="number" class="mix-cvr" value="3.8" min="0.01" max="100" step="any" aria-label="SEO/Content CVR percent" /></td>
+                <td class="mix-clk">10,909</td>
+                <td class="mix-ord">415</td>
+                <td class="mix-rev">$45,600</td>
+              </tr>
+              <tr data-ch="email">
+                <td>Email/CRM</td>
+                <td><input type="number" class="mix-w" value="10" min="0" max="100" step="any" aria-label="Email/CRM weight percent" /></td>
+                <td class="mix-alloc">$4,000</td>
+                <td><input type="number" class="mix-cpc" value="0.25" min="0.01" step="any" aria-label="Email/CRM CPC" /></td>
+                <td><input type="number" class="mix-cvr" value="6.0" min="0.01" max="100" step="any" aria-label="Email/CRM CVR percent" /></td>
+                <td class="mix-clk">16,000</td>
+                <td class="mix-ord">960</td>
+                <td class="mix-rev">$105,600</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Weight Share</div>
+            <div class="kpi-val" id="outMixWeight">100.0%</div>
+          </div>
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Projected Orders / Rev</div>
+            <div class="kpi-val" id="outMixOrdersRev" style="font-size: 0.92rem;">2,162 · $237,842</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Blended CAC</div>
+            <div class="kpi-val" id="outMixCac">$18.50</div>
+          </div>
+          <div class="kpi-card pos">
+            <div class="kpi-label">Blended ROAS</div>
+            <div class="kpi-val" id="outMixRoas">5.95x</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         SAFE STORAGE, CLIPBOARD & TOAST HELPERS
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function readStoredTheme() {
+        try {
+          return localStorage.getItem("amc_theme") || "light";
+        } catch (_) {
+          return "light";
+        }
+      }
+
+      function writeStoredTheme(theme) {
+        try {
+          localStorage.setItem("amc_theme", theme);
+        } catch (_) {
+          // Ignore sandboxed storage restrictions
+        }
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(
+            () => showToast(label),
+            () => fallbackExecCopy(text, label)
+          );
+          return;
+        }
+        fallbackExecCopy(text, label);
+      }
+
+      function fallbackExecCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (_) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function fmtMoney(n, decimals = 2) {
+        if (!Number.isFinite(n)) return "$0.00";
+        const sign = n < 0 ? "-" : "";
+        return `${sign}$${Math.abs(n).toLocaleString("en-US", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        })}`;
+      }
+
+      function fmtSignedMoney(n) {
+        if (!Number.isFinite(n)) return "$0.00";
+        return `${n >= 0 ? "+" : "-"}$${Math.abs(n).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}`;
+      }
+
+      /* ======================================================================
+         CACHED DOM REFERENCES & DEBOUNCED RESIZE (ZERO THRASHING)
+         ====================================================================== */
+      const els = {};
+      let resizeTimer = null;
+      let mixRowCache = [];
+
+      function cacheDomElements() {
+        const ids = [
+          "themeIcon", "themeLabel", "toast", "lastFormulaReadout",
+          "ratioValA", "ratioValB", "ratioMode", "ratioHelperOut",
+          "fnSpend", "fnImpressions", "fnClicks", "fnOrders", "fnAov", "fnMargin",
+          "outFnTraffic", "outFnConv", "outFnRoas", "outFnNetCard", "outFnNetProfit", "outFnDetail",
+          "funnelCanvas",
+          "ltvArpu", "ltvMargin", "ltvChurn", "ltvCustomers", "ltvSpend", "ltvTargetRatio",
+          "outLtvCacPair", "outLtvRatio", "outLtvPayback", "outLtvMaxCac", "outLtvCohortNote",
+          "abVisA", "abConvA", "abVisB", "abConvB",
+          "outAbSigBadge", "outAbRates", "outAbLift", "outAbZ", "outAbConf",
+          "emSent", "emDelivered", "emOpens", "emClicks", "emOrders", "emRev",
+          "outEmailSummary", "prDisc", "prMargin", "outPromoSummary",
+          "mixTotalBudget", "mixAvgAov", "outMixWeight", "outMixOrdersRev", "outMixCac", "outMixRoas"
+        ];
+        ids.forEach((id) => {
+          els[id] = document.getElementById(id);
+        });
+
+        mixRowCache = Array.from(document.querySelectorAll("#mediaMixTable tbody tr")).map((tr) => ({
+          tr,
+          wEl: tr.querySelector(".mix-w"),
+          allocEl: tr.querySelector(".mix-alloc"),
+          cpcEl: tr.querySelector(".mix-cpc"),
+          cvrEl: tr.querySelector(".mix-cvr"),
+          clkEl: tr.querySelector(".mix-clk"),
+          ordEl: tr.querySelector(".mix-ord"),
+          revEl: tr.querySelector(".mix-rev")
+        }));
+      }
+
+      function scheduleFunnelRedraw() {
+        requestAnimationFrame(drawFunnelCanvas);
+      }
+
+      function scheduleDebouncedResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          requestAnimationFrame(drawFunnelCanvas);
+        }, 120);
+      }
+
+      /* ======================================================================
+         THEME & TAB CONTROLLERS
+         ====================================================================== */
+      function setTheme(theme, notify = false) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        if (els.themeIcon) els.themeIcon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (els.themeLabel) els.themeLabel.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        writeStoredTheme(safeTheme);
+        scheduleFunnelRedraw();
+        if (notify) {
+          showToast(safeTheme === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        }
+      }
+
+      function activateTab(targetTabId, notify = false) {
+        const tabBtns = document.querySelectorAll(".tab-btn");
+        const panels = document.querySelectorAll(".panel");
+        tabBtns.forEach((btn) => {
+          const active = btn.dataset.tab === targetTabId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetTabId);
+        });
+        if (targetTabId === "panel-funnel") {
+          scheduleFunnelRedraw();
+        }
+        if (notify) {
+          const activeBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+          if (activeBtn) showToast(`Switched to ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         QUICK FORMULA PRESETS & EFFICIENCY RATIO HELPER
+         ====================================================================== */
+      const FORMULA_PRESETS = {
+        roas: { formula: "ROAS = Gross Revenue / Ad Spend", tab: "panel-funnel" },
+        cpa: { formula: "CPA = Ad Spend / Conversions", tab: "panel-funnel" },
+        ltv: { formula: "LTV = (Monthly ARPU × Gross Margin %) / Monthly Churn %", tab: "panel-ltv" },
+        payback: { formula: "Payback Months = CAC / (Monthly ARPU × Gross Margin %)", tab: "panel-ltv" },
+        cvr: { formula: "CVR = Conversions / Clicks", tab: "panel-funnel" },
+        bel: { formula: "Break-Even Lift % = Discount % / (Gross Margin % − Discount %)", tab: "panel-ab" },
+        ctr: { formula: "CTR = Clicks / Impressions", tab: "panel-funnel" }
+      };
+
+      function updateRatioHelper() {
+        if (!els.ratioHelperOut) return;
+        const a = parseFloat(els.ratioValA.value) || 0;
+        const b = parseFloat(els.ratioValB.value) || 0;
+        const mode = els.ratioMode.value;
+
+        if (mode === "cpm_ctr_cpc") {
+          const ctrFrac = b / 100;
+          const cpc = ctrFrac > 0 ? (a / 1000) / ctrFrac : 0;
+          els.ratioHelperOut.textContent = `= ${fmtMoney(cpc)} CPC`;
+        } else if (mode === "roas_aov_cpa") {
+          const cpa = a > 0 ? b / a : 0;
+          els.ratioHelperOut.textContent = `= ${fmtMoney(cpa)} Max CPA`;
+        } else if (mode === "impr_ctr_cvr") {
+          const clicks = a * (b / 100);
+          els.ratioHelperOut.textContent = `= ${Math.round(clicks).toLocaleString("en-US")} Clicks`;
+        }
+      }
+
+      /* ======================================================================
+         TAB 1: FUNNEL, ROAS & AD SPEND + ON-DEMAND CANVAS VISUALIZER
+         ====================================================================== */
+      let funnelChartMode = "funnel"; // "funnel" | "economics"
+
+      function computeFunnelMetrics(notify = false, redrawChart = true) {
+        const spend = Math.max(0, parseFloat(els.fnSpend.value) || 0);
+        const impr = Math.max(1, parseFloat(els.fnImpressions.value) || 1);
+        const clicks = Math.max(0, parseFloat(els.fnClicks.value) || 0);
+        const orders = Math.max(0, parseFloat(els.fnOrders.value) || 0);
+        const aov = Math.max(0, parseFloat(els.fnAov.value) || 0);
+        const marginPct = Math.min(100, Math.max(0.1, parseFloat(els.fnMargin.value) || 65));
+
+        const ctrPct = (clicks / impr) * 100;
+        const cpc = clicks > 0 ? spend / clicks : 0;
+        const cpm = (spend / impr) * 1000;
+        const cvrPct = clicks > 0 ? (orders / clicks) * 100 : 0;
+        const cpa = orders > 0 ? spend / orders : 0;
+
+        const grossRev = orders * aov;
+        const grossProfit = grossRev * (marginPct / 100);
+        const netProfit = grossProfit - spend;
+
+        const roas = spend > 0 ? grossRev / spend : 0;
+        const beRoas = 100 / marginPct;
+        const beCpa = aov * (marginPct / 100);
+
+        els.outFnTraffic.textContent = `${ctrPct.toFixed(2)}% · ${fmtMoney(cpc)} · ${fmtMoney(cpm)}`;
+        els.outFnConv.textContent = `${cvrPct.toFixed(2)}% · ${fmtMoney(cpa)}`;
+        els.outFnRoas.textContent = `${roas.toFixed(2)}x · BE ${beRoas.toFixed(2)}x`;
+
+        els.outFnNetCard.classList.remove("pos", "neg");
+        els.outFnNetCard.classList.add(netProfit >= 0 ? "pos" : "neg");
+        els.outFnNetProfit.textContent = fmtSignedMoney(netProfit);
+
+        els.outFnDetail.textContent =
+          `Gross Rev: ${fmtMoney(grossRev)} • Gross Profit: ${fmtMoney(grossProfit)} • Break-Even CPA: ${fmtMoney(beCpa)}`;
+
+        if (redrawChart) scheduleFunnelRedraw();
+        if (notify) showToast("Funnel & ROAS metrics calculated");
+
+        return { spend, impr, clicks, orders, grossRev, grossProfit, netProfit };
+      }
+
+      function drawFunnelCanvas() {
+        const canvas = els.funnelCanvas;
+        if (!canvas || !canvas.parentElement) return;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(280, rect.width || canvas.parentElement.clientWidth || 400);
+        const height = 290;
+
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const labelColor = isDark ? "#cbd5e1" : "#334155";
+        const barBlue = isDark ? "#3b82f6" : "#2563eb";
+        const barViolet = isDark ? "#a78bfa" : "#7c3aed";
+        const barGreen = isDark ? "#10b981" : "#059669";
+        const barRed = isDark ? "#ef4444" : "#dc2626";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const m = computeFunnelMetrics(false, false);
+
+        if (funnelChartMode === "funnel") {
+          const stages = [
+            { label: "Impressions", val: m.impr, color: barBlue },
+            { label: "Clicks", val: m.clicks, color: barViolet },
+            { label: "Conversions", val: m.orders, color: barGreen }
+          ];
+          const maxVal = Math.max(1, ...stages.map((s) => s.val));
+          const padL = 115;
+          const padR = 72;
+          const topY = 34;
+          const rowH = 68;
+          const maxBarW = Math.max(60, width - padL - padR);
+
+          stages.forEach((st, idx) => {
+            const y = topY + idx * rowH;
+            const logRatio = st.val > 0 ? Math.max(0.08, Math.log10(st.val + 1) / Math.log10(maxVal + 1)) : 0.04;
+            const w = maxBarW * logRatio;
+
+            ctx.fillStyle = labelColor;
+            ctx.font = "600 12px var(--font-sans)";
+            ctx.fillText(st.label, 14, y + 22);
+
+            ctx.fillStyle = st.color;
+            ctx.beginPath();
+            ctx.roundRect(padL, y + 4, w, 30, 6);
+            ctx.fill();
+
+            ctx.fillStyle = labelColor;
+            ctx.font = "700 11px var(--font-mono)";
+            ctx.fillText(Math.round(st.val).toLocaleString("en-US"), padL + w + 8, y + 23);
+          });
+        } else {
+          const bars = [
+            { label: "Ad Spend", val: m.spend, color: barViolet },
+            { label: "Gross Rev", val: m.grossRev, color: barBlue },
+            { label: "Gross Profit", val: m.grossProfit, color: barGreen },
+            { label: "Net Profit", val: m.netProfit, color: m.netProfit >= 0 ? barGreen : barRed }
+          ];
+          const maxAbs = Math.max(100, ...bars.map((b) => Math.abs(b.val)));
+          const padL = 105;
+          const padR = 84;
+          const topY = 26;
+          const rowH = 58;
+          const maxBarW = Math.max(50, width - padL - padR);
+
+          bars.forEach((b, idx) => {
+            const y = topY + idx * rowH;
+            const ratio = Math.min(1, Math.abs(b.val) / maxAbs);
+            const w = Math.max(4, maxBarW * ratio);
+
+            ctx.fillStyle = labelColor;
+            ctx.font = "600 12px var(--font-sans)";
+            ctx.fillText(b.label, 14, y + 21);
+
+            ctx.fillStyle = b.color;
+            ctx.beginPath();
+            ctx.roundRect(padL, y + 4, w, 26, 6);
+            ctx.fill();
+
+            ctx.fillStyle = labelColor;
+            ctx.font = "700 11px var(--font-mono)";
+            ctx.fillText(fmtMoney(b.val, 0), padL + w + 8, y + 21);
+          });
+        }
+      }
+
+      function resetFunnelCalculator(notify = false) {
+        els.fnSpend.value = "5000";
+        els.fnImpressions.value = "250000";
+        els.fnClicks.value = "5000";
+        els.fnOrders.value = "150";
+        els.fnAov.value = "85";
+        els.fnMargin.value = "65";
+        computeFunnelMetrics(false, true);
+        if (notify) showToast("Funnel & ROAS inputs reset");
+      }
+
+      /* ======================================================================
+         TAB 2: LTV, CAC & PAYBACK CALCULATOR
+         ====================================================================== */
+      function computeLtvMetrics(notify = false) {
+        const arpu = Math.max(0, parseFloat(els.ltvArpu.value) || 0);
+        const marginPct = Math.min(100, Math.max(1, parseFloat(els.ltvMargin.value) || 75));
+        const churnPct = Math.min(100, Math.max(0.1, parseFloat(els.ltvChurn.value) || 5));
+        const customers = Math.max(1, parseFloat(els.ltvCustomers.value) || 1);
+        const totalSpend = Math.max(0, parseFloat(els.ltvSpend.value) || 0);
+        const targetRatio = Math.max(0.5, parseFloat(els.ltvTargetRatio.value) || 3);
+
+        const monthlyGp = arpu * (marginPct / 100);
+        const ltv = monthlyGp / (churnPct / 100);
+        const cac = totalSpend / customers;
+
+        const ratio = cac > 0 ? ltv / cac : 0;
+        const paybackMonths = monthlyGp > 0 ? cac / monthlyGp : 0;
+        const maxAllowableCac = ltv / targetRatio;
+        const netCohortValue = (ltv - cac) * customers;
+
+        els.outLtvCacPair.textContent = `${fmtMoney(ltv, 0)} · ${fmtMoney(cac, 0)}`;
+        els.outLtvRatio.textContent = `${ratio.toFixed(2)}x`;
+        els.outLtvPayback.textContent = `${paybackMonths.toFixed(2)} mos`;
+        els.outLtvMaxCac.textContent = fmtMoney(maxAllowableCac);
+        els.outLtvCohortNote.textContent =
+          `Net Cohort Value (${customers.toLocaleString("en-US")} customers × (LTV − CAC)): ${fmtSignedMoney(netCohortValue)} • Monthly Gross Profit/User: ${fmtMoney(monthlyGp)}`;
+
+        if (notify) showToast("LTV, CAC & Payback calculated");
+      }
+
+      function resetLtvCalculator(notify = false) {
+        els.ltvArpu.value = "90";
+        els.ltvMargin.value = "75";
+        els.ltvChurn.value = "5";
+        els.ltvCustomers.value = "250";
+        els.ltvSpend.value = "60000";
+        els.ltvTargetRatio.value = "3.0";
+        computeLtvMetrics(false);
+        if (notify) showToast("LTV & CAC inputs reset");
+      }
+
+      /* ======================================================================
+         TAB 3: A/B TESTING, EMAIL & DISCOUNT BREAK-EVEN LIFT
+         ====================================================================== */
+      function normalCdf(z) {
+        const t = 1 / (1 + 0.2316419 * Math.abs(z));
+        const d = 0.3989423 * Math.exp(-z * z / 2);
+        const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+        return z >= 0 ? 1 - p : p;
+      }
+
+      function computeAbTest(notify = false) {
+        const nA = Math.max(1, parseFloat(els.abVisA.value) || 1);
+        const cA = Math.min(nA, Math.max(0, parseFloat(els.abConvA.value) || 0));
+        const nB = Math.max(1, parseFloat(els.abVisB.value) || 1);
+        const cB = Math.min(nB, Math.max(0, parseFloat(els.abConvB.value) || 0));
+
+        const pA = cA / nA;
+        const pB = cB / nB;
+        const liftPct = pA > 0 ? ((pB - pA) / pA) * 100 : 0;
+
+        const pPool = (cA + cB) / (nA + nB);
+        const se = Math.sqrt(Math.max(1e-12, pPool * (1 - pPool) * (1 / nA + 1 / nB)));
+        const zScore = (pB - pA) / se;
+        const pValTwoTailed = Math.min(1, Math.max(0, 2 * (1 - normalCdf(Math.abs(zScore)))));
+        const confPct = (1 - pValTwoTailed) * 100;
+
+        els.outAbRates.textContent = `${(pA * 100).toFixed(2)}% / ${(pB * 100).toFixed(2)}%`;
+        els.outAbLift.textContent = `${liftPct >= 0 ? "+" : ""}${liftPct.toFixed(2)}%`;
+        els.outAbZ.textContent = zScore.toFixed(3);
+        els.outAbConf.textContent = `${confPct.toFixed(2)}%`;
+
+        els.outAbSigBadge.classList.remove("pass", "warn", "low");
+        if (confPct >= 95) {
+          els.outAbSigBadge.classList.add("pass");
+          els.outAbSigBadge.textContent = `${confPct.toFixed(1)}% Confidence (≥95% Significant)`;
+        } else if (confPct >= 90) {
+          els.outAbSigBadge.classList.add("warn");
+          els.outAbSigBadge.textContent = `${confPct.toFixed(1)}% Confidence (90% Directional)`;
+        } else {
+          els.outAbSigBadge.classList.add("low");
+          els.outAbSigBadge.textContent = `${confPct.toFixed(1)}% Confidence (<90% Inconclusive)`;
+        }
+
+        if (notify) showToast("A/B test significance calculated");
+      }
+
+      function resetAbTest(notify = false) {
+        els.abVisA.value = "4000";
+        els.abConvA.value = "180";
+        els.abVisB.value = "4000";
+        els.abConvB.value = "224";
+        computeAbTest(false);
+        if (notify) showToast("A/B test inputs reset");
+      }
+
+      function computeEmailAndPricing(notify = false) {
+        const sent = Math.max(1, parseFloat(els.emSent.value) || 1);
+        const delivered = Math.max(0, parseFloat(els.emDelivered.value) || 0);
+        const opens = Math.max(0, parseFloat(els.emOpens.value) || 0);
+        const clicks = Math.max(0, parseFloat(els.emClicks.value) || 0);
+        const orders = Math.max(0, parseFloat(els.emOrders.value) || 0);
+        const rev = Math.max(0, parseFloat(els.emRev.value) || 0);
+
+        const delivBase = delivered > 0 ? delivered : sent;
+        const openRate = (opens / delivBase) * 100;
+        const clickRate = (clicks / delivBase) * 100;
+        const ctor = opens > 0 ? (clicks / opens) * 100 : 0;
+        const revPerEmail = rev / sent;
+
+        els.outEmailSummary.textContent =
+          `Open Rate: ${openRate.toFixed(2)}% • Click Rate: ${clickRate.toFixed(2)}% • CTOR: ${ctor.toFixed(2)}% • Orders: ${Math.round(orders)} • Rev/Email: ${fmtMoney(revPerEmail, 3)}`;
+
+        // Discount Break-Even Lift %: Lift % = d / (m - d) * 100
+        const discPct = Math.min(99, Math.max(0, parseFloat(els.prDisc.value) || 0));
+        const m0Pct = Math.min(100, Math.max(1, parseFloat(els.prMargin.value) || 50));
+
+        if (discPct <= 0) {
+          els.outPromoSummary.textContent = "Break-Even Lift Needed: +0.00% (No discount applied)";
+        } else if (discPct >= m0Pct) {
+          els.outPromoSummary.textContent =
+            "Break-Even Lift: Unattainable (Discount % ≥ Gross Margin %)";
+        } else {
+          const beLiftPct = (discPct / (m0Pct - discPct)) * 100;
+          els.outPromoSummary.textContent =
+            `Break-Even Lift Needed: +${beLiftPct.toFixed(2)}% unit volume to maintain gross profit`;
+        }
+
+        if (notify) showToast("Email & discount break-even calculated");
+      }
+
+      function resetEmailAndPricing(notify = false) {
+        els.emSent.value = "21000";
+        els.emDelivered.value = "20000";
+        els.emOpens.value = "5400";
+        els.emClicks.value = "620";
+        els.emOrders.value = "55";
+        els.emRev.value = "4650";
+        els.prDisc.value = "15";
+        els.prMargin.value = "50";
+        computeEmailAndPricing(false);
+        if (notify) showToast("Email & discount inputs reset");
+      }
+
+      /* ======================================================================
+         TAB 4: MEDIA MIX & BUDGET PLANNER
+         ====================================================================== */
+      function computeMediaMix(notify = false) {
+        const totalBudget = Math.max(0, parseFloat(els.mixTotalBudget.value) || 0);
+        const aov = Math.max(0, parseFloat(els.mixAvgAov.value) || 100);
+
+        let totalWeight = 0;
+        let totalOrders = 0;
+        let totalRev = 0;
+
+        mixRowCache.forEach((row) => {
+          const w = Math.max(0, parseFloat(row.wEl.value) || 0);
+          const cpc = Math.max(0.01, parseFloat(row.cpcEl.value) || 1);
+          const cvrPct = Math.max(0, parseFloat(row.cvrEl.value) || 0);
+
+          totalWeight += w;
+          const alloc = totalBudget * (w / 100);
+          const clicks = alloc / cpc;
+          const orders = clicks * (cvrPct / 100);
+          const rev = orders * aov;
+
+          totalOrders += orders;
+          totalRev += rev;
+
+          row.allocEl.textContent = fmtMoney(alloc, 0);
+          row.clkEl.textContent = Math.round(clicks).toLocaleString("en-US");
+          row.ordEl.textContent = Math.round(orders).toLocaleString("en-US");
+          row.revEl.textContent = fmtMoney(rev, 0);
+        });
+
+        const blendedCac = totalOrders > 0 ? totalBudget / totalOrders : 0;
+        const blendedRoas = totalBudget > 0 ? totalRev / totalBudget : 0;
+
+        els.outMixWeight.textContent = `${totalWeight.toFixed(1)}%`;
+        els.outMixOrdersRev.textContent =
+          `${Math.round(totalOrders).toLocaleString("en-US")} · ${fmtMoney(totalRev, 0)}`;
+        els.outMixCac.textContent = fmtMoney(blendedCac);
+        els.outMixRoas.textContent = `${blendedRoas.toFixed(2)}x`;
+
+        if (notify) showToast("Media mix & blended ROAS calculated");
+      }
+
+      function resetMediaMix(notify = false) {
+        els.mixTotalBudget.value = "40000";
+        els.mixAvgAov.value = "110";
+        const defaults = [
+          [30, 1.80, 4.5],
+          [25, 1.10, 2.4],
+          [20, 0.95, 3.2],
+          [15, 0.55, 3.8],
+          [10, 0.25, 6.0]
+        ];
+        mixRowCache.forEach((row, idx) => {
+          const [w, cpc, cvr] = defaults[idx] || [20, 1.0, 3.0];
+          row.wEl.value = String(w);
+          row.cpcEl.value = String(cpc);
+          row.cvrEl.value = String(cvr);
+        });
+        computeMediaMix(false);
+        if (notify) showToast("Media mix reset to defaults");
+      }
+
+      /* ======================================================================
+         DOM READY INITIALIZATION & EVENT WIRING
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        cacheDomElements();
+        setTheme(readStoredTheme(), false);
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          setTheme(cur === "dark" ? "light" : "dark", true);
+        });
+
+        document.getElementById("formulaPresetsBar").addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-preset]");
+          if (!chip) return;
+          const info = FORMULA_PRESETS[chip.dataset.preset];
+          if (!info) return;
+          if (els.lastFormulaReadout) els.lastFormulaReadout.textContent = info.formula;
+          activateTab(info.tab, false);
+          copyToClipboard(info.formula, `Copied: ${info.formula}`);
+        });
+
+        ["ratioValA", "ratioValB", "ratioMode"].forEach((id) => {
+          els[id].addEventListener("input", updateRatioHelper);
+        });
+        document.getElementById("btnCopyRatio").addEventListener("click", () => {
+          const text = els.ratioHelperOut.textContent.replace(/^=\s*/, "");
+          copyToClipboard(text, "Efficiency ratio copied");
+        });
+
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.dataset.tab) activateTab(btn.dataset.tab, true);
+          });
+        });
+
+        // Tab 1: Funnel & ROAS (redraws canvas ONLY on input change / button / toggle)
+        ["fnSpend", "fnImpressions", "fnClicks", "fnOrders", "fnAov", "fnMargin"].forEach((id) => {
+          els[id].addEventListener("input", () => computeFunnelMetrics(false, true));
+        });
+        document.getElementById("btnCalcFunnel").addEventListener("click", () => computeFunnelMetrics(true, true));
+        document.getElementById("btnResetFunnel").addEventListener("click", () => resetFunnelCalculator(true));
+        document.getElementById("btnToggleFnView").addEventListener("click", () => {
+          funnelChartMode = funnelChartMode === "funnel" ? "economics" : "funnel";
+          scheduleFunnelRedraw();
+          showToast(funnelChartMode === "funnel" ? "Showing Funnel stages" : "Showing Dollar economics");
+        });
+
+        // Tab 2: LTV, CAC & Payback
+        ["ltvArpu", "ltvMargin", "ltvChurn", "ltvCustomers", "ltvSpend", "ltvTargetRatio"].forEach((id) => {
+          els[id].addEventListener("input", () => computeLtvMetrics(false));
+        });
+        document.getElementById("btnCalcLtv").addEventListener("click", () => computeLtvMetrics(true));
+        document.getElementById("btnResetLtv").addEventListener("click", () => resetLtvCalculator(true));
+
+        // Tab 3: A/B Test, Email & Discount Break-Even Lift
+        ["abVisA", "abConvA", "abVisB", "abConvB"].forEach((id) => {
+          els[id].addEventListener("input", () => computeAbTest(false));
+        });
+        document.getElementById("btnCalcAb").addEventListener("click", () => computeAbTest(true));
+        document.getElementById("btnResetAb").addEventListener("click", () => resetAbTest(true));
+
+        ["emSent", "emDelivered", "emOpens", "emClicks", "emOrders", "emRev", "prDisc", "prMargin"].forEach((id) => {
+          els[id].addEventListener("input", () => computeEmailAndPricing(false));
+        });
+        document.getElementById("btnCalcEmailPrice").addEventListener("click", () => computeEmailAndPricing(true));
+        document.getElementById("btnResetEmailPrice").addEventListener("click", () => resetEmailAndPricing(true));
+
+        // Tab 4: Media Mix & Budget Planner
+        ["mixTotalBudget", "mixAvgAov"].forEach((id) => {
+          els[id].addEventListener("input", () => computeMediaMix(false));
+        });
+        mixRowCache.forEach((row) => {
+          row.wEl.addEventListener("input", () => computeMediaMix(false));
+          row.cpcEl.addEventListener("input", () => computeMediaMix(false));
+          row.cvrEl.addEventListener("input", () => computeMediaMix(false));
+        });
+        document.getElementById("btnCalcMix").addEventListener("click", () => computeMediaMix(true));
+        document.getElementById("btnResetMix").addEventListener("click", () => resetMediaMix(true));
+
+        window.addEventListener("resize", scheduleDebouncedResize, { passive: true });
+
+        // Initial single-pass calculations
+        updateRatioHelper();
+        computeFunnelMetrics(false, true);
+        computeLtvMetrics(false);
+        computeAbTest(false);
+        computeEmailAndPricing(false);
+        computeMediaMix(false);
+      });
+    })();
+  </script>
+</body>
+</html>

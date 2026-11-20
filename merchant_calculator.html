@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merchant Calculator Pro</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ========================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-tape: #fffdf7;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #0f766e;
+      --accent-primary-hover: #0d9488;
+      --accent-primary-soft: #ccfbf1;
+      --accent-primary-text: #115e59;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --key-num-bg: #ffffff;
+      --key-num-hover: #f1f5f9;
+      --key-op-bg: #e2e8f0;
+      --key-op-hover: #cbd5e1;
+      --key-mem-bg: #f1f5f9;
+      --key-mem-text: #334155;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+      --shadow-key: 0 2px 0 rgba(15, 23, 42, 0.12);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #0b1120;
+      --bg-surface: #1e293b;
+      --bg-surface-alt: #0f172a;
+      --bg-tape: #162032;
+      --border-color: #334155;
+      --border-strong: #475569;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #14b8a6;
+      --accent-primary-hover: #2dd4bf;
+      --accent-primary-soft: rgba(20, 184, 166, 0.16);
+      --accent-primary-text: #5eead4;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.18);
+
+      --key-num-bg: #273549;
+      --key-num-hover: #334155;
+      --key-op-bg: #1e293b;
+      --key-op-hover: #334155;
+      --key-mem-bg: #162032;
+      --key-mem-text: #cbd5e1;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.35);
+      --shadow-key: 0 2px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    /* ==========================================================================
+       RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .tabular {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* ==========================================================================
+       HEADER BAR
+       ========================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent-primary), #0284c7);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .control-select, .icon-btn {
+      height: 40px;
+      padding: 0 0.75rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .control-select:hover, .icon-btn:hover {
+      border-color: var(--accent-primary);
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-width: 40px;
+    }
+
+    /* ==========================================================================
+       NAVIGATION TABS (MOBILE + DESKTOP)
+       ========================================================================== */
+    .main-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn {
+      padding: 0.65rem 0.5rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 44px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .badge-pill {
+      background-color: rgba(255, 255, 255, 0.22);
+      color: inherit;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .tab-btn:not(.active) .badge-pill {
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       SHARED CARD STYLES
+       ========================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.12s ease;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      background-color: var(--accent-primary-soft);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      border-color: var(--accent-danger);
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+    }
+
+    /* ==========================================================================
+       PANEL 1: MERCHANT CALCULATOR + RUNNING PAPER TAPE
+       ========================================================================== */
+    .calc-grid-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 900px) {
+      .calc-grid-layout {
+        grid-template-columns: 430px 1fr;
+        align-items: start;
+      }
+    }
+
+    /* Calculator Display Screen */
+    .calc-screen {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.85rem;
+      text-align: right;
+      position: relative;
+    }
+
+    .status-indicators {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .indicator-tags {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .ind-tag {
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      background-color: var(--border-color);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .ind-tag.active-mem {
+      background-color: var(--accent-amber-soft);
+      color: var(--accent-amber-text);
+    }
+
+    .ind-tag.active-gt {
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .calc-expression {
+      min-height: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calc-main-value {
+      font-size: clamp(1.75rem, 5vw, 2.35rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-top: 0.15rem;
+    }
+
+    /* Quick Push to Cart / Margin Strip */
+    .calc-quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    /* Keypad Grid */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .key {
+      height: 52px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      background-color: var(--key-num-bg);
+      box-shadow: var(--shadow-key);
+      transition: transform 0.06s ease, background-color 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .key:active {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+
+    .key:hover {
+      background-color: var(--key-num-hover);
+    }
+
+    .key-mem {
+      background-color: var(--key-mem-bg);
+      color: var(--key-mem-text);
+      font-size: 0.88rem;
+      height: 44px;
+    }
+
+    .key-op {
+      background-color: var(--key-op-bg);
+      font-size: 1.15rem;
+    }
+
+    .key-op:hover {
+      background-color: var(--key-op-hover);
+    }
+
+    .key-mu {
+      background-color: var(--accent-amber-soft);
+      color: var(--accent-amber-text);
+      border-color: var(--accent-amber);
+      font-size: 0.92rem;
+    }
+
+    .key-gt {
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+      border-color: var(--accent-primary);
+      font-size: 0.92rem;
+    }
+
+    .key-clear {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border-color: rgba(220, 38, 38, 0.35);
+      font-size: 0.95rem;
+    }
+
+    .key-eq {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+      font-size: 1.3rem;
+    }
+
+    .key-eq:hover {
+      background-color: var(--accent-primary-hover);
+    }
+
+    /* Paper Tape */
+    .tape-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tape-label-input {
+      flex: 1;
+      min-width: 140px;
+      height: 36px;
+      padding: 0 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.85rem;
+    }
+
+    .tape-roll {
+      background-color: var(--bg-tape);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      height: 430px;
+      overflow-y: auto;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .tape-empty {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      padding: 1rem;
+    }
+
+    .tape-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px dashed var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.12s;
+    }
+
+    .tape-entry:hover {
+      background-color: var(--accent-primary-soft);
+    }
+
+    .tape-entry.is-total {
+      background-color: var(--bg-surface-alt);
+      border-bottom: 2px solid var(--border-strong);
+      font-weight: 700;
+    }
+
+    .tape-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+
+    .tape-note {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tape-time {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .tape-val {
+      font-size: 0.95rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .tape-val .op-badge {
+      display: inline-block;
+      min-width: 1.5rem;
+      text-align: center;
+      color: var(--accent-primary);
+      font-weight: 700;
+      margin-left: 0.25rem;
+    }
+
+    /* ==========================================================================
+       PANEL 2: MARGIN, MARKUP & BREAK-EVEN ENGINE
+       ========================================================================== */
+    .margin-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 860px) {
+      .margin-layout {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    @media (min-width: 540px) {
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .field-input-wrap {
+      display: flex;
+      align-items: center;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 0.65rem;
+      height: 44px;
+    }
+
+    .field-input-wrap:focus-within {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .field-prefix, .field-suffix {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .field-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 0 0.4rem;
+      outline: none;
+    }
+
+    .range-slider {
+      width: 100%;
+      margin-top: 0.6rem;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    /* KPI Results Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kpi-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .kpi-card.highlight .kpi-value {
+      color: var(--accent-primary-text);
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+    }
+
+    /* Visual Breakdown Bar */
+    .breakdown-bar-wrap {
+      margin: 1rem 0;
+    }
+
+    .breakdown-bar {
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      background-color: var(--border-color);
+    }
+
+    .bar-seg-cost { background-color: #64748b; transition: width 0.2s; }
+    .bar-seg-profit { background-color: var(--accent-primary); transition: width 0.2s; }
+    .bar-seg-tax { background-color: var(--accent-amber); transition: width 0.2s; }
+
+    .breakdown-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 0.3rem;
+    }
+
+    /* ==========================================================================
+       PANEL 3: MULTI-ITEM INVOICE / QUOTE BUILDER
+       ========================================================================== */
+    .quote-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      background-color: var(--bg-surface-alt);
+      padding: 0.85rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    @media (min-width: 768px) {
+      .quote-form {
+        grid-template-columns: 2.2fr 0.8fr 1.1fr 0.8fr 0.8fr auto;
+        align-items: end;
+      }
+    }
+
+    .mini-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .quote-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface);
+      font-size: 0.9rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background-color: var(--bg-surface-alt);
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .num-col {
+      text-align: right;
+    }
+
+    .quote-summary-box {
+      max-width: 380px;
+      margin-left: auto;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .summary-row.grand {
+      border-top: 2px solid var(--border-strong);
+      padding-top: 0.55rem;
+      margin-top: 0.2rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATION (NO ALERT/CONFIRM)
+       ========================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP HEADER BAR WITH NAVIGATION TO index.html
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <!-- Requested Navigation Button back to index.html -->
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge">M$</div>
+          <div>
+            <h1>Merchant Calculator Pro</h1>
+            <span class="brand-sub">GT Register • Margin Engine • Quote Builder</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <select id="currencySelect" class="control-select" aria-label="Select Currency">
+          <option value="USD|$|2">USD ($)</option>
+          <option value="EUR|€|2">EUR (€)</option>
+          <option value="GBP|£|2">GBP (£)</option>
+          <option value="LBP|LBP |0">LBP (ل.ل)</option>
+          <option value="USDT|USDT |2">USDT</option>
+          <option value="AED|AED |2">AED</option>
+        </select>
+
+        <button id="themeToggle" class="icon-btn" type="button" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN WORKSPACE CONTAINER
+       ======================================================================== -->
+  <main class="main-container">
+    <!-- Mode Switcher Tabs -->
+    <nav class="tab-bar" role="tablist" aria-label="Merchant Calculator Tools">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-calc">
+        <span>🧮 Register &amp; GT</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-margin">
+        <span>📈 Margin &amp; Pricing</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-quote">
+        <span>🧾 Quote Builder</span>
+        <span id="quoteCountBadge" class="badge-pill">0</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================================
+         TAB 1: STANDARD & GRAND TOTAL (GT) MERCHANT CALCULATOR + PAPER TAPE
+         ====================================================================== -->
+    <section id="panel-calc" class="panel active" role="tabpanel">
+      <div class="calc-grid-layout">
+        <!-- Left: Desktop Merchant Keypad -->
+        <div class="card">
+          <div class="calc-screen">
+            <div class="status-indicators">
+              <div class="indicator-tags">
+                <span id="indMem" class="ind-tag">M: 0</span>
+                <span id="indGt" class="ind-tag">GT: 0</span>
+              </div>
+              <span id="indCurrency" style="color: var(--text-muted);">USD ($)</span>
+            </div>
+            <div id="calcExpression" class="calc-expression tabular">&nbsp;</div>
+            <div id="calcDisplay" class="calc-main-value tabular">0</div>
+          </div>
+
+          <!-- Quick Workflow Bridges -->
+          <div class="calc-quick-actions">
+            <button type="button" class="btn-sm" id="btnSendToCost" title="Use current display value as Cost Price in Margin Engine">
+              → Use as Cost Price
+            </button>
+            <button type="button" class="btn-sm btn-primary" id="btnSendToQuote" title="Add current display value as an item in Quote Builder">
+              + Add Value to Quote
+            </button>
+          </div>
+
+          <!-- Merchant Keypad -->
+          <div class="keypad" id="calcKeypad">
+            <!-- Row 1: Memory & Grand Total -->
+            <button type="button" class="key key-mem" data-action="MC">MC</button>
+            <button type="button" class="key key-mem" data-action="MR">MR</button>
+            <button type="button" class="key key-mem" data-action="M-">M-</button>
+            <button type="button" class="key key-mem" data-action="M+">M+</button>
+
+            <!-- Row 2: GT, MU, Clear -->
+            <button type="button" class="key key-gt" data-action="GT" title="Recall Grand Total Accumulator">GT</button>
+            <button type="button" class="key key-mu" data-action="MU" title="Mark-Up: Cost [MU] Margin% = Selling Price">MU</button>
+            <button type="button" class="key key-clear" data-action="CE" title="Clear Entry">CE</button>
+            <button type="button" class="key key-clear" data-action="AC" title="All Clear (Resets GT too on double press)">AC</button>
+
+            <!-- Row 3: 7 8 9 ÷ -->
+            <button type="button" class="key" data-digit="7">7</button>
+            <button type="button" class="key" data-digit="8">8</button>
+            <button type="button" class="key" data-digit="9">9</button>
+            <button type="button" class="key key-op" data-op="/">÷</button>
+
+            <!-- Row 4: 4 5 6 × -->
+            <button type="button" class="key" data-digit="4">4</button>
+            <button type="button" class="key" data-digit="5">5</button>
+            <button type="button" class="key" data-digit="6">6</button>
+            <button type="button" class="key key-op" data-op="*">×</button>
+
+            <!-- Row 5: 1 2 3 - -->
+            <button type="button" class="key" data-digit="1">1</button>
+            <button type="button" class="key" data-digit="2">2</button>
+            <button type="button" class="key" data-digit="3">3</button>
+            <button type="button" class="key key-op" data-op="-">−</button>
+
+            <!-- Row 6: 0 00 . + -->
+            <button type="button" class="key" data-digit="0">0</button>
+            <button type="button" class="key" data-digit="00">00</button>
+            <button type="button" class="key" data-action="DOT">.</button>
+            <button type="button" class="key key-op" data-op="+">+</button>
+
+            <!-- Row 7: +/- % Backspace = -->
+            <button type="button" class="key key-op" data-action="SIGN">+/−</button>
+            <button type="button" class="key key-op" data-action="PERCENT">%</button>
+            <button type="button" class="key key-op" data-action="BACK" aria-label="Backspace">⌫</button>
+            <button type="button" class="key key-eq" data-action="EQUALS">=</button>
+          </div>
+        </div>
+
+        <!-- Right: Live Running Paper Tape -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🧾 Running Paper Tape</span>
+            </div>
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+              <button type="button" class="btn-sm" id="btnCopyTape">Copy</button>
+              <button type="button" class="btn-sm" id="btnExportTape">Export CSV</button>
+              <button type="button" class="btn-sm btn-danger" id="btnClearTape">Clear</button>
+            </div>
+          </div>
+
+          <div class="tape-toolbar">
+            <input type="text" id="tapeNoteInput" class="tape-label-input" placeholder="Optional item note for next entry (e.g., Freight, Box #2)..." maxlength="48" />
+          </div>
+
+          <div id="tapeRoll" class="tape-roll tabular" aria-live="polite">
+            <div class="tape-empty">
+              Start calculating to record entries on the audit tape.<br />
+              Click any tape line to recall its value back into the register.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 2: MARGIN, MARKUP & PRICING ENGINE
+         ====================================================================== -->
+    <section id="panel-margin" class="panel" role="tabpanel">
+      <div class="margin-layout">
+        <!-- Left: Interactive Inputs & Sliders -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚙️ Unit Economics &amp; Pricing Controls</div>
+            <button type="button" class="btn-sm" id="btnResetMargin">Reset Defaults</button>
+          </div>
+
+          <div class="form-grid">
+            <!-- Cost Price -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpCost">Unit Cost Price</label>
+                <span>Base COGS</span>
+              </div>
+              <div class="field-input-wrap">
+                <span class="field-prefix cur-sym">$</span>
+                <input type="number" id="inpCost" class="field-input tabular" value="40" min="0" step="0.01" />
+              </div>
+            </div>
+
+            <!-- Selling Price (Excl. Tax) -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpSell">Selling Price (Net)</label>
+                <span>Pre-Tax</span>
+              </div>
+              <div class="field-input-wrap">
+                <span class="field-prefix cur-sym">$</span>
+                <input type="number" id="inpSell" class="field-input tabular" value="65" min="0" step="0.01" />
+              </div>
+            </div>
+
+            <!-- Gross Margin % -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpMargin">Gross Margin %</label>
+                <span>Profit ÷ Sell</span>
+              </div>
+              <div class="field-input-wrap">
+                <input type="number" id="inpMargin" class="field-input tabular" value="38.46" min="-500" max="99.99" step="0.1" />
+                <span class="field-suffix">%</span>
+              </div>
+              <input type="range" id="sliderMargin" class="range-slider" min="0" max="90" step="0.5" value="38.5" aria-label="Gross Margin Slider" />
+            </div>
+
+            <!-- Markup % -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpMarkup">Markup %</label>
+                <span>Profit ÷ Cost</span>
+              </div>
+              <div class="field-input-wrap">
+                <input type="number" id="inpMarkup" class="field-input tabular" value="62.50" min="-100" max="2000" step="0.1" />
+                <span class="field-suffix">%</span>
+              </div>
+              <input type="range" id="sliderMarkup" class="range-slider" min="0" max="300" step="1" value="62.5" aria-label="Markup Slider" />
+            </div>
+
+            <!-- Customer Discount % -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpDiscount">Trade Discount %</label>
+                <span>Off Selling Price</span>
+              </div>
+              <div class="field-input-wrap">
+                <input type="number" id="inpDiscount" class="field-input tabular" value="0" min="0" max="100" step="0.5" />
+                <span class="field-suffix">%</span>
+              </div>
+            </div>
+
+            <!-- VAT / Sales Tax % -->
+            <div class="field-box">
+              <div class="field-header">
+                <label for="inpTax">VAT / Sales Tax %</label>
+                <span>Added on Net</span>
+              </div>
+              <div class="field-input-wrap">
+                <input type="number" id="inpTax" class="field-input tabular" value="11" min="0" max="100" step="0.5" />
+                <span class="field-suffix">%</span>
+              </div>
+            </div>
+
+            <!-- Fixed Overhead for Break-Even -->
+            <div class="field-box" style="grid-column: 1 / -1;">
+              <div class="field-header">
+                <label for="inpFixedCost">Fixed Overhead / Batch Cost (Optional Break-Even)</label>
+                <span>Rent, Shipping, Setup</span>
+              </div>
+              <div class="field-input-wrap">
+                <span class="field-prefix cur-sym">$</span>
+                <input type="number" id="inpFixedCost" class="field-input tabular" value="1250" min="0" step="10" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Profit & Break-Even Output -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Live Profitability Summary</div>
+            <button type="button" class="btn-sm btn-primary" id="btnPushMarginToQuote">+ Add to Quote</button>
+          </div>
+
+          <div class="kpi-grid tabular">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Net Profit / Unit</div>
+              <div class="kpi-value" id="outProfit">$25.00</div>
+              <div class="kpi-sub" id="outEffMargin">Effective Margin: 38.46%</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Final Price (Incl. Tax)</div>
+              <div class="kpi-value" id="outFinalGross">$72.15</div>
+              <div class="kpi-sub" id="outTaxAmt">Tax: $7.15</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Discounted Net Price</div>
+              <div class="kpi-value" id="outDiscNet">$65.00</div>
+              <div class="kpi-sub" id="outDiscSaved">Discount: $0.00</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Break-Even Volume</div>
+              <div class="kpi-value" id="outBreakEven">50 units</div>
+              <div class="kpi-sub" id="outBreakEvenRev">Rev: $3,250.00</div>
+            </div>
+          </div>
+
+          <!-- Visual Revenue Composition Bar -->
+          <div class="breakdown-bar-wrap">
+            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary);">
+              Gross Customer Price Breakdown
+            </div>
+            <div class="breakdown-bar">
+              <div id="segCost" class="bar-seg-cost" style="width: 55%;"></div>
+              <div id="segProfit" class="bar-seg-profit" style="width: 35%;"></div>
+              <div id="segTax" class="bar-seg-tax" style="width: 10%;"></div>
+            </div>
+            <div class="breakdown-legend tabular">
+              <span><i class="legend-dot" style="background:#64748b;"></i>Cost (<span id="pctCost">55%</span>)</span>
+              <span><i class="legend-dot" style="background:var(--accent-primary);"></i>Profit (<span id="pctProfit">35%</span>)</span>
+              <span><i class="legend-dot" style="background:var(--accent-amber);"></i>Tax (<span id="pctTax">10%</span>)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 3: MULTI-ITEM INVOICE / QUOTE QUICK-BUILDER
+         ====================================================================== -->
+    <section id="panel-quote" class="panel" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🧾 Merchant Quote &amp; Receipt Builder</div>
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <button type="button" class="btn-sm" id="btnCopyQuote">Copy Receipt</button>
+            <button type="button" class="btn-sm" id="btnExportQuote">Export CSV</button>
+            <button type="button" class="btn-sm btn-danger" id="btnClearQuote">Clear All</button>
+          </div>
+        </div>
+
+        <!-- Add Item Form -->
+        <form id="quoteAddForm" class="quote-form">
+          <div>
+            <label class="mini-label" for="qDesc">Item / SKU Description</label>
+            <input type="text" id="qDesc" class="quote-input" placeholder="e.g., Wholesale Carton A12" required />
+          </div>
+          <div>
+            <label class="mini-label" for="qQty">Qty</label>
+            <input type="number" id="qQty" class="quote-input tabular" value="1" min="0.01" step="any" required />
+          </div>
+          <div>
+            <label class="mini-label" for="qPrice">Unit Price</label>
+            <input type="number" id="qPrice" class="quote-input tabular" placeholder="0.00" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label class="mini-label" for="qDisc">Disc %</label>
+            <input type="number" id="qDisc" class="quote-input tabular" value="0" min="0" max="100" step="0.5" />
+          </div>
+          <div>
+            <label class="mini-label" for="qTax">Tax %</label>
+            <input type="number" id="qTax" class="quote-input tabular" value="11" min="0" max="100" step="0.5" />
+          </div>
+          <div>
+            <button type="submit" class="btn-sm btn-primary" style="height: 40px; width: 100%; justify-content: center;">
+              + Add Line
+            </button>
+          </div>
+        </form>
+
+        <!-- Line Items Table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th class="num-col">Qty</th>
+                <th class="num-col">Unit Price</th>
+                <th class="num-col">Disc %</th>
+                <th class="num-col">Tax %</th>
+                <th class="num-col">Line Total</th>
+                <th class="num-col">Action</th>
+              </tr>
+            </thead>
+            <tbody id="quoteTableBody" class="tabular">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  No items in quote yet. Add a line item above or send values from the Calculator or Margin Engine.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals Summary -->
+        <div class="quote-summary-box tabular">
+          <div class="summary-row">
+            <span>Gross Subtotal</span>
+            <span id="qSumSubtotal">$0.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Total Discounts</span>
+            <span id="qSumDiscount">-$0.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Total Tax / VAT</span>
+            <span id="qSumTax">$0.00</span>
+          </div>
+          <div class="summary-row grand">
+            <span>Grand Total</span>
+            <span id="qSumGrand">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         STATE & CURRENCY FORMATTING
+         ====================================================================== */
+      const state = {
+        currency: { code: "USD", symbol: "$", decimals: 2 },
+        theme: localStorage.getItem("mcp_theme") || "light",
+        calc: {
+          currentInput: "0",
+          previousValue: null,
+          operator: null,
+          waitingForOperand: false,
+          memory: 0,
+          grandTotal: 0,
+          muMode: false,
+          muCost: 0,
+          acPressedOnce: false,
+          tape: []
+        },
+        quoteItems: []
+      };
+
+      function formatMoney(num, includeSymbol = true) {
+        if (!Number.isFinite(num)) return includeSymbol ? `${state.currency.symbol}0` : "0";
+        const dec = state.currency.decimals;
+        const formatted = num.toLocaleString("en-US", {
+          minimumFractionDigits: dec,
+          maximumFractionDigits: dec
+        });
+        return includeSymbol ? `${state.currency.symbol}${formatted}` : formatted;
+      }
+
+      function formatNum(num) {
+        if (!Number.isFinite(num)) return "0";
+        return Number(num.toFixed(6)).toLocaleString("en-US", {
+          maximumFractionDigits: 6
+        });
+      }
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+      }
+
+      function copyTextToClipboard(text, successMsg) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(successMsg || "Copied to clipboard");
+        } catch (e) {
+          showToast("Unable to copy text");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function downloadFile(filename, content, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      /* ======================================================================
+         THEME & CURRENCY CONTROLS
+         ====================================================================== */
+      function applyTheme(theme) {
+        state.theme = theme;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeIcon").textContent = theme === "dark" ? "☀️" : "🌙";
+        localStorage.setItem("mcp_theme", theme);
+      }
+
+      applyTheme(state.theme);
+
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        applyTheme(state.theme === "dark" ? "light" : "dark");
+      });
+
+      document.getElementById("currencySelect").addEventListener("change", (e) => {
+        const [code, symbol, decStr] = e.target.value.split("|");
+        state.currency = { code, symbol, decimals: parseInt(decStr, 10) };
+        document.getElementById("indCurrency").textContent = `${code} (${symbol.trim()})`;
+        document.querySelectorAll(".cur-sym").forEach((el) => (el.textContent = symbol.trim()));
+        updateCalcUI();
+        renderTape();
+        recalcMarginEngine();
+        renderQuoteTable();
+        showToast(`Currency set to ${code}`);
+      });
+
+      /* ======================================================================
+         NAVIGATION TABS
+         ====================================================================== */
+      const tabButtons = document.querySelectorAll(".tab-btn");
+      const panels = document.querySelectorAll(".panel");
+
+      function switchTab(targetId) {
+        tabButtons.forEach((btn) => {
+          const isMatch = btn.dataset.tab === targetId;
+          btn.classList.toggle("active", isMatch);
+          btn.setAttribute("aria-selected", isMatch ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === targetId);
+        });
+      }
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+      });
+
+      /* ======================================================================
+         MODULE 1: MERCHANT CALCULATOR & PAPER TAPE
+         ====================================================================== */
+      const calcDisplay = document.getElementById("calcDisplay");
+      const calcExpression = document.getElementById("calcExpression");
+      const indMem = document.getElementById("indMem");
+      const indGt = document.getElementById("indGt");
+      const tapeRoll = document.getElementById("tapeRoll");
+      const tapeNoteInput = document.getElementById("tapeNoteInput");
+
+      function addTapeEntry(value, symbol, isTotal = false, customLabel = "") {
+        const note = customLabel || tapeNoteInput.value.trim();
+        if (!customLabel && tapeNoteInput.value.trim()) {
+          tapeNoteInput.value = "";
+        }
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        state.calc.tape.push({
+          id: Date.now() + Math.random(),
+          value,
+          symbol,
+          isTotal,
+          note,
+          time: timeStr
+        });
+        renderTape();
+      }
+
+      function renderTape() {
+        if (state.calc.tape.length === 0) {
+          tapeRoll.innerHTML = `
+            <div class="tape-empty">
+              Start calculating to record entries on the audit tape.<br />
+              Click any tape line to recall its value back into the register.
+            </div>`;
+          return;
+        }
+        tapeRoll.innerHTML = state.calc.tape
+          .map((item) => {
+            const labelHtml = item.note
+              ? `<span class="tape-note">${escapeHtml(item.note)}</span>`
+              : `<span class="tape-note" style="color: var(--text-muted); font-weight: 400;">Entry</span>`;
+            return `
+              <div class="tape-entry ${item.isTotal ? "is-total" : ""}" data-recall="${item.value}" title="Click to recall ${item.value}">
+                <div class="tape-meta">
+                  ${labelHtml}
+                  <span class="tape-time">${item.time}</span>
+                </div>
+                <div class="tape-val">
+                  ${formatMoney(item.value)}<span class="op-badge">${escapeHtml(item.symbol)}</span>
+                </div>
+              </div>`;
+          })
+          .join("");
+        tapeRoll.scrollTop = tapeRoll.scrollHeight;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      tapeRoll.addEventListener("click", (e) => {
+        const row = e.target.closest(".tape-entry");
+        if (!row) return;
+        const val = parseFloat(row.dataset.recall);
+        if (!Number.isNaN(val)) {
+          state.calc.currentInput = String(val);
+          state.calc.waitingForOperand = false;
+          updateCalcUI();
+          showToast(`Recalled ${formatMoney(val)}`);
+        }
+      });
+
+      function updateCalcUI() {
+        const c = state.calc;
+        const raw = c.currentInput;
+        if (raw.endsWith(".")) {
+          calcDisplay.textContent = formatNum(parseFloat(raw)) + ".";
+        } else {
+          const num = parseFloat(raw);
+          calcDisplay.textContent = Number.isNaN(num) ? "0" : formatNum(num);
+        }
+
+        if (c.muMode) {
+          calcExpression.textContent = `MU MODE: Cost ${formatNum(c.muCost)} → Enter Margin % & press =`;
+        } else if (c.previousValue !== null && c.operator) {
+          const opGlyph = { "+": "+", "-": "−", "*": "×", "/": "÷" }[c.operator] || c.operator;
+          calcExpression.textContent = `${formatNum(c.previousValue)} ${opGlyph}`;
+        } else {
+          calcExpression.innerHTML = "&nbsp;";
+        }
+
+        indMem.textContent = `M: ${formatNum(c.memory)}`;
+        indMem.classList.toggle("active-mem", c.memory !== 0);
+
+        indGt.textContent = `GT: ${formatNum(c.grandTotal)}`;
+        indGt.classList.toggle("active-gt", c.grandTotal !== 0);
+      }
+
+      function inputDigit(digit) {
+        const c = state.calc;
+        c.acPressedOnce = false;
+        if (c.waitingForOperand) {
+          c.currentInput = digit === "00" ? "0" : digit;
+          c.waitingForOperand = false;
+        } else {
+          if (c.currentInput === "0") {
+            c.currentInput = digit === "00" ? "0" : digit;
+          } else if (c.currentInput.length < 15) {
+            c.currentInput += digit;
+          }
+        }
+        updateCalcUI();
+      }
+
+      function inputDot() {
+        const c = state.calc;
+        c.acPressedOnce = false;
+        if (c.waitingForOperand) {
+          c.currentInput = "0.";
+          c.waitingForOperand = false;
+        } else if (!c.currentInput.includes(".")) {
+          c.currentInput += ".";
+        }
+        updateCalcUI();
+      }
+
+      function performCalculation(a, b, op) {
+        switch (op) {
+          case "+": return a + b;
+          case "-": return a - b;
+          case "*": return a * b;
+          case "/": return b === 0 ? NaN : a / b;
+          default: return b;
+        }
+      }
+
+      function handleOperator(nextOp) {
+        const c = state.calc;
+        c.acPressedOnce = false;
+        const inputValue = parseFloat(c.currentInput);
+        const opGlyph = { "+": "+", "-": "−", "*": "×", "/": "÷" }[nextOp];
+
+        if (c.muMode) {
+          c.muMode = false;
+        }
+
+        if (c.previousValue === null) {
+          c.previousValue = inputValue;
+          addTapeEntry(inputValue, opGlyph, false);
+        } else if (!c.waitingForOperand) {
+          addTapeEntry(inputValue, opGlyph, false);
+          const result = performCalculation(c.previousValue, inputValue, c.operator);
+          if (!Number.isFinite(result)) {
+            showToast("Cannot divide by zero");
+            c.currentInput = "0";
+            c.previousValue = null;
+            c.operator = null;
+            updateCalcUI();
+            return;
+          }
+          c.previousValue = result;
+          c.currentInput = String(result);
+        } else {
+          // Update operator on last tape item if user changed operator
+          if (c.tape.length > 0 && !c.tape[c.tape.length - 1].isTotal) {
+            c.tape[c.tape.length - 1].symbol = opGlyph;
+            renderTape();
+          }
+        }
+
+        c.waitingForOperand = true;
+        c.operator = nextOp;
+        updateCalcUI();
+      }
+
+      function handleEquals() {
+        const c = state.calc;
+        c.acPressedOnce = false;
+        const inputValue = parseFloat(c.currentInput);
+
+        // Merchant Mark-Up (MU) resolution: Cost / (1 - Margin/100)
+        if (c.muMode) {
+          const marginPct = inputValue;
+          if (marginPct >= 100) {
+            showToast("Margin % must be less than 100%");
+            return;
+          }
+          const sellingPrice = c.muCost / (1 - marginPct / 100);
+          addTapeEntry(marginPct, "MU%", false, `Target Margin (${marginPct}%)`);
+          addTapeEntry(sellingPrice, "=", true, `MU Price on ${formatMoney(c.muCost)}`);
+          c.currentInput = String(sellingPrice);
+          c.grandTotal += sellingPrice;
+          c.muMode = false;
+          c.waitingForOperand = true;
+          updateCalcUI();
+          return;
+        }
+
+        if (c.operator && c.previousValue !== null) {
+          addTapeEntry(inputValue, "", false);
+          const result = performCalculation(c.previousValue, inputValue, c.operator);
+          if (!Number.isFinite(result)) {
+            showToast("Cannot divide by zero");
+            c.currentInput = "0";
+            c.previousValue = null;
+            c.operator = null;
+            updateCalcUI();
+            return;
+          }
+          addTapeEntry(result, "=", true, "Subtotal");
+          c.grandTotal += result;
+          c.currentInput = String(result);
+          c.previousValue = null;
+          c.operator = null;
+          c.waitingForOperand = true;
+          updateCalcUI();
+        }
+      }
+
+      function handleAction(action) {
+        const c = state.calc;
+        const val = parseFloat(c.currentInput) || 0;
+
+        switch (action) {
+          case "CE":
+            c.currentInput = "0";
+            c.muMode = false;
+            break;
+
+          case "AC":
+            c.currentInput = "0";
+            c.previousValue = null;
+            c.operator = null;
+            c.waitingForOperand = false;
+            c.muMode = false;
+            if (c.acPressedOnce) {
+              c.grandTotal = 0;
+              c.acPressedOnce = false;
+              showToast("All Clear & Grand Total Reset");
+            } else {
+              c.acPressedOnce = true;
+              showToast("Cleared (Press AC again to reset GT)");
+            }
+            break;
+
+          case "BACK":
+            if (!c.waitingForOperand) {
+              c.currentInput = c.currentInput.length > 1 ? c.currentInput.slice(0, -1) : "0";
+              if (c.currentInput === "-") c.currentInput = "0";
+            }
+            break;
+
+          case "SIGN":
+            if (val !== 0) {
+              c.currentInput = String(-val);
+            }
+            break;
+
+          case "PERCENT":
+            if (c.previousValue !== null && c.operator) {
+              const pctVal = (c.previousValue * val) / 100;
+              c.currentInput = String(pctVal);
+            } else {
+              c.currentInput = String(val / 100);
+            }
+            break;
+
+          case "MU":
+            c.muMode = true;
+            c.muCost = val;
+            c.waitingForOperand = true;
+            addTapeEntry(val, "COST", false, "MU Base Cost");
+            showToast("Enter desired Gross Margin % and press =");
+            break;
+
+          case "GT":
+            c.currentInput = String(c.grandTotal);
+            c.waitingForOperand = true;
+            addTapeEntry(c.grandTotal, "GT", true, "Grand Total Recall");
+            showToast(`Recalled GT: ${formatMoney(c.grandTotal)}`);
+            break;
+
+          case "M+":
+            c.memory += val;
+            c.waitingForOperand = true;
+            addTapeEntry(val, "M+", false, "Memory Add");
+            break;
+
+          case "M-":
+            c.memory -= val;
+            c.waitingForOperand = true;
+            addTapeEntry(val, "M-", false, "Memory Subtract");
+            break;
+
+          case "MR":
+            c.currentInput = String(c.memory);
+            c.waitingForOperand = true;
+            showToast(`Memory Recalled: ${formatMoney(c.memory)}`);
+            break;
+
+          case "MC":
+            c.memory = 0;
+            showToast("Memory Cleared");
+            break;
+
+          case "DOT":
+            inputDot();
+            return;
+
+          case "EQUALS":
+            handleEquals();
+            return;
+        }
+        updateCalcUI();
+      }
+
+      document.getElementById("calcKeypad").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        if (btn.dataset.digit) inputDigit(btn.dataset.digit);
+        else if (btn.dataset.op) handleOperator(btn.dataset.op);
+        else if (btn.dataset.action) handleAction(btn.dataset.action);
+      });
+
+      // Keyboard Shortcuts when Register Tab is active and not typing in an input
+      document.addEventListener("keydown", (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName : "";
+        if (activeTag === "INPUT" || activeTag === "SELECT" || activeTag === "TEXTAREA") return;
+        if (!document.getElementById("panel-calc").classList.contains("active")) return;
+
+        if (e.key >= "0" && e.key <= "9") {
+          e.preventDefault();
+          inputDigit(e.key);
+        } else if (e.key === ".") {
+          e.preventDefault();
+          inputDot();
+        } else if (["+", "-", "*", "/"].includes(e.key)) {
+          e.preventDefault();
+          handleOperator(e.key);
+        } else if (e.key === "Enter" || e.key === "=") {
+          e.preventDefault();
+          handleEquals();
+        } else if (e.key === "Backspace") {
+          e.preventDefault();
+          handleAction("BACK");
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          handleAction("AC");
+        } else if (e.key === "%") {
+          e.preventDefault();
+          handleAction("PERCENT");
+        }
+      });
+
+      // Paper Tape Controls
+      document.getElementById("btnClearTape").addEventListener("click", () => {
+        state.calc.tape = [];
+        renderTape();
+        showToast("Paper tape cleared");
+      });
+
+      document.getElementById("btnCopyTape").addEventListener("click", () => {
+        if (state.calc.tape.length === 0) {
+          showToast("Paper tape is empty");
+          return;
+        }
+        const lines = state.calc.tape.map(
+          (t) => `${t.time} | ${t.note || "Entry"}: ${formatMoney(t.value)} ${t.symbol}`
+        );
+        lines.push(`Grand Total (GT): ${formatMoney(state.calc.grandTotal)}`);
+        copyTextToClipboard(lines.join("\n"), "Audit tape copied to clipboard");
+      });
+
+      document.getElementById("btnExportTape").addEventListener("click", () => {
+        if (state.calc.tape.length === 0) {
+          showToast("Paper tape is empty");
+          return;
+        }
+        const rows = [["Time", "Note", "Amount", "Currency", "Operator"]];
+        state.calc.tape.forEach((t) => {
+          rows.push([t.time, `"${(t.note || "Entry").replace(/"/g, '""')}"`, t.value, state.currency.code, t.symbol]);
+        });
+        downloadFile("merchant_tape.csv", rows.map((r) => r.join(",")).join("\n"), "text/csv");
+        showToast("Exported merchant_tape.csv");
+      });
+
+      // Bridges from Calculator to Margin Engine & Quote Builder
+      document.getElementById("btnSendToCost").addEventListener("click", () => {
+        const val = Math.max(0, parseFloat(state.calc.currentInput) || 0);
+        document.getElementById("inpCost").value = val.toFixed(2);
+        updateFromCostOrSell();
+        switchTab("panel-margin");
+        showToast(`Sent ${formatMoney(val)} to Cost Price`);
+      });
+
+      document.getElementById("btnSendToQuote").addEventListener("click", () => {
+        const val = Math.max(0, parseFloat(state.calc.currentInput) || 0);
+        const note = tapeNoteInput.value.trim() || `Register Item #${state.quoteItems.length + 1}`;
+        addQuoteItem(note, 1, val, 0, parseFloat(document.getElementById("inpTax").value) || 0);
+        switchTab("panel-quote");
+        showToast(`Added "${note}" to Quote`);
+      });
+
+      /* ======================================================================
+         MODULE 2: MARGIN, MARKUP & PRICING ENGINE
+         ====================================================================== */
+      const inpCost = document.getElementById("inpCost");
+      const inpSell = document.getElementById("inpSell");
+      const inpMargin = document.getElementById("inpMargin");
+      const sliderMargin = document.getElementById("sliderMargin");
+      const inpMarkup = document.getElementById("inpMarkup");
+      const sliderMarkup = document.getElementById("sliderMarkup");
+      const inpDiscount = document.getElementById("inpDiscount");
+      const inpTax = document.getElementById("inpTax");
+      const inpFixedCost = document.getElementById("inpFixedCost");
+
+      function updateFromCostOrSell() {
+        const cost = parseFloat(inpCost.value) || 0;
+        const sell = parseFloat(inpSell.value) || 0;
+        const profit = sell - cost;
+
+        const margin = sell > 0 ? (profit / sell) * 100 : 0;
+        const markup = cost > 0 ? (profit / cost) * 100 : 0;
+
+        inpMargin.value = margin.toFixed(2);
+        sliderMargin.value = Math.min(90, Math.max(0, margin));
+        inpMarkup.value = markup.toFixed(2);
+        sliderMarkup.value = Math.min(300, Math.max(0, markup));
+        recalcMarginEngine();
+      }
+
+      function updateFromMargin(newMargin) {
+        const cost = parseFloat(inpCost.value) || 0;
+        const clamped = Math.min(99.9, Math.max(-500, newMargin));
+        const sell = clamped < 100 ? cost / (1 - clamped / 100) : cost;
+        const markup = cost > 0 ? ((sell - cost) / cost) * 100 : 0;
+
+        inpSell.value = sell.toFixed(2);
+        inpMarkup.value = markup.toFixed(2);
+        sliderMarkup.value = Math.min(300, Math.max(0, markup));
+        recalcMarginEngine();
+      }
+
+      function updateFromMarkup(newMarkup) {
+        const cost = parseFloat(inpCost.value) || 0;
+        const sell = cost * (1 + newMarkup / 100);
+        const margin = sell > 0 ? ((sell - cost) / sell) * 100 : 0;
+
+        inpSell.value = sell.toFixed(2);
+        inpMargin.value = margin.toFixed(2);
+        sliderMargin.value = Math.min(90, Math.max(0, margin));
+        recalcMarginEngine();
+      }
+
+      function recalcMarginEngine() {
+        const cost = Math.max(0, parseFloat(inpCost.value) || 0);
+        const sell = Math.max(0, parseFloat(inpSell.value) || 0);
+        const discPct = Math.min(100, Math.max(0, parseFloat(inpDiscount.value) || 0));
+        const taxPct = Math.max(0, parseFloat(inpTax.value) || 0);
+        const fixedCost = Math.max(0, parseFloat(inpFixedCost.value) || 0);
+
+        const discAmt = sell * (discPct / 100);
+        const discountedNet = sell - discAmt;
+        const netProfit = discountedNet - cost;
+        const effMargin = discountedNet > 0 ? (netProfit / discountedNet) * 100 : 0;
+
+        const taxAmt = discountedNet * (taxPct / 100);
+        const finalGross = discountedNet + taxAmt;
+
+        document.getElementById("outProfit").textContent = formatMoney(netProfit);
+        document.getElementById("outProfit").style.color = netProfit < 0 ? "var(--accent-danger)" : "";
+        document.getElementById("outEffMargin").textContent = `Effective Margin: ${effMargin.toFixed(2)}%`;
+
+        document.getElementById("outFinalGross").textContent = formatMoney(finalGross);
+        document.getElementById("outTaxAmt").textContent = `Tax (${taxPct}%): ${formatMoney(taxAmt)}`;
+
+        document.getElementById("outDiscNet").textContent = formatMoney(discountedNet);
+        document.getElementById("outDiscSaved").textContent = `Discount: -${formatMoney(discAmt)}`;
+
+        if (netProfit > 0 && fixedCost > 0) {
+          const beUnits = Math.ceil(fixedCost / netProfit);
+          const beRev = beUnits * discountedNet;
+          document.getElementById("outBreakEven").textContent = `${beUnits.toLocaleString()} units`;
+          document.getElementById("outBreakEvenRev").textContent = `Net Rev: ${formatMoney(beRev)}`;
+        } else if (fixedCost === 0) {
+          document.getElementById("outBreakEven").textContent = "0 units";
+          document.getElementById("outBreakEvenRev").textContent = "No fixed overhead";
+        } else {
+          document.getElementById("outBreakEven").textContent = "Unprofitable";
+          document.getElementById("outBreakEvenRev").textContent = "Unit profit ≤ 0";
+        }
+
+        // Breakdown percentages
+        if (finalGross > 0) {
+          const posProfit = Math.max(0, netProfit);
+          const totalParts = cost + posProfit + taxAmt;
+          const pCost = Math.round((cost / totalParts) * 100);
+          const pProfit = Math.round((posProfit / totalParts) * 100);
+          const pTax = Math.max(0, 100 - pCost - pProfit);
+
+          document.getElementById("segCost").style.width = `${pCost}%`;
+          document.getElementById("segProfit").style.width = `${pProfit}%`;
+          document.getElementById("segTax").style.width = `${pTax}%`;
+
+          document.getElementById("pctCost").textContent = `${pCost}%`;
+          document.getElementById("pctProfit").textContent = `${pProfit}%`;
+          document.getElementById("pctTax").textContent = `${pTax}%`;
+        }
+      }
+
+      inpCost.addEventListener("input", updateFromCostOrSell);
+      inpSell.addEventListener("input", updateFromCostOrSell);
+
+      inpMargin.addEventListener("input", () => {
+        const val = parseFloat(inpMargin.value) || 0;
+        sliderMargin.value = Math.min(90, Math.max(0, val));
+        updateFromMargin(val);
+      });
+
+      sliderMargin.addEventListener("input", () => {
+        const val = parseFloat(sliderMargin.value) || 0;
+        inpMargin.value = val.toFixed(2);
+        updateFromMargin(val);
+      });
+
+      inpMarkup.addEventListener("input", () => {
+        const val = parseFloat(inpMarkup.value) || 0;
+        sliderMarkup.value = Math.min(300, Math.max(0, val));
+        updateFromMarkup(val);
+      });
+
+      sliderMarkup.addEventListener("input", () => {
+        const val = parseFloat(sliderMarkup.value) || 0;
+        inpMarkup.value = val.toFixed(2);
+        updateFromMarkup(val);
+      });
+
+      [inpDiscount, inpTax, inpFixedCost].forEach((el) => {
+        el.addEventListener("input", recalcMarginEngine);
+      });
+
+      document.getElementById("btnResetMargin").addEventListener("click", () => {
+        inpCost.value = "40";
+        inpSell.value = "65";
+        inpDiscount.value = "0";
+        inpTax.value = "11";
+        inpFixedCost.value = "1250";
+        updateFromCostOrSell();
+        showToast("Pricing engine reset");
+      });
+
+      document.getElementById("btnPushMarginToQuote").addEventListener("click", () => {
+        const sell = parseFloat(inpSell.value) || 0;
+        const disc = parseFloat(inpDiscount.value) || 0;
+        const tax = parseFloat(inpTax.value) || 0;
+        const margin = parseFloat(inpMargin.value) || 0;
+        const label = `Priced Item (${margin.toFixed(1)}% Margin)`;
+        addQuoteItem(label, 1, sell, disc, tax);
+        switchTab("panel-quote");
+        showToast("Priced item added to Quote Builder");
+      });
+
+      /* ======================================================================
+         MODULE 3: MULTI-ITEM INVOICE / QUOTE QUICK-BUILDER
+         ====================================================================== */
+      function addQuoteItem(desc, qty, price, discPct, taxPct) {
+        state.quoteItems.push({
+          id: Date.now() + Math.random(),
+          desc,
+          qty,
+          price,
+          discPct,
+          taxPct
+        });
+        renderQuoteTable();
+      }
+
+      function renderQuoteTable() {
+        const tbody = document.getElementById("quoteTableBody");
+        const badge = document.getElementById("quoteCountBadge");
+        badge.textContent = String(state.quoteItems.length);
+
+        let grossSubtotal = 0;
+        let totalDiscount = 0;
+        let totalTax = 0;
+
+        if (state.quoteItems.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No items in quote yet. Add a line item above or send values from the Calculator or Margin Engine.
+              </td>
+            </tr>`;
+        } else {
+          tbody.innerHTML = state.quoteItems
+            .map((item) => {
+              const lineGross = item.qty * item.price;
+              const lineDisc = lineGross * (item.discPct / 100);
+              const lineNet = lineGross - lineDisc;
+              const lineTax = lineNet * (item.taxPct / 100);
+              const lineTotal = lineNet + lineTax;
+
+              grossSubtotal += lineGross;
+              totalDiscount += lineDisc;
+              totalTax += lineTax;
+
+              return `
+                <tr>
+                  <td style="font-family: var(--font-sans); font-weight: 600;">${escapeHtml(item.desc)}</td>
+                  <td class="num-col">${item.qty}</td>
+                  <td class="num-col">${formatMoney(item.price)}</td>
+                  <td class="num-col">${item.discPct}%</td>
+                  <td class="num-col">${item.taxPct}%</td>
+                  <td class="num-col" style="font-weight: 700;">${formatMoney(lineTotal)}</td>
+                  <td class="num-col">
+                    <button type="button" class="btn-sm btn-danger" data-del-id="${item.id}" aria-label="Remove item">✕</button>
+                  </td>
+                </tr>`;
+            })
+            .join("");
+        }
+
+        const grandTotal = grossSubtotal - totalDiscount + totalTax;
+        document.getElementById("qSumSubtotal").textContent = formatMoney(grossSubtotal);
+        document.getElementById("qSumDiscount").textContent = `-${formatMoney(totalDiscount)}`;
+        document.getElementById("qSumTax").textContent = formatMoney(totalTax);
+        document.getElementById("qSumGrand").textContent = formatMoney(grandTotal);
+      }
+
+      document.getElementById("quoteAddForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const desc = document.getElementById("qDesc").value.trim();
+        const qty = parseFloat(document.getElementById("qQty").value) || 1;
+        const price = parseFloat(document.getElementById("qPrice").value) || 0;
+        const disc = parseFloat(document.getElementById("qDisc").value) || 0;
+        const tax = parseFloat(document.getElementById("qTax").value) || 0;
+
+        if (!desc) return;
+        addQuoteItem(desc, qty, price, disc, tax);
+        document.getElementById("qDesc").value = "";
+        document.getElementById("qPrice").value = "";
+        document.getElementById("qDesc").focus();
+        showToast("Line item added");
+      });
+
+      document.getElementById("quoteTableBody").addEventListener("click", (e) => {
+        const delBtn = e.target.closest("[data-del-id]");
+        if (!delBtn) return;
+        const id = parseFloat(delBtn.dataset.delId);
+        state.quoteItems = state.quoteItems.filter((item) => item.id !== id);
+        renderQuoteTable();
+        showToast("Item removed");
+      });
+
+      document.getElementById("btnClearQuote").addEventListener("click", () => {
+        state.quoteItems = [];
+        renderQuoteTable();
+        showToast("Quote cleared");
+      });
+
+      document.getElementById("btnCopyQuote").addEventListener("click", () => {
+        if (state.quoteItems.length === 0) {
+          showToast("Quote is empty");
+          return;
+        }
+        const lines = [`MERCHANT QUOTE (${state.currency.code})`, "----------------------------------------"];
+        state.quoteItems.forEach((item, idx) => {
+          const net = item.qty * item.price * (1 - item.discPct / 100);
+          const tot = net * (1 + item.taxPct / 100);
+          lines.push(`${idx + 1}. ${item.desc} (${item.qty} x ${formatMoney(item.price)}) = ${formatMoney(tot)}`);
+        });
+        lines.push("----------------------------------------");
+        lines.push(`Subtotal: ${document.getElementById("qSumSubtotal").textContent}`);
+        lines.push(`Discount: ${document.getElementById("qSumDiscount").textContent}`);
+        lines.push(`Tax:      ${document.getElementById("qSumTax").textContent}`);
+        lines.push(`TOTAL:    ${document.getElementById("qSumGrand").textContent}`);
+        copyTextToClipboard(lines.join("\n"), "Receipt copied to clipboard");
+      });
+
+      document.getElementById("btnExportQuote").addEventListener("click", () => {
+        if (state.quoteItems.length === 0) {
+          showToast("Quote is empty");
+          return;
+        }
+        const rows = [["Description", "Qty", "Unit Price", "Discount %", "Tax %", "Line Total", "Currency"]];
+        state.quoteItems.forEach((item) => {
+          const net = item.qty * item.price * (1 - item.discPct / 100);
+          const tot = net * (1 + item.taxPct / 100);
+          rows.push([
+            `"${item.desc.replace(/"/g, '""')}"`,
+            item.qty,
+            item.price.toFixed(2),
+            item.discPct,
+            item.taxPct,
+            tot.toFixed(2),
+            state.currency.code
+          ]);
+        });
+        downloadFile("merchant_quote.csv", rows.map((r) => r.join(",")).join("\n"), "text/csv");
+        showToast("Exported merchant_quote.csv");
+      });
+
+      // Initialize UI on Load
+      updateCalcUI();
+      recalcMarginEngine();
+      renderQuoteTable();
+    })();
+  </script>
+</body>
+</html>

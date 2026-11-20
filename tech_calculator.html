@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Technology Calculator</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ========================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-code: #0f172a;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-primary-soft: #dbeafe;
+      --accent-primary-text: #1e40af;
+
+      --accent-cyan: #0891b2;
+      --accent-cyan-soft: #cffafe;
+      --accent-cyan-text: #155e75;
+
+      --accent-emerald: #059669;
+      --accent-emerald-soft: #d1fae5;
+      --accent-emerald-text: #065f46;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --key-num-bg: #ffffff;
+      --key-num-hover: #f1f5f9;
+      --key-op-bg: #e2e8f0;
+      --key-op-hover: #cbd5e1;
+      --key-bit-bg: #eff6ff;
+      --key-bit-text: #1d4ed8;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+      --shadow-key: 0 2px 0 rgba(15, 23, 42, 0.12);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #090d16;
+      --bg-surface: #131c2e;
+      --bg-surface-alt: #0d1422;
+      --bg-code: #060911;
+      --border-color: #243047;
+      --border-strong: #364663;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #60a5fa;
+      --accent-primary-soft: rgba(59, 130, 246, 0.18);
+      --accent-primary-text: #93c5fd;
+
+      --accent-cyan: #06b6d4;
+      --accent-cyan-soft: rgba(6, 182, 212, 0.18);
+      --accent-cyan-text: #67e8f9;
+
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.18);
+      --accent-emerald-text: #6ee7b7;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.18);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --key-num-bg: #1c273d;
+      --key-num-hover: #263552;
+      --key-op-bg: #151e30;
+      --key-op-hover: #22304a;
+      --key-bit-bg: rgba(59, 130, 246, 0.15);
+      --key-bit-text: #93c5fd;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.4);
+      --shadow-key: 0 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* ==========================================================================
+       RESET & BASE
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* ==========================================================================
+       HEADER BAR
+       ========================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.8rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+    }
+
+    /* ==========================================================================
+       MAIN CONTAINER & TABS
+       ========================================================================== */
+    .main-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 768px) {
+      .tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .tab-btn {
+      padding: 0.65rem 0.5rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       SHARED CARDS & CONTROLS
+       ========================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.12s ease;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary-text);
+      background-color: var(--accent-primary-soft);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .pill-group {
+      display: inline-flex;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0.18rem;
+      gap: 0.18rem;
+    }
+
+    .pill-btn {
+      padding: 0.3rem 0.6rem;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      min-height: 30px;
+    }
+
+    .pill-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+    }
+
+    .tech-input, .tech-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 0.75rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .tech-input:focus, .tech-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    /* ==========================================================================
+       MODULE 1: PROGRAMMER & BITWISE CALCULATOR
+       ========================================================================== */
+    .prog-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 980px) {
+      .prog-grid {
+        grid-template-columns: 1fr 1.15fr;
+        align-items: start;
+      }
+    }
+
+    .prog-display-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .prog-expr {
+      min-height: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-align: right;
+      margin-bottom: 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .prog-main-val {
+      font-size: clamp(1.35rem, 3.8vw, 1.95rem);
+      font-weight: 700;
+      text-align: right;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 0.65rem;
+    }
+
+    /* Base Readout Rows (HEX, DEC, OCT, BIN) */
+    .base-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .base-row {
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .base-row:hover {
+      background-color: var(--bg-surface);
+      border-color: var(--border-strong);
+    }
+
+    .base-row.active-base {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .base-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+    }
+
+    .base-row.active-base .base-tag {
+      color: var(--accent-primary-text);
+    }
+
+    .base-val {
+      font-size: 0.85rem;
+      font-weight: 600;
+      overflow-x: auto;
+      white-space: nowrap;
+      color: var(--text-primary);
+    }
+
+    /* Programmer Keypad */
+    .prog-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .prog-keypad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.42rem;
+    }
+
+    .pkey {
+      height: 46px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      background-color: var(--key-num-bg);
+      box-shadow: var(--shadow-key);
+      transition: transform 0.06s, background-color 0.12s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pkey:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+
+    .pkey:hover:not(:disabled) {
+      background-color: var(--key-num-hover);
+    }
+
+    .pkey:disabled {
+      opacity: 0.32;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .pkey-bit {
+      background-color: var(--key-bit-bg);
+      color: var(--key-bit-text);
+      border-color: rgba(59, 130, 246, 0.35);
+      font-size: 0.82rem;
+    }
+
+    .pkey-op {
+      background-color: var(--key-op-bg);
+      font-size: 1rem;
+    }
+
+    .pkey-op:hover:not(:disabled) {
+      background-color: var(--key-op-hover);
+    }
+
+    .pkey-clear {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border-color: rgba(220, 38, 38, 0.35);
+    }
+
+    .pkey-eq {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+      font-size: 1.2rem;
+    }
+
+    .pkey-eq:hover:not(:disabled) {
+      background-color: var(--accent-primary-hover);
+    }
+
+    /* Interactive 64-Bit Toggle Grid */
+    .bit-grid-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+    }
+
+    @media (min-width: 560px) {
+      .bit-grid-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .nibble-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem;
+      transition: opacity 0.15s;
+    }
+
+    .nibble-box.disabled-nibble {
+      opacity: 0.28;
+      pointer-events: none;
+    }
+
+    .nibble-bits {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .bit-cell {
+      height: 32px;
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      background-color: var(--bg-surface);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .bit-cell.bit-on {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .nibble-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ==========================================================================
+       MODULE 2: DATA STORAGE & NETWORK THROUGHPUT CONVERTER
+       ========================================================================== */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 900px) {
+      .two-col-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .unit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      margin-top: 0.75rem;
+    }
+
+    .unit-table th {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .unit-table td {
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .kpi-highlight-box {
+      background-color: var(--accent-primary-soft);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-top: 0.85rem;
+    }
+
+    .kpi-big {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--accent-primary-text);
+      margin: 0.2rem 0;
+    }
+
+    /* ==========================================================================
+       MODULE 3: IPv4 / CIDR SUBNET CALCULATOR
+       ========================================================================== */
+    .subnet-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (min-width: 680px) {
+      .subnet-controls {
+        grid-template-columns: 1.4fr 1fr;
+        align-items: end;
+      }
+    }
+
+    .cidr-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .cidr-slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    .subnet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-tile {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+    }
+
+    .stat-tile-label {
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-tile-val {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    .binary-mask-vis {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      overflow-x: auto;
+    }
+
+    .bit-net {
+      color: var(--accent-primary);
+      font-weight: 800;
+    }
+
+    .bit-host {
+      color: var(--accent-emerald);
+      font-weight: 800;
+    }
+
+    /* ==========================================================================
+       MODULE 4: HARDWARE, ELECTRONICS, IEEE-754 & AI VRAM TOOLS
+       ========================================================================== */
+    .eng-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ieee-bit-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      margin: 0.75rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    .ieee-bit {
+      padding: 0.35rem 0.3rem;
+      border-radius: 4px;
+      font-weight: 700;
+      text-align: center;
+      min-width: 22px;
+    }
+
+    .ieee-sign {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    .ieee-exp {
+      background-color: var(--accent-emerald-soft);
+      color: var(--accent-emerald-text);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .ieee-mant {
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATION
+       ========================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP HEADER BAR WITH NAVIGATION BACK TO index.html
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to Main Home Page (index.html)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Home / index.html</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">0x</div>
+          <div>
+            <h1>Advanced Technology Calculator</h1>
+            <span class="brand-sub">64-Bit Programmer • Bandwidth • CIDR Subnet • IEEE-754 &amp; Electronics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="themeToggle" class="icon-btn" type="button" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN WORKSPACE
+       ======================================================================== -->
+  <main class="main-container">
+    <!-- Module Navigation Tabs -->
+    <nav class="tab-bar" role="tablist" aria-label="Technology Calculator Modules">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="panel-prog">
+        <span>💻 Programmer &amp; Bitwise</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-data">
+        <span>📡 Data &amp; Bandwidth</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-subnet">
+        <span>🌐 IPv4 / CIDR Subnet</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="panel-eng">
+        <span>⚡ Hardware &amp; IEEE-754</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================================
+         PANEL 1: PROGRAMMER & BITWISE CALCULATOR (64-BIT BIGINT)
+         ====================================================================== -->
+    <section id="panel-prog" class="panel active" role="tabpanel">
+      <div class="prog-grid">
+        <!-- Left: Readouts & Programmer Keypad -->
+        <div class="card">
+          <div class="prog-toolbar">
+            <!-- Bit Width Selector -->
+            <div class="pill-group" id="wordWidthGroup" aria-label="Word Bit Width">
+              <button type="button" class="pill-btn active" data-bits="64">QWORD (64)</button>
+              <button type="button" class="pill-btn" data-bits="32">DWORD (32)</button>
+              <button type="button" class="pill-btn" data-bits="16">WORD (16)</button>
+              <button type="button" class="pill-btn" data-bits="8">BYTE (8)</button>
+            </div>
+
+            <!-- Signed / Unsigned Toggle -->
+            <button type="button" class="btn-sm" id="btnSignMode" title="Toggle Signed Two's Complement vs Unsigned">
+              Mode: Signed
+            </button>
+          </div>
+
+          <!-- Multi-Base Display Screen -->
+          <div class="prog-display-box">
+            <div id="progExpr" class="prog-expr mono">&nbsp;</div>
+            <div id="progMainDisplay" class="prog-main-val mono">0</div>
+
+            <div class="base-rows mono">
+              <div class="base-row" data-base="16" title="Switch input radix to Hexadecimal">
+                <span class="base-tag">HEX</span>
+                <span class="base-val" id="readoutHex">0</span>
+                <button type="button" class="btn-sm" data-copy-target="readoutHex" style="min-height:24px; padding:0.15rem 0.45rem;">Copy</button>
+              </div>
+              <div class="base-row active-base" data-base="10" title="Switch input radix to Decimal">
+                <span class="base-tag">DEC</span>
+                <span class="base-val" id="readoutDec">0</span>
+                <button type="button" class="btn-sm" data-copy-target="readoutDec" style="min-height:24px; padding:0.15rem 0.45rem;">Copy</button>
+              </div>
+              <div class="base-row" data-base="8" title="Switch input radix to Octal">
+                <span class="base-tag">OCT</span>
+                <span class="base-val" id="readoutOct">0</span>
+                <button type="button" class="btn-sm" data-copy-target="readoutOct" style="min-height:24px; padding:0.15rem 0.45rem;">Copy</button>
+              </div>
+              <div class="base-row" data-base="2" title="Switch input radix to Binary">
+                <span class="base-tag">BIN</span>
+                <span class="base-val" id="readoutBin">0000</span>
+                <button type="button" class="btn-sm" data-copy-target="readoutBin" style="min-height:24px; padding:0.15rem 0.45rem;">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Programmer Keypad -->
+          <div class="prog-keypad mono" id="progKeypad">
+            <!-- Row 1: Bitwise Logic -->
+            <button type="button" class="pkey pkey-bit" data-op="AND">AND</button>
+            <button type="button" class="pkey pkey-bit" data-op="OR">OR</button>
+            <button type="button" class="pkey pkey-bit" data-op="XOR">XOR</button>
+            <button type="button" class="pkey pkey-bit" data-unary="NOT">NOT</button>
+            <button type="button" class="pkey pkey-clear" data-action="AC">AC</button>
+
+            <!-- Row 2: Shifts & Rotates -->
+            <button type="button" class="pkey pkey-bit" data-op="LSH">&lt;&lt; LSH</button>
+            <button type="button" class="pkey pkey-bit" data-op="RSH">&gt;&gt; RSH</button>
+            <button type="button" class="pkey pkey-bit" data-unary="ROL">ROL</button>
+            <button type="button" class="pkey pkey-bit" data-unary="ROR">ROR</button>
+            <button type="button" class="pkey pkey-clear" data-action="BACK">⌫</button>
+
+            <!-- Row 3: A, B, 7, 8, 9 -->
+            <button type="button" class="pkey hex-key" data-digit="A">A</button>
+            <button type="button" class="pkey hex-key" data-digit="B">B</button>
+            <button type="button" class="pkey dec-key" data-digit="7">7</button>
+            <button type="button" class="pkey oct-key" data-digit="8">8</button>
+            <button type="button" class="pkey oct-key" data-digit="9">9</button>
+
+            <!-- Row 4: C, D, 4, 5, 6 -->
+            <button type="button" class="pkey hex-key" data-digit="C">C</button>
+            <button type="button" class="pkey hex-key" data-digit="D">D</button>
+            <button type="button" class="pkey dec-key" data-digit="4">4</button>
+            <button type="button" class="pkey dec-key" data-digit="5">5</button>
+            <button type="button" class="pkey dec-key" data-digit="6">6</button>
+
+            <!-- Row 5: E, F, 1, 2, 3 -->
+            <button type="button" class="pkey hex-key" data-digit="E">E</button>
+            <button type="button" class="pkey hex-key" data-digit="F">F</button>
+            <button type="button" class="pkey bin-key" data-digit="1">1</button>
+            <button type="button" class="pkey dec-key" data-digit="2">2</button>
+            <button type="button" class="pkey dec-key" data-digit="3">3</button>
+
+            <!-- Row 6: Arithmetic Operators & 0 -->
+            <button type="button" class="pkey pkey-op" data-op="MOD">MOD</button>
+            <button type="button" class="pkey pkey-unary" data-unary="NEG">+/−</button>
+            <button type="button" class="pkey bin-key" data-digit="0">0</button>
+            <button type="button" class="pkey pkey-op" data-op="DIV">÷</button>
+            <button type="button" class="pkey pkey-op" data-op="MUL">×</button>
+
+            <!-- Row 7: NAND, NOR, -, +, = -->
+            <button type="button" class="pkey pkey-bit" data-op="NAND">NAND</button>
+            <button type="button" class="pkey pkey-bit" data-op="NOR">NOR</button>
+            <button type="button" class="pkey pkey-op" data-op="SUB">−</button>
+            <button type="button" class="pkey pkey-op" data-op="ADD">+</button>
+            <button type="button" class="pkey pkey-eq" data-action="EQUALS">=</button>
+          </div>
+        </div>
+
+        <!-- Right: Interactive 64-Bit Toggle Keypad -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔢 Interactive Bit-Field Register (<span id="bitGridLabel">64-Bit</span>)</div>
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+              <button type="button" class="btn-sm" id="btnAllOnes">Set All 1s</button>
+              <button type="button" class="btn-sm" id="btnInvertBits">Invert (~)</button>
+              <button type="button" class="btn-sm" id="btnZeroBits">Zero (0)</button>
+            </div>
+          </div>
+
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Click any individual bit cell below to toggle <code class="mono">0</code> / <code class="mono">1</code> and inspect live register mutations.
+          </p>
+
+          <div id="bitGridContainer" class="bit-grid-container"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PANEL 2: DATA STORAGE & NETWORK THROUGHPUT CONVERTER
+         ====================================================================== -->
+    <section id="panel-data" class="panel" role="tabpanel">
+      <div class="two-col-grid">
+        <!-- Left: SI Decimal vs IEC Binary Storage Converter -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💾 Data Storage &amp; Bit/Byte Converter</div>
+            <button type="button" class="btn-sm" id="btnCopyStorage">Copy Table</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 0.6rem;">
+            <div>
+              <label class="field-label" for="storageVal">Amount</label>
+              <input type="number" id="storageVal" class="tech-input mono" value="512" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="storageUnit">Input Unit</label>
+              <select id="storageUnit" class="tech-select mono">
+                <optgroup label="Binary (IEC - Base 1024)">
+                  <option value="GiB" selected>GiB (Gibibytes)</option>
+                  <option value="MiB">MiB (Mebibytes)</option>
+                  <option value="KiB">KiB (Kibibytes)</option>
+                  <option value="TiB">TiB (Tebibytes)</option>
+                  <option value="PiB">PiB (Pebibytes)</option>
+                </optgroup>
+                <optgroup label="Decimal (SI - Base 1000)">
+                  <option value="GB">GB (Gigabytes)</option>
+                  <option value="MB">MB (Megabytes)</option>
+                  <option value="KB">KB (Kilobytes)</option>
+                  <option value="TB">TB (Terabytes)</option>
+                  <option value="PB">PB (Petabytes)</option>
+                  <option value="B">Bytes (B)</option>
+                </optgroup>
+                <optgroup label="Bits">
+                  <option value="Gb">Gigabits (Gb)</option>
+                  <option value="Mb">Megabits (Mb)</option>
+                  <option value="Kb">Kilobits (Kb)</option>
+                  <option value="b">Bits (b)</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <table class="unit-table mono">
+            <thead>
+              <tr>
+                <th>Standard</th>
+                <th>Unit</th>
+                <th style="text-align: right;">Converted Value</th>
+              </tr>
+            </thead>
+            <tbody id="storageTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Right: File Transfer Time & Network Bandwidth Calculator -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🚀 File Transfer Time &amp; Link Throughput</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="xferSize">Payload / File Size</label>
+              <input type="number" id="xferSize" class="tech-input mono" value="50" min="0" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="xferSizeUnit">Size Unit</label>
+              <select id="xferSizeUnit" class="tech-select mono">
+                <option value="GB" selected>GB (Decimal)</option>
+                <option value="GiB">GiB (Binary)</option>
+                <option value="MB">MB (Decimal)</option>
+                <option value="MiB">MiB (Binary)</option>
+                <option value="TB">TB (Decimal)</option>
+                <option value="TiB">TiB (Binary)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.6rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="field-label" for="xferSpeed">Link Speed (Mbps)</label>
+              <input type="number" id="xferSpeed" class="tech-input mono" value="1000" min="0.001" step="any" />
+            </div>
+            <div>
+              <label class="field-label" for="xferPreset">Interface Preset</label>
+              <select id="xferPreset" class="tech-select">
+                <option value="1000" selected>1 Gbps Ethernet (1,000 Mbps)</option>
+                <option value="100">100 Mbps Fast Ethernet</option>
+                <option value="2500">2.5 Gbps Ethernet (2,500 Mbps)</option>
+                <option value="10000">10 Gbps SFP+ Fiber (10,000 Mbps)</option>
+                <option value="100000">100 Gbps Data Center (100,000 Mbps)</option>
+                <option value="600">Wi-Fi 6 Real-World (~600 Mbps)</option>
+                <option value="350">5G Sub-6GHz (~350 Mbps)</option>
+                <option value="4800">SATA III SSD (4,800 Mbps / 600 MB/s)</option>
+                <option value="56000">NVMe PCIe Gen4 (56,000 Mbps / 7 GB/s)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
+              <label for="xferOverhead">TCP/IP &amp; Framing Protocol Overhead</label>
+              <span class="mono" id="xferOverheadVal">6%</span>
+            </div>
+            <input type="range" id="xferOverhead" min="0" max="40" step="1" value="6" style="width: 100%; accent-color: var(--accent-primary); cursor: pointer;" />
+          </div>
+
+          <div class="kpi-highlight-box mono">
+            <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">
+              Estimated Transfer Duration
+            </div>
+            <div class="kpi-big" id="outXferDuration">00h 06m 40.00s</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);" id="outXferEffective">
+              Effective Goodput: 940.00 Mbps (117.50 MB/s)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PANEL 3: IPv4 / CIDR SUBNET & NETWORK CALCULATOR
+         ====================================================================== -->
+    <section id="panel-subnet" class="panel" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🌐 IPv4 / CIDR Subnet &amp; Mask Analyzer</div>
+          <button type="button" class="btn-sm" id="btnCopySubnet">Copy Subnet Report</button>
+        </div>
+
+        <div class="subnet-controls">
+          <div>
+            <label class="field-label" for="ipAddressInput">IPv4 Address (Dotted Decimal)</label>
+            <input type="text" id="ipAddressInput" class="tech-input mono" value="192.168.10.45" placeholder="e.g., 10.24.128.5" />
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+              <label class="field-label" for="cidrRange" style="margin-bottom:0;">CIDR Prefix Length</label>
+              <span class="mono" style="font-weight: 800; color: var(--accent-primary);" id="cidrBadge">/24</span>
+            </div>
+            <div class="cidr-slider-row">
+              <input type="range" id="cidrRange" min="0" max="32" step="1" value="24" />
+              <select id="cidrSelect" class="tech-select mono" style="width: 92px;"></select>
+            </div>
+          </div>
+        </div>
+
+        <div id="ipErrorBanner" style="display:none; background: var(--accent-danger-soft); color: var(--accent-danger); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.85rem;">
+          Invalid IPv4 address. Please enter four octets between 0 and 255 (e.g., 172.16.0.1).
+        </div>
+
+        <div class="subnet-grid mono">
+          <div class="stat-tile">
+            <div class="stat-tile-label">Network Address</div>
+            <div class="stat-tile-val" id="subNetAddr">192.168.10.0</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Broadcast Address</div>
+            <div class="stat-tile-val" id="subBcastAddr">192.168.10.255</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Subnet Mask</div>
+            <div class="stat-tile-val" id="subMask">255.255.255.0</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Wildcard Mask (ACL)</div>
+            <div class="stat-tile-val" id="subWildcard">0.0.0.255</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">First Usable Host</div>
+            <div class="stat-tile-val" id="subFirstHost">192.168.10.1</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Last Usable Host</div>
+            <div class="stat-tile-val" id="subLastHost">192.168.10.254</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Usable Hosts / Total IPs</div>
+            <div class="stat-tile-val" id="subHostCounts">254 / 256</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">IP Class &amp; Routing Scope</div>
+            <div class="stat-tile-val" id="subClassScope" style="font-family: var(--font-sans);">Class C • Private (RFC 1918)</div>
+          </div>
+        </div>
+
+        <!-- 32-Bit Binary Mask Breakdown -->
+        <div class="binary-mask-vis mono">
+          <div style="font-family: var(--font-sans); font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.45rem;">
+            32-Bit Binary Structure (<span class="bit-net">Network Bits</span> vs <span class="bit-host">Host Bits</span>)
+          </div>
+          <div style="font-size: 0.85rem; margin-bottom: 0.25rem;">
+            <span style="color: var(--text-muted); display:inline-block; width: 78px;">IPv4:</span>
+            <span id="binIpVis"></span>
+          </div>
+          <div style="font-size: 0.85rem;">
+            <span style="color: var(--text-muted); display:inline-block; width: 78px;">Netmask:</span>
+            <span id="binMaskVis"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PANEL 4: HARDWARE, ELECTRONICS, IEEE-754 & AI VRAM CALCULATORS
+         ====================================================================== -->
+    <section id="panel-eng" class="panel" role="tabpanel">
+      <div class="eng-stack">
+        <div class="two-col-grid">
+          <!-- Card A: Ohm's Law & DC Power Solver -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚡ Ohm's Law &amp; DC Power Solver</div>
+              <button type="button" class="btn-sm" id="btnResetOhm">Reset</button>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              Enter any <strong>two</strong> parameters and click <strong>Solve</strong> to compute the remaining electrical values.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.8rem;">
+              <div>
+                <label class="field-label" for="ohmV">Voltage (V)</label>
+                <input type="number" id="ohmV" class="tech-input mono" value="12" step="any" placeholder="Volts" />
+              </div>
+              <div>
+                <label class="field-label" for="ohmI">Current (A)</label>
+                <input type="number" id="ohmI" class="tech-input mono" value="0.5" step="any" placeholder="Amps" />
+              </div>
+              <div>
+                <label class="field-label" for="ohmR">Resistance (Ω)</label>
+                <input type="number" id="ohmR" class="tech-input mono" value="" step="any" placeholder="Ohms" />
+              </div>
+              <div>
+                <label class="field-label" for="ohmP">Power (W)</label>
+                <input type="number" id="ohmP" class="tech-input mono" value="" step="any" placeholder="Watts" />
+              </div>
+            </div>
+
+            <button type="button" class="btn-sm btn-primary" id="btnSolveOhm" style="width: 100%; justify-content: center; height: 38px;">
+              Solve Electrical Circuit
+            </button>
+            <div id="ohmStatus" class="mono" style="margin-top: 0.65rem; font-size: 0.82rem; color: var(--accent-emerald-text); font-weight: 600;">
+              Solved: R = 24.000 Ω | P = 6.000 W
+            </div>
+          </div>
+
+          <!-- Card B: AI / ML Model VRAM & Server Compute Estimator -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🧠 AI Model VRAM &amp; Compute Sizing</div>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              Estimate GPU VRAM footprint for LLM weights, KV cache, and activation overhead across quantization precisions.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.75rem;">
+              <div>
+                <label class="field-label" for="aiParams">Model Parameters (Billions)</label>
+                <input type="number" id="aiParams" class="tech-input mono" value="8" min="0.01" step="0.1" />
+              </div>
+              <div>
+                <label class="field-label" for="aiPrecision">Weight Precision</label>
+                <select id="aiPrecision" class="tech-select mono">
+                  <option value="8">FP64 (8 Bytes/param)</option>
+                  <option value="4">FP32 (4 Bytes/param)</option>
+                  <option value="2" selected>FP16 / BF16 (2 Bytes/param)</option>
+                  <option value="1">INT8 / FP8 (1 Byte/param)</option>
+                  <option value="0.5">INT4 / Q4 (0.5 Bytes/param)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
+                <label for="aiOverhead">KV Cache &amp; Context Buffer Overhead</label>
+                <span class="mono" id="aiOverheadVal">20%</span>
+              </div>
+              <input type="range" id="aiOverhead" min="5" max="100" step="5" value="20" style="width: 100%; accent-color: var(--accent-primary); cursor: pointer;" />
+            </div>
+
+            <div class="kpi-highlight-box mono">
+              <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">
+                Total Required GPU VRAM
+              </div>
+              <div class="kpi-big" id="outAiVram">17.88 GiB (19.20 GB)</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);" id="outAiBreakdown">
+                Raw Weights: 14.90 GiB + Context Overhead: 2.98 GiB
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card C: IEEE 754 Floating-Point Bit Inspector -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔬 IEEE 754 Floating-Point Bit Visualizer</div>
+            <div class="pill-group" id="ieeeWidthGroup">
+              <button type="button" class="pill-btn active" data-fp="32">Float32 (Single)</button>
+              <button type="button" class="pill-btn" data-fp="64">Float64 (Double)</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+              <div>
+                <label class="field-label" for="ieeeDecInput">Decimal Number (or NaN, Infinity, -0)</label>
+                <input type="text" id="ieeeDecInput" class="tech-input mono" value="-13.625" />
+              </div>
+              <div>
+                <label class="field-label">IEEE 754 Hex Representation</label>
+                <div class="tech-input mono" id="ieeeHexOut" style="display:flex; align-items:center; justify-content:space-between;">
+                  <span>0xC15A0000</span>
+                  <button type="button" class="btn-sm" data-copy-target="ieeeHexText" style="min-height:26px;">Copy</button>
+                  <span id="ieeeHexText" style="display:none;">0xC15A0000</span>
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Exact Stored Decimal Value</label>
+                <div class="tech-input mono" id="ieeeExactOut" style="display:flex; align-items:center; overflow-x:auto;">
+                  -13.625
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 1rem;">
+              <span><strong style="color:var(--accent-danger);">■ Sign Bit:</strong> <span id="ieeeSignDesc" class="mono">1 (-)</span></span>
+              <span><strong style="color:var(--accent-emerald-text);">■ Exponent:</strong> <span id="ieeeExpDesc" class="mono">10000010 (130 - 127 = 3)</span></span>
+              <span><strong style="color:var(--accent-primary-text);">■ Mantissa:</strong> <span id="ieeeMantDesc" class="mono">1.703125</span></span>
+            </div>
+
+            <div id="ieeeBitBar" class="ieee-bit-bar"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         UTILITIES & THEME
+         ====================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+      }
+
+      function copyToClipboard(text, label = "Copied to clipboard") {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label);
+        } catch (err) {
+          showToast("Copy failed");
+        }
+        document.body.removeChild(ta);
+      }
+
+      document.addEventListener("click", (e) => {
+        const copyBtn = e.target.closest("[data-copy-target]");
+        if (!copyBtn) return;
+        e.stopPropagation();
+        const target = document.getElementById(copyBtn.dataset.copyTarget);
+        if (target) copyToClipboard(target.textContent.trim(), "Copied value");
+      });
+
+      const savedTheme = localStorage.getItem("atc_theme") || "light";
+      function setTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeIcon").textContent = theme === "dark" ? "☀️" : "🌙";
+        document.getElementById("themeLabel").textContent = theme === "dark" ? "Light" : "Dark";
+        localStorage.setItem("atc_theme", theme);
+      }
+      setTheme(savedTheme);
+
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme");
+        setTheme(current === "dark" ? "light" : "dark");
+      });
+
+      /* ======================================================================
+         TAB NAVIGATION
+         ====================================================================== */
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const panels = document.querySelectorAll(".panel");
+
+      tabBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.tab;
+          tabBtns.forEach((b) => {
+            const active = b === btn;
+            b.classList.toggle("active", active);
+            b.setAttribute("aria-selected", active ? "true" : "false");
+          });
+          panels.forEach((p) => p.classList.toggle("active", p.id === target));
+        });
+      });
+
+      /* ======================================================================
+         MODULE 1: 64-BIT PROGRAMMER & BITWISE CALCULATOR
+         ====================================================================== */
+      const prog = {
+        value: 0n,
+        accumulator: null,
+        pendingOp: null,
+        waitingForOperand: false,
+        base: 10,
+        bits: 64,
+        signed: true
+      };
+
+      function getMask(bits) {
+        return (1n << BigInt(bits)) - 1n;
+      }
+
+      function normalizeWord(val, bits = prog.bits) {
+        return BigInt.asUintN(bits, val);
+      }
+
+      function toSignedBigInt(unsignedVal, bits = prog.bits) {
+        return BigInt.asIntN(bits, unsignedVal);
+      }
+
+      function formatDisplayInBase(unsignedVal, base, bits = prog.bits, signed = prog.signed) {
+        const masked = normalizeWord(unsignedVal, bits);
+        if (base === 10) {
+          return signed ? toSignedBigInt(masked, bits).toString(10) : masked.toString(10);
+        }
+        if (base === 16) {
+          return masked.toString(16).toUpperCase();
+        }
+        if (base === 8) {
+          return masked.toString(8);
+        }
+        if (base === 2) {
+          const raw = masked.toString(2).padStart(bits, "0");
+          return raw.replace(/(.{4})/g, "$1 ").trim();
+        }
+        return masked.toString(10);
+      }
+
+      function buildBitGrid() {
+        const container = document.getElementById("bitGridContainer");
+        let html = "";
+        for (let highBit = 63; highBit >= 3; highBit -= 4) {
+          const lowBit = highBit - 3;
+          html += `<div class="nibble-box" data-high-bit="${highBit}">
+            <div class="nibble-bits">`;
+          for (let b = highBit; b >= lowBit; b--) {
+            html += `<button type="button" class="bit-cell" data-bit="${b}">0</button>`;
+          }
+          html += `</div>
+            <div class="nibble-meta">
+              <span>${highBit}</span>
+              <span class="nibble-hex">0</span>
+              <span>${lowBit}</span>
+            </div>
+          </div>`;
+        }
+        container.innerHTML = html;
+      }
+
+      buildBitGrid();
+
+      function updateProgrammerUI() {
+        const uVal = normalizeWord(prog.value, prog.bits);
+        prog.value = uVal;
+
+        document.getElementById("progMainDisplay").textContent = formatDisplayInBase(uVal, prog.base);
+        document.getElementById("readoutHex").textContent = formatDisplayInBase(uVal, 16);
+        document.getElementById("readoutDec").textContent = formatDisplayInBase(uVal, 10);
+        document.getElementById("readoutOct").textContent = formatDisplayInBase(uVal, 8);
+        document.getElementById("readoutBin").textContent = formatDisplayInBase(uVal, 2);
+
+        if (prog.accumulator !== null && prog.pendingOp) {
+          document.getElementById("progExpr").textContent =
+            `${formatDisplayInBase(prog.accumulator, prog.base)} ${prog.pendingOp}`;
+        } else {
+          document.getElementById("progExpr").innerHTML = "&nbsp;";
+        }
+
+        // Enable/disable keypad digits according to active radix
+        document.querySelectorAll("#progKeypad [data-digit]").forEach((btn) => {
+          const digitVal = parseInt(btn.dataset.digit, 16);
+          btn.disabled = digitVal >= prog.base;
+        });
+
+        // Update 64-bit visual grid
+        document.getElementById("bitGridLabel").textContent = `${prog.bits}-Bit`;
+        document.querySelectorAll(".nibble-box").forEach((box) => {
+          const highBit = parseInt(box.dataset.highBit, 10);
+          const isOutOfRange = highBit >= prog.bits;
+          box.classList.toggle("disabled-nibble", isOutOfRange);
+
+          let nibbleVal = 0;
+          box.querySelectorAll(".bit-cell").forEach((cell) => {
+            const bitIdx = parseInt(cell.dataset.bit, 10);
+            const isSet = !isOutOfRange && ((uVal >> BigInt(bitIdx)) & 1n) === 1n;
+            cell.textContent = isSet ? "1" : "0";
+            cell.classList.toggle("bit-on", isSet);
+            if (isSet) nibbleVal |= 1 << (bitIdx % 4);
+          });
+          box.querySelector(".nibble-hex").textContent = nibbleVal.toString(16).toUpperCase();
+        });
+      }
+
+      // Toggle individual bit on click
+      document.getElementById("bitGridContainer").addEventListener("click", (e) => {
+        const cell = e.target.closest(".bit-cell");
+        if (!cell) return;
+        const bitIdx = parseInt(cell.dataset.bit, 10);
+        if (bitIdx >= prog.bits) return;
+        prog.value = normalizeWord(prog.value ^ (1n << BigInt(bitIdx)), prog.bits);
+        prog.waitingForOperand = false;
+        updateProgrammerUI();
+      });
+
+      document.getElementById("btnZeroBits").addEventListener("click", () => {
+        prog.value = 0n;
+        updateProgrammerUI();
+      });
+
+      document.getElementById("btnAllOnes").addEventListener("click", () => {
+        prog.value = getMask(prog.bits);
+        updateProgrammerUI();
+      });
+
+      document.getElementById("btnInvertBits").addEventListener("click", () => {
+        prog.value = normalizeWord(~prog.value, prog.bits);
+        updateProgrammerUI();
+      });
+
+      // Word Width switcher
+      document.getElementById("wordWidthGroup").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-bits]");
+        if (!btn) return;
+        prog.bits = parseInt(btn.dataset.bits, 10);
+        document.querySelectorAll("#wordWidthGroup .pill-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        updateProgrammerUI();
+      });
+
+      // Signed / Unsigned toggle
+      document.getElementById("btnSignMode").addEventListener("click", (e) => {
+        prog.signed = !prog.signed;
+        e.target.textContent = prog.signed ? "Mode: Signed" : "Mode: Unsigned";
+        updateProgrammerUI();
+      });
+
+      // Radix Row Switcher
+      document.querySelectorAll(".base-row").forEach((row) => {
+        row.addEventListener("click", () => {
+          prog.base = parseInt(row.dataset.base, 10);
+          document.querySelectorAll(".base-row").forEach((r) => r.classList.toggle("active-base", r === row));
+          updateProgrammerUI();
+        });
+      });
+
+      function appendProgDigit(char) {
+        const digitVal = BigInt(parseInt(char, 16));
+        const baseBig = BigInt(prog.base);
+
+        if (prog.waitingForOperand) {
+          prog.value = digitVal;
+          prog.waitingForOperand = false;
+        } else {
+          if (prog.signed && prog.base === 10) {
+            const sVal = toSignedBigInt(prog.value, prog.bits);
+            const next = sVal < 0n ? sVal * 10n - digitVal : sVal * 10n + digitVal;
+            prog.value = normalizeWord(next, prog.bits);
+          } else {
+            prog.value = normalizeWord(prog.value * baseBig + digitVal, prog.bits);
+          }
+        }
+        updateProgrammerUI();
+      }
+
+      function evalBinaryOp(a, b, op, bits) {
+        const ua = normalizeWord(a, bits);
+        const ub = normalizeWord(b, bits);
+        const sa = toSignedBigInt(ua, bits);
+        const sb = toSignedBigInt(ub, bits);
+
+        switch (op) {
+          case "ADD": return normalizeWord(ua + ub, bits);
+          case "SUB": return normalizeWord(ua - ub, bits);
+          case "MUL": return normalizeWord(ua * ub, bits);
+          case "DIV":
+            if (ub === 0n) { showToast("Division by zero"); return ua; }
+            return prog.signed ? normalizeWord(sa / sb, bits) : normalizeWord(ua / ub, bits);
+          case "MOD":
+            if (ub === 0n) { showToast("Modulo by zero"); return ua; }
+            return prog.signed ? normalizeWord(sa % sb, bits) : normalizeWord(ua % ub, bits);
+          case "AND": return normalizeWord(ua & ub, bits);
+          case "OR": return normalizeWord(ua | ub, bits);
+          case "XOR": return normalizeWord(ua ^ ub, bits);
+          case "NAND": return normalizeWord(~(ua & ub), bits);
+          case "NOR": return normalizeWord(~(ua | ub), bits);
+          case "LSH": {
+            const shift = ub % BigInt(bits);
+            return normalizeWord(ua << shift, bits);
+          }
+          case "RSH": {
+            const shift = ub % BigInt(bits);
+            return prog.signed ? normalizeWord(sa >> shift, bits) : normalizeWord(ua >> shift, bits);
+          }
+          default: return ub;
+        }
+      }
+
+      function handleProgOperator(op) {
+        if (prog.accumulator !== null && prog.pendingOp && !prog.waitingForOperand) {
+          prog.value = evalBinaryOp(prog.accumulator, prog.value, prog.pendingOp, prog.bits);
+        }
+        prog.accumulator = prog.value;
+        prog.pendingOp = op;
+        prog.waitingForOperand = true;
+        updateProgrammerUI();
+      }
+
+      function handleProgUnary(unary) {
+        const u = normalizeWord(prog.value, prog.bits);
+        const bBig = BigInt(prog.bits);
+        switch (unary) {
+          case "NOT":
+            prog.value = normalizeWord(~u, prog.bits);
+            break;
+          case "NEG":
+            prog.value = normalizeWord(-toSignedBigInt(u, prog.bits), prog.bits);
+            break;
+          case "ROL": {
+            const msb = (u >> (bBig - 1n)) & 1n;
+            prog.value = normalizeWord((u << 1n) | msb, prog.bits);
+            break;
+          }
+          case "ROR": {
+            const lsb = u & 1n;
+            prog.value = normalizeWord((u >> 1n) | (lsb << (bBig - 1n)), prog.bits);
+            break;
+          }
+        }
+        updateProgrammerUI();
+      }
+
+      document.getElementById("progKeypad").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn || btn.disabled) return;
+
+        if (btn.dataset.digit) {
+          appendProgDigit(btn.dataset.digit);
+        } else if (btn.dataset.op) {
+          handleProgOperator(btn.dataset.op);
+        } else if (btn.dataset.unary) {
+          handleProgUnary(btn.dataset.unary);
+        } else if (btn.dataset.action === "EQUALS") {
+          if (prog.accumulator !== null && prog.pendingOp) {
+            prog.value = evalBinaryOp(prog.accumulator, prog.value, prog.pendingOp, prog.bits);
+            prog.accumulator = null;
+            prog.pendingOp = null;
+            prog.waitingForOperand = true;
+            updateProgrammerUI();
+          }
+        } else if (btn.dataset.action === "AC") {
+          prog.value = 0n;
+          prog.accumulator = null;
+          prog.pendingOp = null;
+          prog.waitingForOperand = false;
+          updateProgrammerUI();
+        } else if (btn.dataset.action === "BACK") {
+          if (!prog.waitingForOperand) {
+            const baseBig = BigInt(prog.base);
+            if (prog.signed && prog.base === 10) {
+              prog.value = normalizeWord(toSignedBigInt(prog.value, prog.bits) / 10n, prog.bits);
+            } else {
+              prog.value = normalizeWord(prog.value / baseBig, prog.bits);
+            }
+            updateProgrammerUI();
+          }
+        }
+      });
+
+      /* ======================================================================
+         MODULE 2: DATA STORAGE & NETWORK THROUGHPUT CONVERTER
+         ====================================================================== */
+      const BYTE_FACTORS = {
+        b: 1 / 8,
+        Kb: 1000 / 8,
+        Mb: 1e6 / 8,
+        Gb: 1e9 / 8,
+        B: 1,
+        KB: 1e3,
+        MB: 1e6,
+        GB: 1e9,
+        TB: 1e12,
+        PB: 1e15,
+        KiB: 1024,
+        MiB: 1024 ** 2,
+        GiB: 1024 ** 3,
+        TiB: 1024 ** 4,
+        PiB: 1024 ** 5
+      };
+
+      const DISPLAY_UNITS = [
+        { std: "Bits", key: "b", name: "Bits (b)" },
+        { std: "Bits", key: "Mb", name: "Megabits (Mb)" },
+        { std: "Bits", key: "Gb", name: "Gigabits (Gb)" },
+        { std: "SI (10³)", key: "KB", name: "Kilobytes (KB)" },
+        { std: "SI (10³)", key: "MB", name: "Megabytes (MB)" },
+        { std: "SI (10³)", key: "GB", name: "Gigabytes (GB)" },
+        { std: "SI (10³)", key: "TB", name: "Terabytes (TB)" },
+        { std: "IEC (2¹⁰)", key: "KiB", name: "Kibibytes (KiB)" },
+        { std: "IEC (2¹⁰)", key: "MiB", name: "Mebibytes (MiB)" },
+        { std: "IEC (2¹⁰)", key: "GiB", name: "Gibibytes (GiB)" },
+        { std: "IEC (2¹⁰)", key: "TiB", name: "Tebibytes (TiB)" }
+      ];
+
+      function updateStorageConverter() {
+        const val = Math.max(0, parseFloat(document.getElementById("storageVal").value) || 0);
+        const unit = document.getElementById("storageUnit").value;
+        const totalBytes = val * BYTE_FACTORS[unit];
+
+        const tbody = document.getElementById("storageTableBody");
+        tbody.innerHTML = DISPLAY_UNITS.map((u) => {
+          const converted = totalBytes / BYTE_FACTORS[u.key];
+          const formatted = converted === 0
+            ? "0"
+            : converted >= 1e9 || (converted > 0 && converted < 1e-4)
+              ? converted.toExponential(4)
+              : converted.toLocaleString("en-US", { maximumFractionDigits: 4 });
+          return `<tr>
+            <td style="color: var(--text-secondary); font-size:0.76rem;">${u.std}</td>
+            <td><strong>${u.name}</strong></td>
+            <td style="text-align:right; font-weight:700;">${formatted}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      document.getElementById("storageVal").addEventListener("input", updateStorageConverter);
+      document.getElementById("storageUnit").addEventListener("change", updateStorageConverter);
+      document.getElementById("btnCopyStorage").addEventListener("click", () => {
+        const rows = Array.from(document.querySelectorAll("#storageTableBody tr")).map((tr) =>
+          Array.from(tr.children).map((td) => td.textContent.trim()).join(" | ")
+        );
+        copyToClipboard(rows.join("\n"), "Storage conversions copied");
+      });
+
+      function updateTransferCalculator() {
+        const size = Math.max(0, parseFloat(document.getElementById("xferSize").value) || 0);
+        const unit = document.getElementById("xferSizeUnit").value;
+        const speedMbps = Math.max(0.0001, parseFloat(document.getElementById("xferSpeed").value) || 1);
+        const overhead = parseFloat(document.getElementById("xferOverhead").value) || 0;
+
+        document.getElementById("xferOverheadVal").textContent = `${overhead}%`;
+
+        const totalBits = size * BYTE_FACTORS[unit] * 8;
+        const effectiveMbps = speedMbps * (1 - overhead / 100);
+        const effectiveBps = effectiveMbps * 1e6;
+        const totalSeconds = effectiveBps > 0 ? totalBits / effectiveBps : 0;
+
+        const hrs = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+
+        const pad2 = (n) => String(n).padStart(2, "0");
+        document.getElementById("outXferDuration").textContent =
+          `${pad2(hrs)}h ${pad2(mins)}m ${secs.toFixed(2).padStart(5, "0")}s`;
+
+        const mbPerSec = (effectiveMbps * 1e6) / 8 / 1e6;
+        document.getElementById("outXferEffective").textContent =
+          `Effective Goodput: ${effectiveMbps.toFixed(2)} Mbps (${mbPerSec.toFixed(2)} MB/s)`;
+      }
+
+      document.getElementById("xferPreset").addEventListener("change", (e) => {
+        document.getElementById("xferSpeed").value = e.target.value;
+        updateTransferCalculator();
+      });
+
+      ["xferSize", "xferSizeUnit", "xferSpeed", "xferOverhead"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", updateTransferCalculator);
+      });
+
+      /* ======================================================================
+         MODULE 3: IPv4 / CIDR SUBNET CALCULATOR
+         ====================================================================== */
+      const cidrSelect = document.getElementById("cidrSelect");
+      const cidrRange = document.getElementById("cidrRange");
+      for (let i = 0; i <= 32; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `/${i}`;
+        if (i === 24) opt.selected = true;
+        cidrSelect.appendChild(opt);
+      }
+
+      function ipToInt(ipStr) {
+        const parts = ipStr.trim().split(".");
+        if (parts.length !== 4) return null;
+        let num = 0;
+        for (const p of parts) {
+          if (!/^\d{1,3}$/.test(p)) return null;
+          const oct = parseInt(p, 10);
+          if (oct < 0 || oct > 255) return null;
+          num = ((num << 8) | oct) >>> 0;
+        }
+        return num;
+      }
+
+      function intToIp(intVal) {
+        return [
+          (intVal >>> 24) & 255,
+          (intVal >>> 16) & 255,
+          (intVal >>> 8) & 255,
+          intVal & 255
+        ].join(".");
+      }
+
+      function intToBinaryDotted(intVal, prefix) {
+        const bits = intVal.toString(2).padStart(32, "0");
+        let out = "";
+        for (let i = 0; i < 32; i++) {
+          if (i > 0 && i % 8 === 0) out += ".";
+          const cls = i < prefix ? "bit-net" : "bit-host";
+          out += `<span class="${cls}">${bits[i]}</span>`;
+        }
+        return out;
+      }
+
+      function getIpClassAndScope(ipInt) {
+        const firstOctet = (ipInt >>> 24) & 255;
+        const secondOctet = (ipInt >>> 16) & 255;
+        let cls = "Class A";
+        if (firstOctet >= 128 && firstOctet <= 191) cls = "Class B";
+        else if (firstOctet >= 192 && firstOctet <= 223) cls = "Class C";
+        else if (firstOctet >= 224 && firstOctet <= 239) cls = "Class D (Multicast)";
+        else if (firstOctet >= 240) cls = "Class E (Experimental)";
+
+        let scope = "Public Routable";
+        if (firstOctet === 10) scope = "Private (RFC 1918)";
+        else if (firstOctet === 172 && secondOctet >= 16 && secondOctet <= 31) scope = "Private (RFC 1918)";
+        else if (firstOctet === 192 && secondOctet === 168) scope = "Private (RFC 1918)";
+        else if (firstOctet === 127) scope = "Loopback (RFC 1122)";
+        else if (firstOctet === 169 && secondOctet === 254) scope = "Link-Local (APIPA)";
+        else if (firstOctet === 100 && secondOctet >= 64 && secondOctet <= 127) scope = "CGNAT (RFC 6598)";
+
+        return `${cls} • ${scope}`;
+      }
+
+      function updateSubnetCalculator() {
+        const prefix = parseInt(cidrRange.value, 10);
+        cidrSelect.value = prefix;
+        document.getElementById("cidrBadge").textContent = `/${prefix}`;
+
+        const ipInt = ipToInt(document.getElementById("ipAddressInput").value);
+        const errBanner = document.getElementById("ipErrorBanner");
+        if (ipInt === null) {
+          errBanner.style.display = "block";
+          return;
+        }
+        errBanner.style.display = "none";
+
+        const maskInt = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
+        const wildcardInt = (~maskInt) >>> 0;
+        const netInt = (ipInt & maskInt) >>> 0;
+        const bcastInt = (netInt | wildcardInt) >>> 0;
+
+        const totalHosts = 2 ** (32 - prefix);
+        let usableHosts = 0;
+        let firstHost = "N/A";
+        let lastHost = "N/A";
+
+        if (prefix === 32) {
+          usableHosts = 1;
+          firstHost = intToIp(netInt);
+          lastHost = intToIp(netInt);
+        } else if (prefix === 31) {
+          usableHosts = 2;
+          firstHost = intToIp(netInt);
+          lastHost = intToIp(bcastInt);
+        } else {
+          usableHosts = Math.max(0, totalHosts - 2);
+          firstHost = intToIp((netInt + 1) >>> 0);
+          lastHost = intToIp((bcastInt - 1) >>> 0);
+        }
+
+        document.getElementById("subNetAddr").textContent = `${intToIp(netInt)}/${prefix}`;
+        document.getElementById("subBcastAddr").textContent = intToIp(bcastInt);
+        document.getElementById("subMask").textContent = intToIp(maskInt);
+        document.getElementById("subWildcard").textContent = intToIp(wildcardInt);
+        document.getElementById("subFirstHost").textContent = firstHost;
+        document.getElementById("subLastHost").textContent = lastHost;
+        document.getElementById("subHostCounts").textContent =
+          `${usableHosts.toLocaleString()} / ${totalHosts.toLocaleString()}`;
+        document.getElementById("subClassScope").textContent = getIpClassAndScope(ipInt);
+
+        document.getElementById("binIpVis").innerHTML = intToBinaryDotted(ipInt, prefix);
+        document.getElementById("binMaskVis").innerHTML = intToBinaryDotted(maskInt, prefix);
+      }
+
+      document.getElementById("ipAddressInput").addEventListener("input", updateSubnetCalculator);
+      cidrRange.addEventListener("input", updateSubnetCalculator);
+      cidrSelect.addEventListener("change", () => {
+        cidrRange.value = cidrSelect.value;
+        updateSubnetCalculator();
+      });
+
+      document.getElementById("btnCopySubnet").addEventListener("click", () => {
+        const summary = [
+          `IPv4 / CIDR Report`,
+          `Network:   ${document.getElementById("subNetAddr").textContent}`,
+          `Broadcast: ${document.getElementById("subBcastAddr").textContent}`,
+          `Netmask:   ${document.getElementById("subMask").textContent}`,
+          `Wildcard:  ${document.getElementById("subWildcard").textContent}`,
+          `Range:     ${document.getElementById("subFirstHost").textContent} - ${document.getElementById("subLastHost").textContent}`,
+          `Hosts:     ${document.getElementById("subHostCounts").textContent}`
+        ].join("\n");
+        copyToClipboard(summary, "Subnet report copied");
+      });
+
+      /* ======================================================================
+         MODULE 4: OHM'S LAW, AI VRAM SIZING & IEEE-754 VISUALIZER
+         ====================================================================== */
+      // 4A. Ohm's Law Solver
+      document.getElementById("btnSolveOhm").addEventListener("click", () => {
+        const vEl = document.getElementById("ohmV");
+        const iEl = document.getElementById("ohmI");
+        const rEl = document.getElementById("ohmR");
+        const pEl = document.getElementById("ohmP");
+        const statusEl = document.getElementById("ohmStatus");
+
+        const hasV = vEl.value.trim() !== "";
+        const hasI = iEl.value.trim() !== "";
+        const hasR = rEl.value.trim() !== "";
+        const hasP = pEl.value.trim() !== "";
+
+        const count = [hasV, hasI, hasR, hasP].filter(Boolean).length;
+        if (count < 2) {
+          statusEl.style.color = "var(--accent-danger)";
+          statusEl.textContent = "Please enter at least 2 known values.";
+          return;
+        }
+
+        let V = parseFloat(vEl.value);
+        let I = parseFloat(iEl.value);
+        let R = parseFloat(rEl.value);
+        let P = parseFloat(pEl.value);
+
+        if (hasV && hasI) {
+          R = I !== 0 ? V / I : 0;
+          P = V * I;
+        } else if (hasV && hasR) {
+          I = R !== 0 ? V / R : 0;
+          P = R !== 0 ? (V * V) / R : 0;
+        } else if (hasV && hasP) {
+          I = V !== 0 ? P / V : 0;
+          R = P !== 0 ? (V * V) / P : 0;
+        } else if (hasI && hasR) {
+          V = I * R;
+          P = I * I * R;
+        } else if (hasI && hasP) {
+          V = I !== 0 ? P / I : 0;
+          R = I !== 0 ? P / (I * I) : 0;
+        } else if (hasR && hasP) {
+          V = Math.sqrt(Math.max(0, P * R));
+          I = R !== 0 ? Math.sqrt(Math.max(0, P / R)) : 0;
+        }
+
+        vEl.value = V.toFixed(4).replace(/\.?0+$/, "");
+        iEl.value = I.toFixed(4).replace(/\.?0+$/, "");
+        rEl.value = R.toFixed(4).replace(/\.?0+$/, "");
+        pEl.value = P.toFixed(4).replace(/\.?0+$/, "");
+
+        statusEl.style.color = "var(--accent-emerald-text)";
+        statusEl.textContent = `Solved: V = ${V.toFixed(3)} V | I = ${I.toFixed(3)} A | R = ${R.toFixed(3)} Ω | P = ${P.toFixed(3)} W`;
+      });
+
+      document.getElementById("btnResetOhm").addEventListener("click", () => {
+        document.getElementById("ohmV").value = "";
+        document.getElementById("ohmI").value = "";
+        document.getElementById("ohmR").value = "";
+        document.getElementById("ohmP").value = "";
+        document.getElementById("ohmStatus").textContent = "Cleared. Enter any 2 values and click Solve.";
+      });
+
+      // 4B. AI Model VRAM Estimator
+      function updateAiVram() {
+        const paramsB = Math.max(0, parseFloat(document.getElementById("aiParams").value) || 0);
+        const bytesPerParam = parseFloat(document.getElementById("aiPrecision").value) || 2;
+        const overheadPct = parseFloat(document.getElementById("aiOverhead").value) || 0;
+
+        document.getElementById("aiOverheadVal").textContent = `${overheadPct}%`;
+
+        const rawBytes = paramsB * 1e9 * bytesPerParam;
+        const totalBytes = rawBytes * (1 + overheadPct / 100);
+
+        const rawGiB = rawBytes / (1024 ** 3);
+        const overheadGiB = (totalBytes - rawBytes) / (1024 ** 3);
+        const totalGiB = totalBytes / (1024 ** 3);
+        const totalGB = totalBytes / 1e9;
+
+        document.getElementById("outAiVram").textContent = `${totalGiB.toFixed(2)} GiB (${totalGB.toFixed(2)} GB)`;
+        document.getElementById("outAiBreakdown").textContent =
+          `Raw Weights: ${rawGiB.toFixed(2)} GiB + Context Overhead: ${overheadGiB.toFixed(2)} GiB`;
+      }
+
+      ["aiParams", "aiPrecision", "aiOverhead"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", updateAiVram);
+      });
+
+      // 4C. IEEE 754 Floating-Point Visualizer
+      let ieeePrecision = 32;
+
+      function updateIeeeVisualizer() {
+        const rawStr = document.getElementById("ieeeDecInput").value.trim();
+        let num = Number(rawStr);
+        if (rawStr.toLowerCase() === "nan") num = NaN;
+        else if (rawStr.toLowerCase() === "infinity" || rawStr === "+infinity") num = Infinity;
+        else if (rawStr.toLowerCase() === "-infinity") num = -Infinity;
+
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        let bitStr = "";
+        let hexStr = "";
+        let exactStored = "";
+
+        if (ieeePrecision === 32) {
+          view.setFloat32(0, num, false);
+          const u32 = view.getUint32(0, false);
+          bitStr = u32.toString(2).padStart(32, "0");
+          hexStr = "0x" + u32.toString(16).toUpperCase().padStart(8, "0");
+          exactStored = String(view.getFloat32(0, false));
+        } else {
+          view.setFloat64(0, num, false);
+          const u64 = view.getBigUint64(0, false);
+          bitStr = u64.toString(2).padStart(64, "0");
+          hexStr = "0x" + u64.toString(16).toUpperCase().padStart(16, "0");
+          exactStored = String(view.getFloat64(0, false));
+        }
+
+        document.getElementById("ieeeHexOut").firstElementChild.textContent = hexStr;
+        document.getElementById("ieeeHexText").textContent = hexStr;
+        document.getElementById("ieeeExactOut").textContent = exactStored;
+
+        const signBit = bitStr[0];
+        const expLen = ieeePrecision === 32 ? 8 : 11;
+        const bias = ieeePrecision === 32 ? 127 : 1023;
+        const expBits = bitStr.slice(1, 1 + expLen);
+        const mantBits = bitStr.slice(1 + expLen);
+
+        const expInt = parseInt(expBits, 2);
+        const unbiasedExp = expInt === 0 ? 1 - bias : expInt - bias;
+
+        let mantVal = expInt === 0 ? 0 : 1;
+        for (let i = 0; i < mantBits.length; i++) {
+          if (mantBits[i] === "1") mantVal += 2 ** -(i + 1);
+        }
+
+        document.getElementById("ieeeSignDesc").textContent = `${signBit} (${signBit === "1" ? "Negative" : "Positive"})`;
+        document.getElementById("ieeeExpDesc").textContent =
+          expInt === (2 ** expLen - 1)
+            ? `${expBits} (Special: Inf/NaN)`
+            : `${expBits} (${expInt} − ${bias} = ${unbiasedExp})`;
+        document.getElementById("ieeeMantDesc").textContent = mantVal.toFixed(7);
+
+        const bar = document.getElementById("ieeeBitBar");
+        bar.innerHTML = bitStr
+          .split("")
+          .map((b, idx) => {
+            const cls = idx === 0 ? "ieee-sign" : idx <= expLen ? "ieee-exp" : "ieee-mant";
+            return `<span class="ieee-bit ${cls}" title="Bit ${bitStr.length - 1 - idx}">${b}</span>`;
+          })
+          .join("");
+      }
+
+      document.getElementById("ieeeWidthGroup").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-fp]");
+        if (!btn) return;
+        ieeePrecision = parseInt(btn.dataset.fp, 10);
+        document.querySelectorAll("#ieeeWidthGroup .pill-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        updateIeeeVisualizer();
+      });
+
+      document.getElementById("ieeeDecInput").addEventListener("input", updateIeeeVisualizer);
+
+      // Initialize all modules on load
+      updateProgrammerUI();
+      updateStorageConverter();
+      updateTransferCalculator();
+      updateSubnetCalculator();
+      updateAiVram();
+      updateIeeeVisualizer();
+    })();
+  </script>
+</body>
+</html>

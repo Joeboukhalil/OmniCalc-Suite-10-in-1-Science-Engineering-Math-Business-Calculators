@@ -1,0 +1,2981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Biology Calculator</title>
+  <style>
+    /* ========================================================================
+       DESIGN TOKENS & THEME SYSTEM
+       ======================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-canvas: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #059669;
+      --accent-primary-hover: #047857;
+      --accent-primary-soft: #d1fae5;
+      --accent-primary-text: #065f46;
+
+      --accent-teal: #0d9488;
+      --accent-teal-soft: #ccfbf1;
+      --accent-teal-text: #115e59;
+
+      --accent-indigo: #4f46e5;
+      --accent-indigo-soft: #e0e7ff;
+      --accent-indigo-text: #3730a3;
+
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --accent-amber-text: #92400e;
+
+      --accent-danger: #dc2626;
+      --accent-danger-soft: #fee2e2;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #080d17;
+      --bg-surface: #111a2e;
+      --bg-surface-alt: #0b1221;
+      --bg-canvas: #070c17;
+      --border-color: #22304a;
+      --border-strong: #334669;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      --accent-primary: #10b981;
+      --accent-primary-hover: #34d399;
+      --accent-primary-soft: rgba(16, 185, 129, 0.16);
+      --accent-primary-text: #6ee7b7;
+
+      --accent-teal: #14b8a6;
+      --accent-teal-soft: rgba(20, 184, 166, 0.16);
+      --accent-teal-text: #5eead4;
+
+      --accent-indigo: #818cf8;
+      --accent-indigo-soft: rgba(129, 140, 248, 0.16);
+      --accent-indigo-text: #a5b4fc;
+
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.16);
+      --accent-amber-text: #fcd34d;
+
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.2);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.42);
+    }
+
+    /* ========================================================================
+       RESET & BASE STYLES
+       ======================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* ========================================================================
+       TOP HEADER BAR
+       ======================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background-color: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    .home-btn:hover {
+      background-color: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-indigo));
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    /* ========================================================================
+       MAIN LAYOUT & MAIN LAB TABS
+       ======================================================================== */
+    .main-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .main-tab-bar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.45rem;
+      background-color: var(--bg-surface);
+      padding: 0.4rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 860px) {
+      .main-tab-bar {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .main-tab-btn {
+      padding: 0.7rem 0.6rem;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 44px;
+      text-align: center;
+      touch-action: manipulation;
+    }
+
+    .main-tab-btn:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-alt);
+    }
+
+    .main-tab-btn.active {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lab-panel {
+      display: none;
+    }
+
+    .lab-panel.active {
+      display: block;
+    }
+
+    /* ========================================================================
+       CARDS, SUB-TABS, FORMS & BUTTONS
+       ======================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .subtab-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+    }
+
+    .subtab-btn {
+      padding: 0.48rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      min-height: 38px;
+      transition: all 0.12s ease;
+      touch-action: manipulation;
+    }
+
+    .subtab-btn:hover {
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    .subtab-btn.active {
+      background-color: var(--accent-indigo);
+      border-color: var(--accent-indigo);
+      color: #ffffff;
+    }
+
+    .subpanel-view {
+      display: none;
+    }
+
+    .subpanel-view.active {
+      display: block;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 960px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    @media (min-width: 600px) {
+      .form-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    @media (min-width: 560px) {
+      .form-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.28rem;
+    }
+
+    .bio-input, .bio-select, .bio-textarea {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .bio-input, .bio-select {
+      height: 40px;
+      padding: 0 0.65rem;
+    }
+
+    .bio-textarea {
+      min-height: 82px;
+      padding: 0.6rem 0.7rem;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .bio-input:focus, .bio-select:focus, .bio-textarea:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
+    }
+
+    .btn-action {
+      padding: 0.42rem 0.78rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      cursor: pointer;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.12s ease;
+      touch-action: manipulation;
+    }
+
+    .btn-action:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    .btn-primary-action {
+      background-color: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #ffffff;
+    }
+
+    .btn-primary-action:hover {
+      background-color: var(--accent-primary-hover);
+      border-color: var(--accent-primary-hover);
+      color: #ffffff;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+      align-items: center;
+    }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.55rem;
+      align-items: center;
+    }
+
+    .preset-chip {
+      padding: 0.28rem 0.58rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 30px;
+      transition: all 0.12s ease;
+      touch-action: manipulation;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary-text);
+    }
+
+    /* ========================================================================
+       KPI CARDS, DATA TABLES, PUNNETT GRID & CANVAS
+       ======================================================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--accent-primary-soft);
+      border-color: var(--accent-primary);
+    }
+
+    .kpi-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+
+    .kpi-val {
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .kpi-card.highlight .kpi-val {
+      color: var(--accent-primary-text);
+    }
+
+    .seq-output-box {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 0.8rem;
+      margin-top: 0.65rem;
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+
+    .seq-output-title {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      margin-top: 0.75rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background-color: var(--bg-surface-alt);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table td {
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .punnett-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    .punnett-table th, .punnett-table td {
+      border: 1px solid var(--border-strong);
+      padding: 0.45rem 0.35rem;
+    }
+
+    .punnett-table th {
+      background-color: var(--bg-surface-alt);
+      font-weight: 700;
+    }
+
+    .punnett-table td {
+      background-color: var(--bg-surface);
+      font-weight: 600;
+    }
+
+    .sim-canvas {
+      width: 100%;
+      height: 265px;
+      display: block;
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      margin-top: 0.75rem;
+    }
+
+    .alert-banner {
+      background-color: var(--accent-danger-soft);
+      color: var(--accent-danger);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 0.6rem;
+      display: none;
+    }
+
+    .note-banner {
+      background-color: var(--bg-surface-alt);
+      border-left: 3px solid var(--accent-teal);
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    /* ========================================================================
+       STATUS TOAST
+       ======================================================================== */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================================
+       1. TOP HEADER BAR
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="home-btn" title="Return to index.html">
+          <span>← Home (index.html)</span>
+        </a>
+
+        <div class="brand-title">
+          <div class="brand-badge mono">BIO</div>
+          <div>
+            <h1>Advanced Biology Calculator</h1>
+            <span class="brand-sub">Molecular Biology • Cell &amp; Microscopy • Genetics • Physiology &amp; Kinetics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="themeToggleBtn" aria-label="Toggle Light or Dark Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       2. MAIN WORKSPACE & FOUR LAB SECTIONS
+       ====================================================================== -->
+  <main class="main-container">
+    <nav class="main-tab-bar" role="tablist" aria-label="Biology Lab Tabs">
+      <button type="button" class="main-tab-btn active" id="tabBtnMol" role="tab" aria-selected="true" data-lab="labMol">
+        <span>🧬 Molecular Biology</span>
+      </button>
+      <button type="button" class="main-tab-btn" id="tabBtnCell" role="tab" aria-selected="false" data-lab="labCell">
+        <span>🔬 Cell &amp; Microscopy</span>
+      </button>
+      <button type="button" class="main-tab-btn" id="tabBtnGen" role="tab" aria-selected="false" data-lab="labGen">
+        <span>🧬 Genetics</span>
+      </button>
+      <button type="button" class="main-tab-btn" id="tabBtnPhys" role="tab" aria-selected="false" data-lab="labPhys">
+        <span>⚗️ Physiology &amp; Kinetics</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         LAB 1: MOLECULAR BIOLOGY
+         ==================================================================== -->
+    <section id="labMol" class="lab-panel active" role="tabpanel">
+      <div class="subtab-row">
+        <button type="button" class="subtab-btn active" id="subBtnSeq" data-sub="viewSeq">Sequence Analyzer</button>
+        <button type="button" class="subtab-btn" id="subBtnPcr" data-sub="viewPcr">PCR Primer &amp; Tm</button>
+        <button type="button" class="subtab-btn" id="subBtnCopy" data-sub="viewCopy">Copy Number, Molarity &amp; Dilution</button>
+      </div>
+
+      <!-- 1A: Sequence Analyzer -->
+      <div id="viewSeq" class="subpanel-view active card">
+        <div class="card-header">
+          <div class="card-title">🧬 DNA / RNA Sequence Analyzer &amp; Codon Translator</div>
+          <select id="seqKindSelect" class="bio-select mono" style="width:175px;" aria-label="Sequence Type">
+            <option value="DNA" selected>DNA (A, T, G, C)</option>
+            <option value="RNA">RNA (A, U, G, C)</option>
+          </select>
+        </div>
+
+        <label class="field-label" for="seqInputArea">Nucleotide Sequence</label>
+        <textarea id="seqInputArea" class="bio-textarea mono" placeholder="Enter DNA or RNA bases..."></textarea>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetInsulinBtn">Human Insulin Exon</button>
+          <button type="button" class="preset-chip" id="presetGfpBtn">GFP Fragment</button>
+          <button type="button" class="preset-chip" id="presetSpikeBtn">Spike Motif</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcSeq">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearSeq">Clear</button>
+        </div>
+
+        <div id="seqErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Sequence Length</div>
+            <div class="kpi-val" id="outSeqLen">0 nt</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">GC Content</div>
+            <div class="kpi-val" id="outSeqGc">0.0%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AT / AU Content</div>
+            <div class="kpi-val" id="outSeqAt">0.0%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Molecular Weight</div>
+            <div class="kpi-val" id="outSeqMw">0 Da (0.00 kDa)</div>
+          </div>
+        </div>
+
+        <div class="seq-output-box mono">
+          <div class="seq-output-title">Complement Strand</div>
+          <div id="outSeqComp">—</div>
+        </div>
+
+        <div class="seq-output-box mono">
+          <div class="seq-output-title">Reverse Complement (5' → 3')</div>
+          <div id="outSeqRevComp">—</div>
+        </div>
+
+        <div class="seq-output-box mono">
+          <div class="seq-output-title">mRNA Transcript (5' → 3')</div>
+          <div id="outSeqMrna">—</div>
+        </div>
+
+        <div class="seq-output-box mono">
+          <div class="seq-output-title">Amino Acid Translation &amp; Stop Detection</div>
+          <div id="outSeqAa">—</div>
+        </div>
+      </div>
+
+      <!-- 1B: PCR Primer & Tm Calculator -->
+      <div id="viewPcr" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">🧪 PCR Primer Melting Temperature (Tm) &amp; Extension</div>
+        </div>
+
+        <div class="form-grid-2">
+          <div>
+            <label class="field-label" for="pcrFwdInput">Forward Primer (5' → 3')</label>
+            <input type="text" id="pcrFwdInput" class="bio-input mono" />
+          </div>
+          <div>
+            <label class="field-label" for="pcrRevInput">Reverse Primer (5' → 3')</label>
+            <input type="text" id="pcrRevInput" class="bio-input mono" />
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-top:0.65rem;">
+          <div>
+            <label class="field-label" for="pcrNaInput">[Na⁺] Salt (mM)</label>
+            <input type="number" id="pcrNaInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pcrMgInput">[Mg²⁺] (mM)</label>
+            <input type="number" id="pcrMgInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pcrPrimerNmInput">Primer Conc. (nM)</label>
+            <input type="number" id="pcrPrimerNmInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pcrExtRateInput">Extension Rate (bp/s)</label>
+            <input type="number" id="pcrExtRateInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pcrAmpBpInput">Amplicon Length (bp)</label>
+            <input type="number" id="pcrAmpBpInput" class="bio-input mono" min="1" step="1" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetPcrStdBtn">Standard Taq (50 mM Na⁺, 1.5 mM Mg²⁺)</button>
+          <button type="button" class="preset-chip" id="presetPcrHighGcBtn">High-GC Pair</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcPcr">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearPcr">Clear</button>
+        </div>
+
+        <div id="pcrErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Recommended Ta</div>
+            <div class="kpi-val" id="outPcrTa">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Fwd Length / GC%</div>
+            <div class="kpi-val" id="outPcrFwdInfo">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Rev Length / GC%</div>
+            <div class="kpi-val" id="outPcrRevInfo">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Wallace Tm (Fwd / Rev)</div>
+            <div class="kpi-val" id="outPcrWallace" style="font-size:0.95rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Salt/Mg Tm (Fwd / Rev)</div>
+            <div class="kpi-val" id="outPcrSaltTm" style="font-size:0.95rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">ΔTm &amp; Extension Time</div>
+            <div class="kpi-val" id="outPcrDeltaExt" style="font-size:0.95rem;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1C: Copy Number, Molarity & Serial Dilution -->
+      <div id="viewCopy" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">💧 Copy Number, Molarity &amp; Serial Dilution Series</div>
+        </div>
+
+        <div class="form-grid-3">
+          <div>
+            <label class="field-label" for="copyTypeSelect">Nucleic Acid Type</label>
+            <select id="copyTypeSelect" class="bio-select mono">
+              <option value="dsDNA" selected>dsDNA (650 g/mol/bp)</option>
+              <option value="ssDNA">ssDNA (330 g/mol/nt)</option>
+              <option value="ssRNA">ssRNA (340 g/mol/nt)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="copyLenInput">Length (bp or nt)</label>
+            <input type="number" id="copyLenInput" class="bio-input mono" min="1" step="1" />
+          </div>
+          <div>
+            <label class="field-label" for="copyMassNgInput">Mass (ng)</label>
+            <input type="number" id="copyMassNgInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="copyVolUlInput">Sample Volume V₁ (μL)</label>
+            <input type="number" id="copyVolUlInput" class="bio-input mono" min="0.001" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="copyC1NmInput">Stock C₁ (nM, optional override)</label>
+            <input type="number" id="copyC1NmInput" class="bio-input mono" min="0" step="any" placeholder="Auto from mass/vol" />
+          </div>
+          <div>
+            <label class="field-label" for="copyC2NmInput">Target C₂ (nM)</label>
+            <input type="number" id="copyC2NmInput" class="bio-input mono" min="0.000001" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="copyDilFactorInput">Serial Dilution Factor / Step</label>
+            <input type="number" id="copyDilFactorInput" class="bio-input mono" min="1.01" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="copyStepsInput">Serial Dilution Steps</label>
+            <input type="number" id="copyStepsInput" class="bio-input mono" min="1" max="20" step="1" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetCopyPlasmidBtn">5 kb Plasmid (100 ng in 20 μL)</button>
+          <button type="button" class="preset-chip" id="presetCopyQpcrBtn">qPCR Standard (10x × 6 steps)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcCopy">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearCopy">Clear</button>
+        </div>
+
+        <div id="copyErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Copy Count</div>
+            <div class="kpi-val" id="outCopyTotal" style="font-size:0.98rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Copies / μL</div>
+            <div class="kpi-val" id="outCopyPerUl" style="font-size:0.98rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Molarity (nM / pM)</div>
+            <div class="kpi-val" id="outCopyMolarity" style="font-size:0.9rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Diluted Volume V₂</div>
+            <div class="kpi-val" id="outCopyV2" style="font-size:0.98rem;">—</div>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="data-table mono">
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>Concentration (nM)</th>
+                <th>Transfer Vol (μL)</th>
+                <th>Diluent Vol (μL)</th>
+              </tr>
+            </thead>
+            <tbody id="copySerialTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         LAB 2: CELL & MICROSCOPY
+         ==================================================================== -->
+    <section id="labCell" class="lab-panel" role="tabpanel">
+      <div class="subtab-row">
+        <button type="button" class="subtab-btn active" id="subBtnOsm" data-sub="viewOsm">Osmolarity &amp; Tonicity</button>
+        <button type="button" class="subtab-btn" id="subBtnMic" data-sub="viewMic">Microscopy &amp; FOV</button>
+        <button type="button" class="subtab-btn" id="subBtnGrowth" data-sub="viewGrowth">Doubling Time &amp; Growth</button>
+      </div>
+
+      <!-- 2A: Osmolarity & Tonicity -->
+      <div id="viewOsm" class="subpanel-view active card">
+        <div class="card-header">
+          <div class="card-title">💧 Osmolarity, Tonicity &amp; Osmotic Pressure (π = iCRT)</div>
+        </div>
+
+        <div class="form-grid-2">
+          <div>
+            <label class="field-label" for="osmSoluteMmInput">Solute Molarity C (mM)</label>
+            <input type="number" id="osmSoluteMmInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="osmIFactorInput">van 't Hoff Factor (i)</label>
+            <input type="number" id="osmIFactorInput" class="bio-input mono" min="0.1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="osmTempCInput">Temperature (°C)</label>
+            <input type="number" id="osmTempCInput" class="bio-input mono" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="osmCellMmInput">Reference Cell Osmolarity (mOsm/L)</label>
+            <input type="number" id="osmCellMmInput" class="bio-input mono" min="1" step="any" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetOsmIsoBtn">Isotonic Saline (154 mM NaCl, i=2)</button>
+          <button type="button" class="preset-chip" id="presetOsmHypoBtn">Hypotonic (50 mM Glucose, i=1)</button>
+          <button type="button" class="preset-chip" id="presetOsmHyperBtn">Hypertonic (300 mM NaCl, i=2)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcOsm">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearOsm">Clear</button>
+        </div>
+
+        <div id="osmErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Solution Osmolarity</div>
+            <div class="kpi-val" id="outOsmMolar">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Tonicity Verdict</div>
+            <div class="kpi-val" id="outOsmTonic" style="font-size:0.98rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Osmotic Pressure (atm)</div>
+            <div class="kpi-val" id="outOsmAtm">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Osmotic Pressure (kPa)</div>
+            <div class="kpi-val" id="outOsmKpa">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2B: Microscopy & Field of View -->
+      <div id="viewMic" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">🔬 Microscopy Magnification, Field of View &amp; Resolution</div>
+        </div>
+
+        <div class="form-grid-3">
+          <div>
+            <label class="field-label" for="micOcularInput">Ocular Magnification (×)</label>
+            <input type="number" id="micOcularInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micObjBaseInput">Base Objective Mag (×)</label>
+            <input type="number" id="micObjBaseInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micFovBaseInput">FOV Diameter at Base Mag (μm)</label>
+            <input type="number" id="micFovBaseInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micObjTargetInput">Target Objective Mag (×)</label>
+            <input type="number" id="micObjTargetInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micSpecUmInput">Specimen Length (μm)</label>
+            <input type="number" id="micSpecUmInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micWaveNmInput">Wavelength λ (nm)</label>
+            <input type="number" id="micWaveNmInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="micNaInput">Numerical Aperture (NA)</label>
+            <input type="number" id="micNaInput" class="bio-input mono" min="0.05" max="2.0" step="0.01" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetMic40xBtn">40× High-Dry (FOV 1800 μm @ 10×)</button>
+          <button type="button" class="preset-chip" id="presetMic100xBtn">100× Oil Immersion (NA 1.25)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcMic">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearMic">Clear</button>
+        </div>
+
+        <div id="micErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Total Magnification</div>
+            <div class="kpi-val" id="outMicTotalMag">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Target FOV Diameter</div>
+            <div class="kpi-val" id="outMicFovTarget">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Specimen % of FOV</div>
+            <div class="kpi-val" id="outMicSpecPct">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Rayleigh Limit (0.61λ/NA)</div>
+            <div class="kpi-val" id="outMicRayleigh">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Abbe Limit (λ/2NA)</div>
+            <div class="kpi-val" id="outMicAbbe">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2C: Doubling Time & Exponential Growth -->
+      <div id="viewGrowth" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">🦠 Doubling Time (t_d) &amp; Exponential Growth Curve</div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="form-grid-2">
+              <div>
+                <label class="field-label" for="growthN0Input">Initial Count N₀</label>
+                <input type="number" id="growthN0Input" class="bio-input mono" min="0.001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="growthNtInput">Observed Count N(t)</label>
+                <input type="number" id="growthNtInput" class="bio-input mono" min="0.001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="growthTimeHrInput">Elapsed Time t (hours)</label>
+                <input type="number" id="growthTimeHrInput" class="bio-input mono" min="0.0001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="growthProjHrInput">Target Projection Time (hours)</label>
+                <input type="number" id="growthProjHrInput" class="bio-input mono" min="0" step="any" />
+              </div>
+            </div>
+
+            <div class="preset-row">
+              <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+              <button type="button" class="preset-chip" id="presetGrowthEcoliBtn">E. coli Rapid Growth</button>
+              <button type="button" class="preset-chip" id="presetGrowthMammalBtn">Mammalian Cells (18 hr doubling)</button>
+            </div>
+
+            <div class="toolbar-actions">
+              <button type="button" class="btn-action btn-primary-action" id="btnCalcGrowth">Calculate</button>
+              <button type="button" class="btn-action" id="btnClearGrowth">Clear</button>
+            </div>
+
+            <div id="growthErrorBox" class="alert-banner"></div>
+
+            <div class="kpi-grid mono">
+              <div class="kpi-card highlight">
+                <div class="kpi-label">Doubling Time (t_d)</div>
+                <div class="kpi-val" id="outGrowthTd" style="font-size:0.98rem;">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Generations (n)</div>
+                <div class="kpi-val" id="outGrowthGens">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Growth Rate (μ)</div>
+                <div class="kpi-val" id="outGrowthMu" style="font-size:0.98rem;">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Projected N(t_target)</div>
+                <div class="kpi-val" id="outGrowthProj" style="font-size:0.98rem;">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label">Exponential Growth Trajectory N(t) = N₀ · 2^(t / t_d)</div>
+            <canvas id="growthCanvas" class="sim-canvas" aria-label="Exponential Growth Curve"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         LAB 3: GENETICS
+         ==================================================================== -->
+    <section id="labGen" class="lab-panel" role="tabpanel">
+      <div class="subtab-row">
+        <button type="button" class="subtab-btn active" id="subBtnPunnett" data-sub="viewPunnett">Punnett Square &amp; Cross</button>
+        <button type="button" class="subtab-btn" id="subBtnHwe" data-sub="viewHwe">Hardy-Weinberg &amp; χ²</button>
+        <button type="button" class="subtab-btn" id="subBtnPed" data-sub="viewPed">Pedigree &amp; Carrier Probability</button>
+      </div>
+
+      <!-- 3A: Punnett Square & Cross Analyzer -->
+      <div id="viewPunnett" class="subpanel-view active card">
+        <div class="card-header">
+          <div class="card-title">🧬 Punnett Square &amp; Mendelian Cross Analyzer</div>
+        </div>
+
+        <div class="form-grid-2">
+          <div>
+            <label class="field-label" for="crossTypeSelect">Cross Type</label>
+            <select id="crossTypeSelect" class="bio-select mono">
+              <option value="mono" selected>Monohybrid (Aa × Aa)</option>
+              <option value="test">Test Cross (Aa × aa)</option>
+              <option value="di">Dihybrid (AaBb × AaBb)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="crossCustomParents">Cross Note / Trait Label</label>
+            <input type="text" id="crossCustomParents" class="bio-input mono" placeholder="Optional trait note..." />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetCrossMonoBtn">Monohybrid (Aa × Aa)</button>
+          <button type="button" class="preset-chip" id="presetCrossTestBtn">Test Cross (Aa × aa)</button>
+          <button type="button" class="preset-chip" id="presetCrossDiBtn">Dihybrid (AaBb × AaBb)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcCross">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearCross">Clear</button>
+        </div>
+
+        <div id="crossErrorBox" class="alert-banner"></div>
+        <div id="punnettMatrixContainer" style="overflow-x:auto;"></div>
+        <div class="kpi-grid mono" id="punnettSummaryCards"></div>
+      </div>
+
+      <!-- 3B: Hardy-Weinberg & Chi-Square -->
+      <div id="viewHwe" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">📊 Hardy-Weinberg Equilibrium &amp; χ² Goodness-of-Fit</div>
+        </div>
+
+        <div class="form-grid-3">
+          <div>
+            <label class="field-label" for="hweObsAaDomInput">Observed AA (Homozygous Dom.)</label>
+            <input type="number" id="hweObsAaDomInput" class="bio-input mono" min="0" step="1" />
+          </div>
+          <div>
+            <label class="field-label" for="hweObsAaHetInput">Observed Aa (Heterozygous)</label>
+            <input type="number" id="hweObsAaHetInput" class="bio-input mono" min="0" step="1" />
+          </div>
+          <div>
+            <label class="field-label" for="hweObsAaRecInput">Observed aa (Homozygous Rec.)</label>
+            <input type="number" id="hweObsAaRecInput" class="bio-input mono" min="0" step="1" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetHweEqBtn">Equilibrium Population</button>
+          <button type="button" class="preset-chip" id="presetHweSkewBtn">Selection / Inbreeding Skew</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcHwe">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearHwe">Clear</button>
+        </div>
+
+        <div id="hweErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Allele Frequencies (p, q)</div>
+            <div class="kpi-val" id="outHwePq" style="font-size:0.98rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Expected Counts (AA, Aa, aa)</div>
+            <div class="kpi-val" id="outHweExpCounts" style="font-size:0.95rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Expected Freqs (p², 2pq, q²)</div>
+            <div class="kpi-val" id="outHweExpFreqs" style="font-size:0.95rem;">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">χ² (df=1, crit=3.841)</div>
+            <div class="kpi-val" id="outHweChi2" style="font-size:0.95rem;">—</div>
+          </div>
+        </div>
+
+        <div class="note-banner mono" id="outHweVerdict">—</div>
+      </div>
+
+      <!-- 3C: Pedigree & Carrier Probability -->
+      <div id="viewPed" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">🌳 Pedigree &amp; Carrier Probability Calculator</div>
+        </div>
+
+        <div class="form-grid-2">
+          <div>
+            <label class="field-label" for="pedigreeScenarioSelect">Inheritance &amp; Pedigree Scenario</label>
+            <select id="pedigreeScenarioSelect" class="bio-select">
+              <option value="ar_carrier_parents" selected>Autosomal Recessive Carrier Parents (Aa × Aa)</option>
+              <option value="ad_affected_het">Autosomal Dominant Affected (Aa × aa)</option>
+              <option value="xlink_carrier_mother">X-Linked Recessive Carrier Mother (XᴬXᵃ × XᴬY)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="pedigreeNoteInput">Family / Case Note</label>
+            <input type="text" id="pedigreeNoteInput" class="bio-input" placeholder="Optional pedigree note..." />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetPedArBtn">Autosomal Recessive (Aa × Aa)</button>
+          <button type="button" class="preset-chip" id="presetPedAdBtn">Autosomal Dominant (Aa × aa)</button>
+          <button type="button" class="preset-chip" id="presetPedXBtn">X-Linked Recessive (XᴬXᵃ × XᴬY)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcPed">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearPed">Clear</button>
+        </div>
+
+        <div id="pedErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Affected Offspring Risk</div>
+            <div class="kpi-val" id="outPedAffected">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Carrier Offspring Risk</div>
+            <div class="kpi-val" id="outPedCarrier">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Unaffected / Non-Carrier</div>
+            <div class="kpi-val" id="outPedClear">—</div>
+          </div>
+        </div>
+
+        <div class="note-banner" id="outPedSummary">—</div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         LAB 4: PHYSIOLOGY & KINETICS
+         ==================================================================== -->
+    <section id="labPhys" class="lab-panel" role="tabpanel">
+      <div class="subtab-row">
+        <button type="button" class="subtab-btn active" id="subBtnMm" data-sub="viewMm">Michaelis-Menten Kinetics</button>
+        <button type="button" class="subtab-btn" id="subBtnMetab" data-sub="viewMetab">Metabolic Rate &amp; Bioenergetics</button>
+        <button type="button" class="subtab-btn" id="subBtnPk" data-sub="viewPk">Pharmacokinetics</button>
+      </div>
+
+      <!-- 4A: Michaelis-Menten Enzyme Kinetics -->
+      <div id="viewMm" class="subpanel-view active card">
+        <div class="card-header">
+          <div class="card-title">⚗️ Michaelis-Menten Enzyme Kinetics &amp; Inhibition</div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="form-grid-3">
+              <div>
+                <label class="field-label" for="mmSubInput">Substrate [S] (μM)</label>
+                <input type="number" id="mmSubInput" class="bio-input mono" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="mmVmaxInput">V_max (μM/min)</label>
+                <input type="number" id="mmVmaxInput" class="bio-input mono" min="0.0001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="mmKmInput">K_m (μM)</label>
+                <input type="number" id="mmKmInput" class="bio-input mono" min="0.0001" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="mmKcatInput">k_cat (s⁻¹)</label>
+                <input type="number" id="mmKcatInput" class="bio-input mono" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="mmInhConcInput">Inhibitor [I] (μM)</label>
+                <input type="number" id="mmInhConcInput" class="bio-input mono" min="0" step="any" />
+              </div>
+              <div>
+                <label class="field-label" for="mmKiInput">K_i (μM)</label>
+                <input type="number" id="mmKiInput" class="bio-input mono" min="0.0001" step="any" />
+              </div>
+            </div>
+
+            <div style="margin-top:0.65rem;">
+              <label class="field-label" for="mmInhTypeSelect">Inhibition Mechanism</label>
+              <select id="mmInhTypeSelect" class="bio-select mono">
+                <option value="none" selected>None (Uninhibited)</option>
+                <option value="competitive">Competitive (α·K_m)</option>
+                <option value="uncompetitive">Uncompetitive (V_max/α, K_m/α)</option>
+                <option value="noncompetitive">Non-Competitive (V_max/α)</option>
+              </select>
+            </div>
+
+            <div class="preset-row">
+              <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+              <button type="button" class="preset-chip" id="presetMmBaseBtn">Uninhibited ([S]=25, Km=20)</button>
+              <button type="button" class="preset-chip" id="presetMmCompBtn">Competitive Inhibitor ([I]=40, Ki=10)</button>
+            </div>
+
+            <div class="toolbar-actions">
+              <button type="button" class="btn-action btn-primary-action" id="btnCalcMm">Calculate</button>
+              <button type="button" class="btn-action" id="btnClearMm">Clear</button>
+            </div>
+
+            <div id="mmErrorBox" class="alert-banner"></div>
+
+            <div class="kpi-grid mono">
+              <div class="kpi-card highlight">
+                <div class="kpi-label">Initial Velocity V₀</div>
+                <div class="kpi-val" id="outMmV0">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Apparent V_max,app</div>
+                <div class="kpi-val" id="outMmAppVmax">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Apparent K_m,app</div>
+                <div class="kpi-val" id="outMmAppKm">—</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">k_cat / K_m Efficiency</div>
+                <div class="kpi-val" id="outMmEff" style="font-size:0.95rem;">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label">Velocity vs. Substrate [S] Curve</div>
+            <canvas id="enzymeCanvas" class="sim-canvas" aria-label="Michaelis-Menten Saturation Curve"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4B: Metabolic Rate & Bioenergetics -->
+      <div id="viewMetab" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">🔥 Mifflin-St Jeor BMR / TDEE &amp; Cellular ΔG</div>
+        </div>
+
+        <div class="form-grid-3">
+          <div>
+            <label class="field-label" for="metabSexSelect">Biological Sex</label>
+            <select id="metabSexSelect" class="bio-select">
+              <option value="M" selected>Male (+5)</option>
+              <option value="F">Female (−161)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="metabAgeInput">Age (years)</label>
+            <input type="number" id="metabAgeInput" class="bio-input mono" min="1" max="120" step="1" />
+          </div>
+          <div>
+            <label class="field-label" for="metabWeightInput">Weight (kg)</label>
+            <input type="number" id="metabWeightInput" class="bio-input mono" min="1" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="metabHeightInput">Height (cm)</label>
+            <input type="number" id="metabHeightInput" class="bio-input mono" min="30" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="metabActivitySelect">Activity Factor</label>
+            <select id="metabActivitySelect" class="bio-select mono">
+              <option value="1.2">1.20 (Sedentary)</option>
+              <option value="1.375">1.375 (Light Exercise)</option>
+              <option value="1.55" selected>1.55 (Moderate Exercise)</option>
+              <option value="1.725">1.725 (Heavy Training)</option>
+              <option value="1.9">1.90 (Athlete)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="metabDg0Input">ΔG°' (kJ/mol)</label>
+            <input type="number" id="metabDg0Input" class="bio-input mono" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="metabTempCInput">Temperature (°C)</label>
+            <input type="number" id="metabTempCInput" class="bio-input mono" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="metabQInput">Reaction Quotient Q ([P]/[R])</label>
+            <input type="number" id="metabQInput" class="bio-input mono" min="1e-30" step="any" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetMetabAdultBtn">Adult (30y, 72kg, 175cm, 37°C)</button>
+          <button type="button" class="preset-chip" id="presetMetabAtpBtn">ATP Hydrolysis (ΔG°' = −30.5 kJ/mol)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcMetab">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearMetab">Clear</button>
+        </div>
+
+        <div id="metabErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Basal Metabolic Rate (BMR)</div>
+            <div class="kpi-val" id="outMetabBmr">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Daily Energy (TDEE)</div>
+            <div class="kpi-val" id="outMetabTdee">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Cellular ΔG (kJ/mol)</div>
+            <div class="kpi-val" id="outMetabDg">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Thermodynamic Direction</div>
+            <div class="kpi-val" id="outMetabDir" style="font-family:var(--font-sans); font-size:0.92rem;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4C: Pharmacokinetics -->
+      <div id="viewPk" class="subpanel-view card">
+        <div class="card-header">
+          <div class="card-title">💊 Pharmacokinetics: Half-Life, Elimination &amp; Steady State</div>
+        </div>
+
+        <div class="form-grid-3">
+          <div>
+            <label class="field-label" for="pkDoseMgInput">Dose (mg)</label>
+            <input type="number" id="pkDoseMgInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pkVdLInput">Volume of Distribution V_d (L)</label>
+            <input type="number" id="pkVdLInput" class="bio-input mono" min="0.01" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pkHalfLifeHrInput">Half-Life t₁/₂ (hr)</label>
+            <input type="number" id="pkHalfLifeHrInput" class="bio-input mono" min="0.001" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pkTimeHrInput">Elapsed Time t (hr)</label>
+            <input type="number" id="pkTimeHrInput" class="bio-input mono" min="0" step="any" />
+          </div>
+          <div>
+            <label class="field-label" for="pkTauHrInput">Dosing Interval τ (hr)</label>
+            <input type="number" id="pkTauHrInput" class="bio-input mono" min="0.01" step="any" />
+          </div>
+        </div>
+
+        <div class="preset-row">
+          <span class="field-label" style="margin:0 0.25rem 0 0;">Presets:</span>
+          <button type="button" class="preset-chip" id="presetPkShortBtn">Short t₁/₂ Drug (250 mg, Vd 35 L, t₁/₂ 2 hr)</button>
+          <button type="button" class="preset-chip" id="presetPkLongBtn">Long t₁/₂ Drug (100 mg, Vd 50 L, t₁/₂ 12 hr)</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action btn-primary-action" id="btnCalcPk">Calculate</button>
+          <button type="button" class="btn-action" id="btnClearPk">Clear</button>
+        </div>
+
+        <div id="pkErrorBox" class="alert-banner"></div>
+
+        <div class="kpi-grid mono">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Initial Conc. C₀</div>
+            <div class="kpi-val" id="outPkC0">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Conc. at Time C(t)</div>
+            <div class="kpi-val" id="outPkCt">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Elimination Rate k_e</div>
+            <div class="kpi-val" id="outPkKe">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Clearance CL</div>
+            <div class="kpi-val" id="outPkCl">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Accumulation Factor R_ac</div>
+            <div class="kpi-val" id="outPkRac">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastNotification" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ======================================================================
+         BIOLOGICAL CONSTANTS & CODON TABLE
+         ====================================================================== */
+      const AVOGADRO = 6.02214076e23;
+      const GAS_R_ATM = 0.082057366;
+      const GAS_R_KJ = 0.0083144626;
+
+      const CODON_TO_AA = {
+        UUU: "Phe (F)", UUC: "Phe (F)",
+        UUA: "Leu (L)", UUG: "Leu (L)", CUU: "Leu (L)", CUC: "Leu (L)", CUA: "Leu (L)", CUG: "Leu (L)",
+        AUU: "Ile (I)", AUC: "Ile (I)", AUA: "Ile (I)",
+        AUG: "Met (M) [Start]",
+        GUU: "Val (V)", GUC: "Val (V)", GUA: "Val (V)", GUG: "Val (V)",
+        UCU: "Ser (S)", UCC: "Ser (S)", UCA: "Ser (S)", UCG: "Ser (S)", AGU: "Ser (S)", AGC: "Ser (S)",
+        CCU: "Pro (P)", CCC: "Pro (P)", CCA: "Pro (P)", CCG: "Pro (P)",
+        ACU: "Thr (T)", ACC: "Thr (T)", ACA: "Thr (T)", ACG: "Thr (T)",
+        GCU: "Ala (A)", GCC: "Ala (A)", GCA: "Ala (A)", GCG: "Ala (A)",
+        UAU: "Tyr (Y)", UAC: "Tyr (Y)",
+        UAA: "STOP", UAG: "STOP", UGA: "STOP",
+        CAU: "His (H)", CAC: "His (H)",
+        CAA: "Gln (Q)", CAG: "Gln (Q)",
+        AAU: "Asn (N)", AAC: "Asn (N)",
+        AAA: "Lys (K)", AAG: "Lys (K)",
+        GAU: "Asp (D)", GAC: "Asp (D)",
+        GAA: "Glu (E)", GAG: "Glu (E)",
+        UGU: "Cys (C)", UGC: "Cys (C)",
+        UGG: "Trp (W)",
+        CGU: "Arg (R)", CGC: "Arg (R)", CGA: "Arg (R)", CGG: "Arg (R)", AGA: "Arg (R)", AGG: "Arg (R)",
+        GGU: "Gly (G)", GGC: "Gly (G)", GGA: "Gly (G)", GGG: "Gly (G)"
+      };
+
+      const PRESET_SEQUENCES = {
+        insulin: "ATGGCCCTGTGGATGCGCCTCCTGCCCCTGCTGGCGCTGCTGGCCCTCTGGGGACCTGACCCAGCCGCAGCCTTTGTGAACCAACACCTGTGCGGCTCACACCTGGTGGAAGCTCTCTACCTAGTGTGCGGGGAACGAGGCTTCTTCTACACACCCAAGACCCGCCGGGAGGCAGAGGACCTGCAGGTGGGGCAGGTGGAGCTGGGCGGGGGCCCTGGTGCAGGCAGCCTGCAGCCCTTGGCCCTGGAGGGGTCCCTGCAGAAGCGTGGCATTGTGGAACAATGCTGTACCAGCATCTGCTCCCTCTACCAGCTGGAGAACTACTGCAACTAG",
+        gfp: "ATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTGATGTTAATGGGCACAAATTTTCTGTCAGTGGAGAGGGTGAAGGTGATGCAACATACGGAAAACTTACCCTTAAATTTATTTGCACTACTGGAAAACTACCTGTTCCATGGCCAACACTTGTCACTACTTTCGGTTATGGTGTTCAATGCTTTGCGAGATACCCAGATCATATGAAACAGCATGACTTTTTCAAGAGTGCCATGCCCGAAGGTTATGTACAGGAAAGAACTATATTTTTCAAAGATGACGGGAACTACAAGACACGTGCTGAAGTCAAGTTTGAAGGTGATACCCTTGTTAATAGAATCGAGTTAAAAGGTATTGATTTTAAAGAAGATGGAAACATTCTTGGACACAAATTGGAATACAACTATAACTCACACAATGTATACATCATGGCAGACAAACAAAAGAATGGAATCAAAGTTAACTTCAAAATTAGACACAACATTGAAGATGGAAGCGTTCAACTAGCAGACCATTATCAACAAAATACTCCAATTGGCGATGGCCCTGTCCTTTTACCAGACAACCATTACCTGTCCACACAATCTGCCCTTTCGAAAGATCCCAACGAAAAGAGAGACCACATGGTCCTTCTTGAGTTTGTAACAGCTGCTGGGATTACACATGGCATGGATGAACTATACAAATAA",
+        spike: "ATGTTTGTTTTTCTTGTTTTATTGCCACTAGTCTCTAGTCAGTGTGTTAATCTTACAACCAGAACTCAATTACCCCCTGCATACACTAATTCTTTCACACGTGGTGTTTATTACCCTGACAAAGTTTTCAGATCCTCAGTTTTACATTCAACTCAGGACTTGTTCTTACCTTTCTTTTCCAATGTTACTTGGTTCCATGCTATACATGTCTCTGGGACCAATGGTACTAAGAGGTTTGATAACCCTGTCCTACCATTTAATGATGGTGTTTATTTTGCTTCCACTGAGAAGTCTAACATAATAAGAGGCTGGATTTTTGGTACTACTTTAGATTCGAAGACCCAGTCCCTACTTATTGTTAATAACGCTACTAATGTTGTTATTAAAGTCTGTGAATTTCAATTTTGTAATGATCCATTTTTGGGTGTTTATTACCACAAAAACAACAAAAGTTGGATGGAAAGTGAGTTCAGAGTTTATTCTAGTGCGAATAATTGCACTTTTGAATATGTCTCTCAGCCTTTTCTTATGGACCTTGAAGGAAAACAGGGTAATTTCAAAAATCTTAGGGAATTTGTGTTTAAGAATATTGATGGTTATTTTAAAATATATTCTAAGCACACGCCTATTAATTTAGTGCGTGATCTCCCTCAGGGTTTTTCGGCTTTAGAACCATTGGTAGATTTGCCAATAGGTATTAACATCACTAGGTTTCAAACTTTACTTGCTTTACATAGAAGTTATTTGACTCCTGGTGATTCTTCTTCAGGTTGGACAGCTGGTGCTGCAGCTTATTATGTGGGTTATCTTCAACCTAGGACTTTTCTATTAAAATATAATGAAAATGGAACCATTACAGATGCTGTAGACTGTGCACTTGACCCTCTCTCAGAAACAAAGTGTACGTTGAAATCCTTCACTGTAGAAAAAGGAATCTATCAAACTTCTAACTTTAGAGTCCAACCAACAGAATCTATTGTTAGATTTCCTAATATTACAAACTTGTGCCCTTTTGGTGAAGTTTTTAACGCCACCAGATTTGCATCTGTTTATGCTTGGAACAGGAAGAGAATCAGCAACTGTGTTGCTGATTATTCTGTCCTATATAATTCCGCATCATTTTCCACTTTTAAGTGTTATGGAGTGTCTCCTACTAAATTAAATGATCTCTGCTTTACTAATGTCTATGCAGATTCATTTGTAATTAGAGGTGATGAAGTCAGACAAATCGCTCCAGGGCAAACTGGAAAGATTGCTGATTATAATTATAAATTACCAGATGATTTTACAGGCTGCGTTATAGCTTGGAATTCTAACAATCTTGATTCTAAGGTTGGTGGTAATTATAATTACCTGTATAGATTGTTTAGGAAGTCTAATCTCAAACCTTTTGAGAGAGATATTTCAACTGAAATCTATCAGGCCGGTAGCACACCTTGTAATGGTGTTGAAGGTTTTAATTGTTACTTTCCTTTACAATCATATGGTTTCCAACCCACTAATGGTGTTGGTTACCAACCATACAGAGTAGTAGTACTTTCTTTTGAACTTCTACATGCACCAGCAACTGTTTGTGGACCTAAAAAGTCTACTAATTTGGTTAAAAACAAATGTGTCAATTTCAACTTCAATGGTTTAACAGGCACAGGTGTTCTTACTGAGTCTAACAAAAAGTTTCTGCCTTTCCAACAATTTGGCAGAGACATTGCTGACACTACTGATGCTGTCCGTGATCCACAGACACTTGAGATTCTTGACATTACACCATGTTCTTTTGGTGGTGTCAGTGTTATAACACCAGGAACAAATACTTCTAACCAGGTTGCTGTTCTTTATCAGGATGTTAACTGCACAGAAGTCCCTGTTGCTATTCATGCAGATCAACTTACTCCTACTTGGCGTGTTTATTCTACAGGTTCTAATGTTTTTCAAACACGTGCAGGCTGTTTAATAGGGGCTGAACATGTCAACAACTCATATGAGTGTGACATACCCATTGGTGCAGGTATATGCGCTAGTTATCAGACTCAGACTAATTCTCCTCGGCGGGCACGTAGTGTAGCTAGTCAATCCATCATTGCCTACACTATGTCACTTGGTGCAGAAAATTCAGTTGCTTACTCTAATAACTCTATTGCCATACCCACAAATTTTACTATTAGTGTTACCACAGAAATTCTACCAGTGTCTATGACCAAGACATCAGTAGATTGTACAATGTACATTTGTGGTGATTCAACTGAATGCAGCAATCTTTTGTTGCAATATGGCAGTTTTTGTACACAATTAAACCGTGCTTTAACTGGAATAGCTGTTGAACAAGACAAAAACACCCAAGAAGTTTTTGCACAAGTCAAACAAATTTACAAAACCCCACCAATTAAAGATTTTGGTGGTTTTAATTTTTCACAAATATTACCAGATCCATCAAAACCAAGCAAGAGGTCATTTATTGAAGATCTACTTTTCAACAAAGTGACACTAGCAGATGCTGGCTTCATCAAACAATATGGTGATTGCCTTGGTGATATTGCTGCTAGAGACCTCATTTGTGCACAAAAGTTTAACGGCCTTACTGTTTTGCCACCTTTGCTCACAGATGAAATGATTGCTCAATACACTTCTGCACTGTTAGCGGGTACAATCACTTCTGGTTGGACCTTTGGTGCAGGTGCTGCATTACAAATACCATTTGCTATGCAAATGGCTTATAGGTTTAATGGTATTGGAGTTACACAGAATGTTCTCTATGAGAACCAAAAATTGATTGCCAACCAATTTAATAGTGCTATTGGCAAAATTCAAGACTCACTTTCTTCCACAGCAAGTGCACTTGGAAAACTTCAAGATGTGGTCAACCAAAATGCACAAGCTTTAAACACGCTTGTTAAACAACTTAGCTCCAATTTTGGTGCAATTTCAAGTGTTTTAAATGATATCCTTTCACGTCTTGACAAAGTTGAGGCTGAAGTGCAAATTGATAGGTTGATCACAGGCAGACTTCAAAGTTTGCAGACATATGTGACTCAACAATTAATTAGAGCTGCAGAAATCAGAGCTTCTGCTAATCTTGCTGCTACTAAAATGTCAGAGTGTGTACTTGGACAATCAAAAAGAGTTGATTTTTGTGGAAAGGGCTATCATCTTATGTCCTTCCCTCAGTCAGCACCTCATGGTGTAGTCTTCTTGCATGTGACTTATGTCCCTGCACAAGAAAAGAACTTCACAACTGCTCCTGCCATTTGTCATGATGGAAAAGCACACTTCCTCGTGAGGGTGTCTTTGTTTCAAATGGCACACACTGGTTTGTAACACAAAGGAATTTTTATGAACCACAAATCATTACTACAGACAACACATTTGTGTCTGGTAACTGTGATGTTGTAATAGGAATTGTCAACAACACAGTTTATGATCCTTTGCAACCTGAATTAGACTCATTCAAGGAGGAGTTAGATAAATATTTTAAGAATCATACATCACCAGATGTTGATTTAGGTGACATCTCTGGCATTAATGCTTCAGTTGTAAACATTCAAAAAGAAATTGACCGCCTCAATGAGGTTGCCAAGAATTTAAATGAATCTCTCATCGATCTCCAAGAACTTGGAAAGTATGAGCAGTATATAAAATGGCCATGGTACATTTGGCTAGGTTTTATAGCTGGCTTGATTGCCATAGTAATGGTGACAATTATGCTTTGCTGTATGACCAGTTGCTGTAGTTGTCTCAAGGGCTGTTGTTCTTGTGGATCCTGCTGCAAATTTGATGAAGACGACTCTGAGCCAGTGCTCAAAGGAGTCAAATTACATTACACATAA"
+      };
+
+      /* ======================================================================
+         TOAST, THEME & FORMATTING HELPERS
+         ====================================================================== */
+      let toastTimerId = null;
+
+      function showToast(message) {
+        const toast = document.getElementById("toastNotification");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+        if (toastTimerId) clearTimeout(toastTimerId);
+        toastTimerId = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2300);
+      }
+
+      function applyTheme(theme) {
+        const safeTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        const icon = document.getElementById("themeIcon");
+        const label = document.getElementById("themeLabel");
+        if (icon) icon.textContent = safeTheme === "dark" ? "☀️" : "🌙";
+        if (label) label.textContent = safeTheme === "dark" ? "Light" : "Dark";
+        try {
+          localStorage.setItem("abc_theme_pref", safeTheme);
+        } catch (_) {
+          // Ignore storage access errors
+        }
+        drawGrowthChart();
+        drawEnzymeChart();
+      }
+
+      function showErrorBox(id, msg) {
+        const box = document.getElementById(id);
+        if (!box) return;
+        if (msg) {
+          box.textContent = msg;
+          box.style.display = "block";
+        } else {
+          box.textContent = "";
+          box.style.display = "none";
+        }
+      }
+
+      function fmtSci(num, digits = 2) {
+        if (!Number.isFinite(num)) return "—";
+        if (num === 0) return "0";
+        if (Math.abs(num) >= 1e5 || (Math.abs(num) > 0 && Math.abs(num) < 1e-3)) {
+          return num.toExponential(digits);
+        }
+        return num.toLocaleString("en-US", { maximumFractionDigits: digits });
+      }
+
+      /* ======================================================================
+         TAB & SUB-TAB NAVIGATION
+         ====================================================================== */
+      function selectMainTab(labId, notify = false) {
+        document.querySelectorAll(".main-tab-btn").forEach((btn) => {
+          const isMatch = btn.dataset.lab === labId;
+          btn.classList.toggle("active", isMatch);
+          btn.setAttribute("aria-selected", isMatch ? "true" : "false");
+        });
+        document.querySelectorAll(".lab-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === labId);
+        });
+        requestAnimationFrame(() => {
+          drawGrowthChart();
+          drawEnzymeChart();
+        });
+        if (notify) {
+          const activeBtn = document.querySelector(`.main-tab-btn[data-lab="${labId}"]`);
+          if (activeBtn) showToast(`Opened ${activeBtn.textContent.trim()}`);
+        }
+      }
+
+      function selectSubTab(subId, notify = false) {
+        const subPanel = document.getElementById(subId);
+        if (!subPanel) return;
+        const parentLab = subPanel.closest(".lab-panel");
+        if (!parentLab) return;
+
+        parentLab.querySelectorAll(".subtab-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.sub === subId);
+        });
+        parentLab.querySelectorAll(".subpanel-view").forEach((view) => {
+          view.classList.toggle("active", view.id === subId);
+        });
+        requestAnimationFrame(() => {
+          drawGrowthChart();
+          drawEnzymeChart();
+        });
+        if (notify) {
+          const activeSubBtn = parentLab.querySelector(`.subtab-btn[data-sub="${subId}"]`);
+          if (activeSubBtn) showToast(`Switched to ${activeSubBtn.textContent.trim()}`);
+        }
+      }
+
+      /* ======================================================================
+         LAB 1A: SEQUENCE ANALYZER
+         ====================================================================== */
+      function setSequenceDefaults() {
+        document.getElementById("seqKindSelect").value = "DNA";
+        document.getElementById("seqInputArea").value = PRESET_SEQUENCES.insulin;
+      }
+
+      function clearSequenceLab(notify = true) {
+        document.getElementById("seqInputArea").value = "";
+        showErrorBox("seqErrorBox", "");
+        document.getElementById("outSeqLen").textContent = "0 nt";
+        document.getElementById("outSeqGc").textContent = "0.0%";
+        document.getElementById("outSeqAt").textContent = "0.0%";
+        document.getElementById("outSeqMw").textContent = "0 Da (0.00 kDa)";
+        document.getElementById("outSeqComp").textContent = "—";
+        document.getElementById("outSeqRevComp").textContent = "—";
+        document.getElementById("outSeqMrna").textContent = "—";
+        document.getElementById("outSeqAa").textContent = "—";
+        if (notify) showToast("Sequence cleared");
+      }
+
+      function calculateSequenceLab(notify = false) {
+        const kind = document.getElementById("seqKindSelect").value;
+        const raw = document.getElementById("seqInputArea").value || "";
+        const cleaned = raw.toUpperCase().replace(/[^ATGUC]/g, "");
+
+        if (!cleaned.length) {
+          showErrorBox("seqErrorBox", "Please enter a valid sequence containing A, T/U, G, and C.");
+          return;
+        }
+        if (kind === "DNA" && cleaned.includes("U")) {
+          showErrorBox("seqErrorBox", "DNA mode selected, but Uracil ('U') was found. Switch to RNA or use 'T'.");
+          return;
+        }
+        if (kind === "RNA" && cleaned.includes("T")) {
+          showErrorBox("seqErrorBox", "RNA mode selected, but Thymine ('T') was found. Switch to DNA or use 'U'.");
+          return;
+        }
+
+        showErrorBox("seqErrorBox", "");
+
+        let gcCount = 0;
+        let atCount = 0;
+        let mw = 0;
+
+        const dnaWeights = { A: 313.21, T: 304.20, G: 329.21, C: 289.18 };
+        const rnaWeights = { A: 329.21, U: 306.17, G: 345.21, C: 305.18 };
+
+        for (let i = 0; i < cleaned.length; i++) {
+          const b = cleaned[i];
+          if (b === "G" || b === "C") gcCount++;
+          else if (b === "A" || b === "T" || b === "U") atCount++;
+          mw += kind === "DNA" ? (dnaWeights[b] || 315) : (rnaWeights[b] || 320);
+        }
+        if (cleaned.length > 0) mw += 18.015;
+
+        const gcPct = (gcCount / cleaned.length) * 100;
+        const atPct = (atCount / cleaned.length) * 100;
+
+        const compMap = kind === "DNA"
+          ? { A: "T", T: "A", G: "C", C: "G" }
+          : { A: "U", U: "A", G: "C", C: "G" };
+
+        const compStr = cleaned.split("").map((b) => compMap[b] || b).join("");
+        const revCompStr = compStr.split("").reverse().join("");
+        const mrnaStr = kind === "DNA" ? cleaned.replace(/T/g, "U") : cleaned;
+
+        const codons = [];
+        let stopDetected = false;
+        for (let i = 0; i + 2 < mrnaStr.length; i += 3) {
+          const codon = mrnaStr.slice(i, i + 3);
+          const aa = CODON_TO_AA[codon] || "???";
+          if (aa === "STOP") stopDetected = true;
+          codons.push(`${codon}:${aa}`);
+        }
+
+        document.getElementById("outSeqLen").textContent = `${cleaned.length} nt`;
+        document.getElementById("outSeqGc").textContent = `${gcPct.toFixed(1)}%`;
+        document.getElementById("outSeqAt").textContent = `${atPct.toFixed(1)}%`;
+        document.getElementById("outSeqMw").textContent = `${mw.toFixed(1)} Da (${(mw / 1000).toFixed(2)} kDa)`;
+        document.getElementById("outSeqComp").textContent = compStr;
+        document.getElementById("outSeqRevComp").textContent = revCompStr;
+        document.getElementById("outSeqMrna").textContent = mrnaStr;
+        document.getElementById("outSeqAa").textContent = codons.length
+          ? `${codons.join(" · ")} ${stopDetected ? " [STOP codon detected]" : " [No STOP codon in frame]"}`
+          : "Sequence shorter than 3 nucleotides (1 codon).";
+
+        if (notify) showToast("Sequence analysis updated");
+      }
+
+      /* ======================================================================
+         LAB 1B: PCR PRIMER & TM CALCULATOR
+         ====================================================================== */
+      function setPcrDefaults() {
+        document.getElementById("pcrFwdInput").value = "GCTAGCTAGCTAGCATCGAT";
+        document.getElementById("pcrRevInput").value = "CGATCGATCGATCGTAGCTA";
+        document.getElementById("pcrNaInput").value = "50";
+        document.getElementById("pcrMgInput").value = "1.5";
+        document.getElementById("pcrPrimerNmInput").value = "500";
+        document.getElementById("pcrExtRateInput").value = "30";
+        document.getElementById("pcrAmpBpInput").value = "750";
+      }
+
+      function clearPcrLab(notify = true) {
+        ["pcrFwdInput", "pcrRevInput", "pcrNaInput", "pcrMgInput", "pcrPrimerNmInput", "pcrExtRateInput", "pcrAmpBpInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("pcrErrorBox", "");
+        ["outPcrTa", "outPcrFwdInfo", "outPcrRevInfo", "outPcrWallace", "outPcrSaltTm", "outPcrDeltaExt"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        if (notify) showToast("PCR inputs cleared");
+      }
+
+      function analyzeSinglePrimer(seq) {
+        const a = (seq.match(/A/g) || []).length;
+        const t = (seq.match(/T/g) || []).length;
+        const g = (seq.match(/G/g) || []).length;
+        const c = (seq.match(/C/g) || []).length;
+        const len = seq.length;
+        const gcPct = ((g + c) / len) * 100;
+        const wallaceTm = len < 14 ? 2 * (a + t) + 4 * (g + c) : 64.9 + (41 * (g + c - 16.4)) / len;
+        return { len, gcPct, wallaceTm };
+      }
+
+      function calculatePcrLab(notify = false) {
+        const fwd = (document.getElementById("pcrFwdInput").value || "").toUpperCase().replace(/[^ATGC]/g, "");
+        const rev = (document.getElementById("pcrRevInput").value || "").toUpperCase().replace(/[^ATGC]/g, "");
+        const naMm = parseFloat(document.getElementById("pcrNaInput").value);
+        const mgMm = parseFloat(document.getElementById("pcrMgInput").value);
+        const primerNm = parseFloat(document.getElementById("pcrPrimerNmInput").value);
+        const extRate = parseFloat(document.getElementById("pcrExtRateInput").value);
+        const ampBp = parseFloat(document.getElementById("pcrAmpBpInput").value);
+
+        if (!fwd.length || !rev.length) {
+          showErrorBox("pcrErrorBox", "Please enter valid A/T/G/C sequences for both Forward and Reverse primers.");
+          return;
+        }
+        if ([naMm, mgMm, primerNm, extRate, ampBp].some((v) => !Number.isFinite(v) || v < 0) || extRate <= 0 || ampBp <= 0) {
+          showErrorBox("pcrErrorBox", "Please enter valid positive numbers for salt concentrations, extension rate, and amplicon length.");
+          return;
+        }
+
+        showErrorBox("pcrErrorBox", "");
+
+        const pFwd = analyzeSinglePrimer(fwd);
+        const pRev = analyzeSinglePrimer(rev);
+
+        const effSaltM = Math.max(0.001, (naMm + 120 * Math.sqrt(Math.max(0, mgMm))) / 1000);
+        const primerM = Math.max(1e-12, primerNm * 1e-9);
+
+        const saltTmFwd = 81.5 + 16.6 * Math.log10(effSaltM) + 0.41 * pFwd.gcPct - 675 / pFwd.len - 0.65 * (primerM * 1e6);
+        const saltTmRev = 81.5 + 16.6 * Math.log10(effSaltM) + 0.41 * pRev.gcPct - 675 / pRev.len - 0.65 * (primerM * 1e6);
+
+        const deltaTm = Math.abs(saltTmFwd - saltTmRev);
+        const minTm = Math.min(saltTmFwd, saltTmRev);
+        const recTa = minTm - 3.5;
+        const extSec = ampBp / extRate;
+
+        document.getElementById("outPcrTa").textContent = `${recTa.toFixed(1)} °C`;
+        document.getElementById("outPcrFwdInfo").textContent = `${pFwd.len} bp / ${pFwd.gcPct.toFixed(1)}%`;
+        document.getElementById("outPcrRevInfo").textContent = `${pRev.len} bp / ${pRev.gcPct.toFixed(1)}%`;
+        document.getElementById("outPcrWallace").textContent = `${pFwd.wallaceTm.toFixed(1)}° / ${pRev.wallaceTm.toFixed(1)}°C`;
+        document.getElementById("outPcrSaltTm").textContent = `${saltTmFwd.toFixed(1)}° / ${saltTmRev.toFixed(1)}°C`;
+        document.getElementById("outPcrDeltaExt").textContent = `Δ${deltaTm.toFixed(1)}°C · ${extSec.toFixed(1)}s`;
+
+        if (notify) showToast("PCR Tm & annealing parameters calculated");
+      }
+
+      /* ======================================================================
+         LAB 1C: COPY NUMBER, MOLARITY & SERIAL DILUTION
+         ====================================================================== */
+      function setCopyDefaults() {
+        document.getElementById("copyTypeSelect").value = "dsDNA";
+        document.getElementById("copyLenInput").value = "1000";
+        document.getElementById("copyMassNgInput").value = "100";
+        document.getElementById("copyVolUlInput").value = "20";
+        document.getElementById("copyC1NmInput").value = "";
+        document.getElementById("copyC2NmInput").value = "1";
+        document.getElementById("copyDilFactorInput").value = "10";
+        document.getElementById("copyStepsInput").value = "5";
+      }
+
+      function clearCopyLab(notify = true) {
+        ["copyLenInput", "copyMassNgInput", "copyVolUlInput", "copyC1NmInput", "copyC2NmInput", "copyDilFactorInput", "copyStepsInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("copyErrorBox", "");
+        ["outCopyTotal", "outCopyPerUl", "outCopyMolarity", "outCopyV2"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        document.getElementById("copySerialTableBody").innerHTML = "";
+        if (notify) showToast("Copy number & dilution fields cleared");
+      }
+
+      function calculateCopyLab(notify = false) {
+        const naType = document.getElementById("copyTypeSelect").value;
+        const len = parseFloat(document.getElementById("copyLenInput").value);
+        const massNg = parseFloat(document.getElementById("copyMassNgInput").value);
+        const volUl = parseFloat(document.getElementById("copyVolUlInput").value);
+        const c1Override = parseFloat(document.getElementById("copyC1NmInput").value);
+        const c2Nm = parseFloat(document.getElementById("copyC2NmInput").value);
+        const dilFactor = parseFloat(document.getElementById("copyDilFactorInput").value);
+        const steps = parseInt(document.getElementById("copyStepsInput").value, 10);
+
+        if (!Number.isFinite(len) || len <= 0 || !Number.isFinite(massNg) || massNg < 0 || !Number.isFinite(volUl) || volUl <= 0) {
+          showErrorBox("copyErrorBox", "Enter positive sequence length, non-negative mass (ng), and positive volume (μL).");
+          return;
+        }
+        if (!Number.isFinite(c2Nm) || c2Nm <= 0 || !Number.isFinite(dilFactor) || dilFactor <= 1 || !Number.isFinite(steps) || steps < 1) {
+          showErrorBox("copyErrorBox", "Enter valid C₂ (> 0), dilution factor (> 1), and step count (≥ 1).");
+          return;
+        }
+
+        showErrorBox("copyErrorBox", "");
+
+        const perUnitDa = naType === "dsDNA" ? 650 : naType === "ssDNA" ? 330 : 340;
+        const mwGPerMol = len * perUnitDa;
+        const massG = massNg * 1e-9;
+        const moles = massG / mwGPerMol;
+        const copies = moles * AVOGADRO;
+        const copiesPerUl = copies / volUl;
+
+        const volL = volUl * 1e-6;
+        const calcC1Nm = (moles / volL) * 1e9;
+        const c1Nm = Number.isFinite(c1Override) && c1Override > 0 ? c1Override : calcC1Nm;
+
+        const v2Ul = c1Nm > 0 ? (c1Nm * volUl) / c2Nm : 0;
+
+        document.getElementById("outCopyTotal").textContent = fmtSci(copies, 2);
+        document.getElementById("outCopyPerUl").textContent = fmtSci(copiesPerUl, 2);
+        document.getElementById("outCopyMolarity").textContent = `${fmtSci(c1Nm, 2)} nM · ${fmtSci(c1Nm * 1e3, 1)} pM`;
+        document.getElementById("outCopyV2").textContent = `${fmtSci(v2Ul, 2)} μL`;
+
+        const tbody = document.getElementById("copySerialTableBody");
+        let currentConc = c1Nm;
+        let rowsHtml = "";
+        const cappedSteps = Math.min(20, steps);
+        for (let s = 1; s <= cappedSteps; s++) {
+          const nextConc = currentConc / dilFactor;
+          const transferUl = volUl / dilFactor;
+          const diluentUl = Math.max(0, volUl - transferUl);
+          rowsHtml += `<tr>
+            <td>Step ${s} (1:${dilFactor})</td>
+            <td>${fmtSci(nextConc, 3)} nM</td>
+            <td>${transferUl.toFixed(2)} μL</td>
+            <td>${diluentUl.toFixed(2)} μL</td>
+          </tr>`;
+          currentConc = nextConc;
+        }
+        tbody.innerHTML = rowsHtml;
+
+        if (notify) showToast("Copy number & serial dilution calculated");
+      }
+
+      /* ======================================================================
+         LAB 2A: OSMOLARITY & TONICITY
+         ====================================================================== */
+      function setOsmDefaults() {
+        document.getElementById("osmSoluteMmInput").value = "154";
+        document.getElementById("osmIFactorInput").value = "2";
+        document.getElementById("osmTempCInput").value = "37";
+        document.getElementById("osmCellMmInput").value = "300";
+      }
+
+      function clearOsmLab(notify = true) {
+        ["osmSoluteMmInput", "osmIFactorInput", "osmTempCInput", "osmCellMmInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("osmErrorBox", "");
+        ["outOsmMolar", "outOsmTonic", "outOsmAtm", "outOsmKpa"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        if (notify) showToast("Osmolarity fields cleared");
+      }
+
+      function calculateOsmLab(notify = false) {
+        const cMm = parseFloat(document.getElementById("osmSoluteMmInput").value);
+        const iFactor = parseFloat(document.getElementById("osmIFactorInput").value);
+        const tempC = parseFloat(document.getElementById("osmTempCInput").value);
+        const cellOsm = parseFloat(document.getElementById("osmCellMmInput").value);
+
+        if (!Number.isFinite(cMm) || cMm < 0 || !Number.isFinite(iFactor) || iFactor <= 0 || !Number.isFinite(tempC) || !Number.isFinite(cellOsm) || cellOsm <= 0) {
+          showErrorBox("osmErrorBox", "Enter valid numeric values for solute concentration, van 't Hoff i-factor, temperature, and cell osmolarity.");
+          return;
+        }
+
+        const tempK = tempC + 273.15;
+        if (tempK <= 0) {
+          showErrorBox("osmErrorBox", "Temperature must be above absolute zero (−273.15 °C).");
+          return;
+        }
+
+        showErrorBox("osmErrorBox", "");
+
+        const osmolarity = iFactor * cMm;
+        const molarityM = (iFactor * cMm) / 1000;
+        const piAtm = molarityM * GAS_R_ATM * tempK;
+        const piKpa = piAtm * 101.325;
+
+        let tonicity = "Isotonic";
+        const tol = cellOsm * 0.05;
+        if (osmolarity < cellOsm - tol) tonicity = "Hypotonic";
+        else if (osmolarity > cellOsm + tol) tonicity = "Hypertonic";
+
+        document.getElementById("outOsmMolar").textContent = `${osmolarity.toFixed(1)} mOsm/L`;
+        document.getElementById("outOsmTonic").textContent = tonicity;
+        document.getElementById("outOsmAtm").textContent = `${piAtm.toFixed(3)} atm`;
+        document.getElementById("outOsmKpa").textContent = `${piKpa.toFixed(1)} kPa`;
+
+        if (notify) showToast(`Osmolarity: ${osmolarity.toFixed(1)} mOsm/L (${tonicity})`);
+      }
+
+      /* ======================================================================
+         LAB 2B: MICROSCOPY & FIELD OF VIEW
+         ====================================================================== */
+      function setMicDefaults() {
+        document.getElementById("micOcularInput").value = "10";
+        document.getElementById("micObjBaseInput").value = "10";
+        document.getElementById("micFovBaseInput").value = "1800";
+        document.getElementById("micObjTargetInput").value = "40";
+        document.getElementById("micSpecUmInput").value = "25";
+        document.getElementById("micWaveNmInput").value = "550";
+        document.getElementById("micNaInput").value = "0.65";
+      }
+
+      function clearMicLab(notify = true) {
+        ["micOcularInput", "micObjBaseInput", "micFovBaseInput", "micObjTargetInput", "micSpecUmInput", "micWaveNmInput", "micNaInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("micErrorBox", "");
+        ["outMicTotalMag", "outMicFovTarget", "outMicSpecPct", "outMicRayleigh", "outMicAbbe"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        if (notify) showToast("Microscopy inputs cleared");
+      }
+
+      function calculateMicLab(notify = false) {
+        const ocular = parseFloat(document.getElementById("micOcularInput").value);
+        const objBase = parseFloat(document.getElementById("micObjBaseInput").value);
+        const fovBase = parseFloat(document.getElementById("micFovBaseInput").value);
+        const objTarget = parseFloat(document.getElementById("micObjTargetInput").value);
+        const specUm = parseFloat(document.getElementById("micSpecUmInput").value);
+        const waveNm = parseFloat(document.getElementById("micWaveNmInput").value);
+        const na = parseFloat(document.getElementById("micNaInput").value);
+
+        if ([ocular, objBase, fovBase, objTarget, waveNm, na].some((v) => !Number.isFinite(v) || v <= 0) || !Number.isFinite(specUm) || specUm < 0) {
+          showErrorBox("micErrorBox", "Enter positive values for magnifications, FOV, wavelength, and numerical aperture.");
+          return;
+        }
+
+        showErrorBox("micErrorBox", "");
+
+        const totalMag = ocular * objTarget;
+        const fovTarget = fovBase * (objBase / objTarget);
+        const specPct = fovTarget > 0 ? (specUm / fovTarget) * 100 : 0;
+
+        const rayleighNm = (0.61 * waveNm) / na;
+        const abbeNm = waveNm / (2 * na);
+
+        document.getElementById("outMicTotalMag").textContent = `${totalMag.toFixed(0)}×`;
+        document.getElementById("outMicFovTarget").textContent = `${fovTarget.toFixed(1)} μm`;
+        document.getElementById("outMicSpecPct").textContent = `${specPct.toFixed(2)}%`;
+        document.getElementById("outMicRayleigh").textContent = `${rayleighNm.toFixed(1)} nm`;
+        document.getElementById("outMicAbbe").textContent = `${abbeNm.toFixed(1)} nm`;
+
+        if (notify) showToast(`Total magnification ${totalMag.toFixed(0)}× calculated`);
+      }
+
+      /* ======================================================================
+         LAB 2C: DOUBLING TIME & EXPONENTIAL GROWTH + RESPONSIVE CANVAS
+         ====================================================================== */
+      function setGrowthDefaults() {
+        document.getElementById("growthN0Input").value = "1000";
+        document.getElementById("growthNtInput").value = "8000";
+        document.getElementById("growthTimeHrInput").value = "3";
+        document.getElementById("growthProjHrInput").value = "6";
+      }
+
+      function clearGrowthLab(notify = true) {
+        ["growthN0Input", "growthNtInput", "growthTimeHrInput", "growthProjHrInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("growthErrorBox", "");
+        ["outGrowthTd", "outGrowthGens", "outGrowthMu", "outGrowthProj"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        lastGrowthData = null;
+        drawGrowthChart(null);
+        if (notify) showToast("Growth inputs cleared");
+      }
+
+      let lastGrowthData = null;
+
+      function calculateGrowthLab(notify = false) {
+        const n0 = parseFloat(document.getElementById("growthN0Input").value);
+        const nt = parseFloat(document.getElementById("growthNtInput").value);
+        const timeHr = parseFloat(document.getElementById("growthTimeHrInput").value);
+        const projHr = parseFloat(document.getElementById("growthProjHrInput").value);
+
+        if (!Number.isFinite(n0) || n0 <= 0 || !Number.isFinite(nt) || nt <= 0 || !Number.isFinite(timeHr) || timeHr <= 0 || !Number.isFinite(projHr) || projHr < 0) {
+          showErrorBox("growthErrorBox", "Enter positive values for N₀, N(t), and elapsed time t, and non-negative target time.");
+          return;
+        }
+
+        showErrorBox("growthErrorBox", "");
+
+        const gens = Math.log2(nt / n0);
+        const tdHr = gens !== 0 ? timeHr / gens : Infinity;
+        const muHr = Math.log(nt / n0) / timeHr;
+        const projCount = n0 * Math.exp(muHr * projHr);
+
+        const tdLabel = Number.isFinite(tdHr)
+          ? `${tdHr.toFixed(2)} hr (${(tdHr * 60).toFixed(1)} min)`
+          : "No change";
+
+        document.getElementById("outGrowthTd").textContent = tdLabel;
+        document.getElementById("outGrowthGens").textContent = `${gens.toFixed(2)} gen`;
+        document.getElementById("outGrowthMu").textContent = `${muHr.toFixed(3)} hr⁻¹`;
+        document.getElementById("outGrowthProj").textContent = fmtSci(projCount, 2);
+
+        lastGrowthData = { n0, muHr, maxHr: Math.max(timeHr, projHr, 1) };
+        drawGrowthChart(lastGrowthData);
+
+        if (notify) showToast("Exponential growth curve updated");
+      }
+
+      function drawGrowthChart(data = lastGrowthData) {
+        const canvas = document.getElementById("growthCanvas");
+        if (!canvas || !canvas.parentElement) return;
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(240, canvas.getBoundingClientRect().width);
+        const height = 265;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const axisColor = isDark ? "#94a3b8" : "#475569";
+        const lineColor = isDark ? "#34d399" : "#059669";
+
+        const padL = 46;
+        const padR = 16;
+        const padT = 18;
+        const padB = 30;
+        const plotW = Math.max(40, width - padL - padR);
+        const plotH = Math.max(40, height - padT - padB);
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        if (!data || !Number.isFinite(data.muHr)) return;
+
+        const points = 50;
+        const vals = [];
+        let maxVal = data.n0;
+        for (let i = 0; i <= points; i++) {
+          const t = (data.maxHr * i) / points;
+          const nVal = data.n0 * Math.exp(data.muHr * t);
+          vals.push(nVal);
+          if (Number.isFinite(nVal) && nVal > maxVal) maxVal = nVal;
+        }
+        if (!Number.isFinite(maxVal) || maxVal <= data.n0) maxVal = data.n0 * 2;
+
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (let i = 0; i <= points; i++) {
+          const px = padL + (plotW * i) / points;
+          const ratio = Math.min(1, Math.max(0, vals[i] / maxVal));
+          const py = height - padB - ratio * plotH;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = axisColor;
+        ctx.font = "600 10px monospace";
+        ctx.fillText("0h", padL, height - 10);
+        ctx.fillText(`${data.maxHr.toFixed(1)}h`, width - padR - 28, height - 10);
+        ctx.fillText(fmtSci(maxVal, 1), 4, padT + 8);
+      }
+
+      /* ======================================================================
+         LAB 3A: PUNNETT SQUARE & CROSS ANALYZER
+         ====================================================================== */
+      function setCrossDefaults() {
+        document.getElementById("crossTypeSelect").value = "mono";
+        document.getElementById("crossCustomParents").value = "";
+      }
+
+      function clearCrossLab(notify = true) {
+        document.getElementById("crossCustomParents").value = "";
+        showErrorBox("crossErrorBox", "");
+        document.getElementById("punnettMatrixContainer").innerHTML = "";
+        document.getElementById("punnettSummaryCards").innerHTML = "";
+        if (notify) showToast("Punnett cross cleared");
+      }
+
+      function normalizeGenotypePair(a1, a2) {
+        const pair = [a1, a2].sort((x, y) => {
+          if (x.toLowerCase() === y.toLowerCase()) {
+            return x === x.toUpperCase() ? -1 : 1;
+          }
+          return x.localeCompare(y);
+        });
+        return pair.join("");
+      }
+
+      function calculateCrossLab(notify = false) {
+        const type = document.getElementById("crossTypeSelect").value;
+        showErrorBox("crossErrorBox", "");
+
+        let gametes1 = [];
+        let gametes2 = [];
+        let combineFn = null;
+        let phenoFn = null;
+
+        if (type === "mono" || type === "test") {
+          gametes1 = ["A", "a"];
+          gametes2 = type === "mono" ? ["A", "a"] : ["a", "a"];
+          combineFn = (g1, g2) => normalizeGenotypePair(g1, g2);
+          phenoFn = (geno) => (geno.includes("A") ? "Dominant (A_)" : "Recessive (aa)");
+        } else {
+          gametes1 = ["AB", "Ab", "aB", "ab"];
+          gametes2 = ["AB", "Ab", "aB", "ab"];
+          combineFn = (g1, g2) => {
+            const geneA = normalizeGenotypePair(g1[0], g2[0]);
+            const geneB = normalizeGenotypePair(g1[1], g2[1]);
+            return geneA + geneB;
+          };
+          phenoFn = (geno) => {
+            const hasA = geno.slice(0, 2).includes("A");
+            const hasB = geno.slice(2, 4).includes("B");
+            if (hasA && hasB) return "A_B_ (Both Dom.)";
+            if (hasA && !hasB) return "A_bb (A Dom / b Rec)";
+            if (!hasA && hasB) return "aaB_ (a Rec / B Dom)";
+            return "aabb (Both Rec.)";
+          };
+        }
+
+        const genoCounts = {};
+        const phenoCounts = {};
+        let totalCells = 0;
+
+        let tableHtml = `<table class="punnett-table mono"><thead><tr><th>Gametes</th>`;
+        gametes2.forEach((g2) => {
+          tableHtml += `<th>${g2}</th>`;
+        });
+        tableHtml += `</tr></thead><tbody>`;
+
+        gametes1.forEach((g1) => {
+          tableHtml += `<tr><th>${g1}</th>`;
+          gametes2.forEach((g2) => {
+            const childGeno = combineFn(g1, g2);
+            const childPheno = phenoFn(childGeno);
+            genoCounts[childGeno] = (genoCounts[childGeno] || 0) + 1;
+            phenoCounts[childPheno] = (phenoCounts[childPheno] || 0) + 1;
+            totalCells++;
+            tableHtml += `<td>${childGeno}</td>`;
+          });
+          tableHtml += `</tr>`;
+        });
+
+        tableHtml += `</tbody></table>`;
+        document.getElementById("punnettMatrixContainer").innerHTML = tableHtml;
+
+        const genoSummary = Object.entries(genoCounts)
+          .map(([k, v]) => `${k}: ${v}/${totalCells} (${((v / totalCells) * 100).toFixed(1)}%)`)
+          .join(" · ");
+
+        const phenoSummary = Object.entries(phenoCounts)
+          .map(([k, v]) => `${k}: ${v}/${totalCells} (${((v / totalCells) * 100).toFixed(1)}%)`)
+          .join(" · ");
+
+        document.getElementById("punnettSummaryCards").innerHTML = `
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Genotypic Distribution</div>
+            <div class="kpi-val" style="font-size:0.86rem;">${genoSummary}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Phenotypic Distribution</div>
+            <div class="kpi-val" style="font-size:0.86rem;">${phenoSummary}</div>
+          </div>
+        `;
+
+        if (notify) showToast("Punnett square cross computed");
+      }
+
+      /* ======================================================================
+         LAB 3B: HARDY-WEINBERG & CHI-SQUARE
+         ====================================================================== */
+      function setHweDefaults() {
+        document.getElementById("hweObsAaDomInput").value = "160";
+        document.getElementById("hweObsAaHetInput").value = "320";
+        document.getElementById("hweObsAaRecInput").value = "120";
+      }
+
+      function clearHweLab(notify = true) {
+        ["hweObsAaDomInput", "hweObsAaHetInput", "hweObsAaRecInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("hweErrorBox", "");
+        ["outHwePq", "outHweExpCounts", "outHweExpFreqs", "outHweChi2"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        document.getElementById("outHweVerdict").textContent = "—";
+        if (notify) showToast("Hardy-Weinberg inputs cleared");
+      }
+
+      function calculateHweLab(notify = false) {
+        const obsAA = parseFloat(document.getElementById("hweObsAaDomInput").value);
+        const obsAa = parseFloat(document.getElementById("hweObsAaHetInput").value);
+        const obsaa = parseFloat(document.getElementById("hweObsAaRecInput").value);
+
+        if ([obsAA, obsAa, obsaa].some((v) => !Number.isFinite(v) || v < 0)) {
+          showErrorBox("hweErrorBox", "Enter non-negative genotype counts for AA, Aa, and aa.");
+          return;
+        }
+        const n = obsAA + obsAa + obsaa;
+        if (n <= 0) {
+          showErrorBox("hweErrorBox", "Total population count must be greater than zero.");
+          return;
+        }
+
+        showErrorBox("hweErrorBox", "");
+
+        const p = (2 * obsAA + obsAa) / (2 * n);
+        const q = 1 - p;
+
+        const expAA = p * p * n;
+        const expAa = 2 * p * q * n;
+        const expaa = q * q * n;
+
+        let chi2 = 0;
+        if (expAA > 0) chi2 += ((obsAA - expAA) ** 2) / expAA;
+        if (expAa > 0) chi2 += ((obsAa - expAa) ** 2) / expAa;
+        if (expaa > 0) chi2 += ((obsaa - expaa) ** 2) / expaa;
+
+        const critVal = 3.841;
+        const inEq = chi2 <= critVal;
+
+        document.getElementById("outHwePq").textContent = `p=${p.toFixed(3)} · q=${q.toFixed(3)}`;
+        document.getElementById("outHweExpCounts").textContent = `${expAA.toFixed(1)}, ${expAa.toFixed(1)}, ${expaa.toFixed(1)}`;
+        document.getElementById("outHweExpFreqs").textContent = `${(p * p).toFixed(3)}, ${(2 * p * q).toFixed(3)}, ${(q * q).toFixed(3)}`;
+        document.getElementById("outHweChi2").textContent = `${chi2.toFixed(3)} (${inEq ? "≤" : ">"} ${critVal})`;
+        document.getElementById("outHweVerdict").textContent = inEq
+          ? `Population (N=${n}) is consistent with Hardy-Weinberg equilibrium at p = 0.05 (χ² = ${chi2.toFixed(3)} ≤ 3.841, df = 1).`
+          : `Population (N=${n}) deviates significantly from Hardy-Weinberg equilibrium at p = 0.05 (χ² = ${chi2.toFixed(3)} > 3.841, df = 1).`;
+
+        if (notify) showToast("Hardy-Weinberg & χ² test completed");
+      }
+
+      /* ======================================================================
+         LAB 3C: PEDIGREE & CARRIER PROBABILITY
+         ====================================================================== */
+      function setPedDefaults() {
+        document.getElementById("pedigreeScenarioSelect").value = "ar_carrier_parents";
+        document.getElementById("pedigreeNoteInput").value = "";
+      }
+
+      function clearPedLab(notify = true) {
+        document.getElementById("pedigreeNoteInput").value = "";
+        showErrorBox("pedErrorBox", "");
+        ["outPedAffected", "outPedCarrier", "outPedClear"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        document.getElementById("outPedSummary").textContent = "—";
+        if (notify) showToast("Pedigree fields cleared");
+      }
+
+      function calculatePedLab(notify = false) {
+        const scen = document.getElementById("pedigreeScenarioSelect").value;
+        const note = (document.getElementById("pedigreeNoteInput").value || "").trim();
+        showErrorBox("pedErrorBox", "");
+
+        let affected = "";
+        let carrier = "";
+        let clear = "";
+        let summary = "";
+
+        if (scen === "ar_carrier_parents") {
+          affected = "25.0% (1/4 aa)";
+          carrier = "50.0% (2/4 Aa)";
+          clear = "25.0% (1/4 AA)";
+          summary = "Two unaffected heterozygous carriers (Aa × Aa) have a 25% chance of an affected child (aa) and a 50% chance of an unaffected carrier child (Aa). Among unaffected offspring, carrier probability is 2/3 (66.7%).";
+        } else if (scen === "ad_affected_het") {
+          affected = "50.0% (1/2 Aa)";
+          carrier = "N/A (Dominant)";
+          clear = "50.0% (1/2 aa)";
+          summary = "An affected heterozygote crossed with an unaffected homozygote (Aa × aa) transmits the dominant allele to 50% of offspring; unaffected offspring do not carry the disease allele.";
+        } else {
+          affected = "25.0% overall (50% sons)";
+          carrier = "25.0% overall (50% daughters)";
+          clear = "50.0% (25% AA, 25% XY)";
+          summary = "Carrier mother (XᴬXᵃ) and unaffected father (XᴬY): 50% of sons are expected to be affected (XᵃY) and 50% of daughters are expected to be asymptomatic carriers (XᴬXᵃ).";
+        }
+
+        if (note) summary += ` [Case Note: ${note}]`;
+
+        document.getElementById("outPedAffected").textContent = affected;
+        document.getElementById("outPedCarrier").textContent = carrier;
+        document.getElementById("outPedClear").textContent = clear;
+        document.getElementById("outPedSummary").textContent = summary;
+
+        if (notify) showToast("Pedigree risk calculated");
+      }
+
+      /* ======================================================================
+         LAB 4A: MICHAELIS-MENTEN ENZYME KINETICS + RESPONSIVE CANVAS
+         ====================================================================== */
+      function setMmDefaults() {
+        document.getElementById("mmSubInput").value = "25";
+        document.getElementById("mmVmaxInput").value = "100";
+        document.getElementById("mmKmInput").value = "20";
+        document.getElementById("mmKcatInput").value = "50";
+        document.getElementById("mmInhConcInput").value = "0";
+        document.getElementById("mmKiInput").value = "10";
+        document.getElementById("mmInhTypeSelect").value = "none";
+      }
+
+      function clearMmLab(notify = true) {
+        ["mmSubInput", "mmVmaxInput", "mmKmInput", "mmKcatInput", "mmInhConcInput", "mmKiInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        document.getElementById("mmInhTypeSelect").value = "none";
+        showErrorBox("mmErrorBox", "");
+        ["outMmV0", "outMmAppVmax", "outMmAppKm", "outMmEff"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        lastEnzymeData = null;
+        drawEnzymeChart(null);
+        if (notify) showToast("Enzyme kinetics cleared");
+      }
+
+      let lastEnzymeData = null;
+
+      function calculateMmLab(notify = false) {
+        const sVal = parseFloat(document.getElementById("mmSubInput").value);
+        const vmax = parseFloat(document.getElementById("mmVmaxInput").value);
+        const km = parseFloat(document.getElementById("mmKmInput").value);
+        const kcat = parseFloat(document.getElementById("mmKcatInput").value);
+        const iConc = parseFloat(document.getElementById("mmInhConcInput").value);
+        const ki = parseFloat(document.getElementById("mmKiInput").value);
+        const inhType = document.getElementById("mmInhTypeSelect").value;
+
+        if (!Number.isFinite(sVal) || sVal < 0 || !Number.isFinite(vmax) || vmax <= 0 || !Number.isFinite(km) || km <= 0 || !Number.isFinite(kcat) || kcat < 0 || !Number.isFinite(iConc) || iConc < 0 || !Number.isFinite(ki) || ki <= 0) {
+          showErrorBox("mmErrorBox", "Enter valid positive kinetic constants (V_max, K_m, K_i) and non-negative [S], [I], and k_cat.");
+          return;
+        }
+
+        showErrorBox("mmErrorBox", "");
+
+        const alpha = 1 + iConc / ki;
+        let appVmax = vmax;
+        let appKm = km;
+
+        if (inhType === "competitive") {
+          appKm = km * alpha;
+        } else if (inhType === "uncompetitive") {
+          appVmax = vmax / alpha;
+          appKm = km / alpha;
+        } else if (inhType === "noncompetitive") {
+          appVmax = vmax / alpha;
+        }
+
+        const v0 = (appVmax * sVal) / (appKm + sVal);
+        const eff = kcat / km;
+
+        document.getElementById("outMmV0").textContent = `${v0.toFixed(2)} μM/min`;
+        document.getElementById("outMmAppVmax").textContent = `${appVmax.toFixed(2)}`;
+        document.getElementById("outMmAppKm").textContent = `${appKm.toFixed(2)}`;
+        document.getElementById("outMmEff").textContent = `${fmtSci(eff, 2)} μM⁻¹s⁻¹`;
+
+        lastEnzymeData = {
+          maxS: Math.max(sVal * 1.4, km * 4, 10),
+          vmax,
+          km,
+          appVmax,
+          appKm
+        };
+        drawEnzymeChart(lastEnzymeData);
+
+        if (notify) showToast("Michaelis-Menten kinetics calculated");
+      }
+
+      function drawEnzymeChart(data = lastEnzymeData) {
+        const canvas = document.getElementById("enzymeCanvas");
+        if (!canvas || !canvas.parentElement) return;
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.max(240, canvas.getBoundingClientRect().width);
+        const height = 265;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const axisColor = isDark ? "#94a3b8" : "#475569";
+        const curveColor = isDark ? "#818cf8" : "#4f46e5";
+
+        const padL = 42;
+        const padR = 16;
+        const padT = 18;
+        const padB = 30;
+        const plotW = Math.max(40, width - padL - padR);
+        const plotH = Math.max(40, height - padT - padB);
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, height - padB);
+        ctx.lineTo(width - padR, height - padB);
+        ctx.stroke();
+
+        if (!data) return;
+
+        const steps = 60;
+        ctx.strokeStyle = curveColor;
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const s = (data.maxS * i) / steps;
+          const v = (data.appVmax * s) / (data.appKm + s);
+          const px = padL + (plotW * i) / steps;
+          const py = height - padB - Math.min(1, v / Math.max(1, data.vmax)) * plotH;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = axisColor;
+        ctx.font = "600 10px monospace";
+        ctx.fillText("0 μM", padL, height - 10);
+        ctx.fillText(`${data.maxS.toFixed(0)} μM`, width - padR - 36, height - 10);
+        ctx.fillText("Vmax", 4, padT + 8);
+      }
+
+      /* ======================================================================
+         LAB 4B: METABOLIC RATE & BIOENERGETICS
+         ====================================================================== */
+      function setMetabDefaults() {
+        document.getElementById("metabSexSelect").value = "M";
+        document.getElementById("metabAgeInput").value = "30";
+        document.getElementById("metabWeightInput").value = "72";
+        document.getElementById("metabHeightInput").value = "175";
+        document.getElementById("metabActivitySelect").value = "1.55";
+        document.getElementById("metabDg0Input").value = "-30.5";
+        document.getElementById("metabTempCInput").value = "37";
+        document.getElementById("metabQInput").value = "0.01";
+      }
+
+      function clearMetabLab(notify = true) {
+        ["metabAgeInput", "metabWeightInput", "metabHeightInput", "metabDg0Input", "metabTempCInput", "metabQInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("metabErrorBox", "");
+        ["outMetabBmr", "outMetabTdee", "outMetabDg", "outMetabDir"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        if (notify) showToast("Metabolic & bioenergetics inputs cleared");
+      }
+
+      function calculateMetabLab(notify = false) {
+        const sex = document.getElementById("metabSexSelect").value;
+        const age = parseFloat(document.getElementById("metabAgeInput").value);
+        const weight = parseFloat(document.getElementById("metabWeightInput").value);
+        const height = parseFloat(document.getElementById("metabHeightInput").value);
+        const actFactor = parseFloat(document.getElementById("metabActivitySelect").value);
+        const dg0 = parseFloat(document.getElementById("metabDg0Input").value);
+        const tempC = parseFloat(document.getElementById("metabTempCInput").value);
+        const qRatio = parseFloat(document.getElementById("metabQInput").value);
+
+        if ([age, weight, height, actFactor, dg0, tempC, qRatio].some((v) => !Number.isFinite(v)) || age <= 0 || weight <= 0 || height <= 0 || qRatio <= 0) {
+          showErrorBox("metabErrorBox", "Enter positive age, weight, height, and reaction quotient Q, along with valid ΔG°' and temperature.");
+          return;
+        }
+
+        const tempK = tempC + 273.15;
+        if (tempK <= 0) {
+          showErrorBox("metabErrorBox", "Temperature must be above absolute zero (−273.15 °C).");
+          return;
+        }
+
+        showErrorBox("metabErrorBox", "");
+
+        const bmr = 10 * weight + 6.25 * height - 5 * age + (sex === "M" ? 5 : -161);
+        const tdee = bmr * actFactor;
+        const dg = dg0 + GAS_R_KJ * tempK * Math.log(qRatio);
+
+        let dir = "At Equilibrium";
+        if (dg < -1e-6) dir = "Exergonic (Spontaneous)";
+        else if (dg > 1e-6) dir = "Endergonic (Non-Spontaneous)";
+
+        document.getElementById("outMetabBmr").textContent = `${Math.round(bmr).toLocaleString()} kcal/d`;
+        document.getElementById("outMetabTdee").textContent = `${Math.round(tdee).toLocaleString()} kcal/d`;
+        document.getElementById("outMetabDg").textContent = `${dg.toFixed(2)} kJ/mol`;
+        document.getElementById("outMetabDir").textContent = dir;
+
+        if (notify) showToast("BMR, TDEE & cellular ΔG calculated");
+      }
+
+      /* ======================================================================
+         LAB 4C: PHARMACOKINETICS
+         ====================================================================== */
+      function setPkDefaults() {
+        document.getElementById("pkDoseMgInput").value = "250";
+        document.getElementById("pkVdLInput").value = "35";
+        document.getElementById("pkHalfLifeHrInput").value = "4";
+        document.getElementById("pkTimeHrInput").value = "6";
+        document.getElementById("pkTauHrInput").value = "8";
+      }
+
+      function clearPkLab(notify = true) {
+        ["pkDoseMgInput", "pkVdLInput", "pkHalfLifeHrInput", "pkTimeHrInput", "pkTauHrInput"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        showErrorBox("pkErrorBox", "");
+        ["outPkC0", "outPkCt", "outPkKe", "outPkCl", "outPkRac"].forEach((id) => {
+          document.getElementById(id).textContent = "—";
+        });
+        if (notify) showToast("Pharmacokinetics inputs cleared");
+      }
+
+      function calculatePkLab(notify = false) {
+        const doseMg = parseFloat(document.getElementById("pkDoseMgInput").value);
+        const vdL = parseFloat(document.getElementById("pkVdLInput").value);
+        const halfLifeHr = parseFloat(document.getElementById("pkHalfLifeHrInput").value);
+        const timeHr = parseFloat(document.getElementById("pkTimeHrInput").value);
+        const tauHr = parseFloat(document.getElementById("pkTauHrInput").value);
+
+        if ([doseMg, vdL, halfLifeHr, timeHr, tauHr].some((v) => !Number.isFinite(v) || v < 0) || vdL <= 0 || halfLifeHr <= 0 || tauHr <= 0) {
+          showErrorBox("pkErrorBox", "Enter non-negative dose and time, and positive V_d, half-life t₁/₂, and dosing interval τ.");
+          return;
+        }
+
+        showErrorBox("pkErrorBox", "");
+
+        const ke = Math.LN2 / halfLifeHr;
+        const c0 = doseMg / vdL;
+        const ct = c0 * Math.exp(-ke * timeHr);
+        const cl = ke * vdL;
+        const rac = 1 / Math.max(1e-9, 1 - Math.exp(-ke * tauHr));
+
+        document.getElementById("outPkC0").textContent = `${c0.toFixed(2)} mg/L`;
+        document.getElementById("outPkCt").textContent = `${ct.toFixed(2)} mg/L`;
+        document.getElementById("outPkKe").textContent = `${ke.toFixed(4)} hr⁻¹`;
+        document.getElementById("outPkCl").textContent = `${cl.toFixed(2)} L/hr`;
+        document.getElementById("outPkRac").textContent = `${rac.toFixed(2)}×`;
+
+        if (notify) showToast("Pharmacokinetic parameters calculated");
+      }
+
+      /* ======================================================================
+         DOM READY INITIALIZATION & DIRECT EVENT LISTENERS
+         ====================================================================== */
+      document.addEventListener("DOMContentLoaded", () => {
+        let initialTheme = "light";
+        try {
+          initialTheme = localStorage.getItem("abc_theme_pref") || "light";
+        } catch (_) {
+          initialTheme = "light";
+        }
+        applyTheme(initialTheme);
+
+        // Theme toggle
+        document.getElementById("themeToggleBtn").addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          const next = cur === "dark" ? "light" : "dark";
+          applyTheme(next);
+          showToast(next === "dark" ? "Dark mode enabled" : "Light mode enabled");
+        });
+
+        // Main lab tabs
+        document.getElementById("tabBtnMol").addEventListener("click", () => selectMainTab("labMol", true));
+        document.getElementById("tabBtnCell").addEventListener("click", () => selectMainTab("labCell", true));
+        document.getElementById("tabBtnGen").addEventListener("click", () => selectMainTab("labGen", true));
+        document.getElementById("tabBtnPhys").addEventListener("click", () => selectMainTab("labPhys", true));
+
+        // Sub-tabs
+        document.getElementById("subBtnSeq").addEventListener("click", () => selectSubTab("viewSeq", true));
+        document.getElementById("subBtnPcr").addEventListener("click", () => selectSubTab("viewPcr", true));
+        document.getElementById("subBtnCopy").addEventListener("click", () => selectSubTab("viewCopy", true));
+        document.getElementById("subBtnOsm").addEventListener("click", () => selectSubTab("viewOsm", true));
+        document.getElementById("subBtnMic").addEventListener("click", () => selectSubTab("viewMic", true));
+        document.getElementById("subBtnGrowth").addEventListener("click", () => selectSubTab("viewGrowth", true));
+        document.getElementById("subBtnPunnett").addEventListener("click", () => selectSubTab("viewPunnett", true));
+        document.getElementById("subBtnHwe").addEventListener("click", () => selectSubTab("viewHwe", true));
+        document.getElementById("subBtnPed").addEventListener("click", () => selectSubTab("viewPed", true));
+        document.getElementById("subBtnMm").addEventListener("click", () => selectSubTab("viewMm", true));
+        document.getElementById("subBtnMetab").addEventListener("click", () => selectSubTab("viewMetab", true));
+        document.getElementById("subBtnPk").addEventListener("click", () => selectSubTab("viewPk", true));
+
+        // Lab 1A: Sequence Analyzer
+        document.getElementById("presetInsulinBtn").addEventListener("click", () => {
+          document.getElementById("seqKindSelect").value = "DNA";
+          document.getElementById("seqInputArea").value = PRESET_SEQUENCES.insulin;
+          calculateSequenceLab(true);
+        });
+        document.getElementById("presetGfpBtn").addEventListener("click", () => {
+          document.getElementById("seqKindSelect").value = "DNA";
+          document.getElementById("seqInputArea").value = PRESET_SEQUENCES.gfp;
+          calculateSequenceLab(true);
+        });
+        document.getElementById("presetSpikeBtn").addEventListener("click", () => {
+          document.getElementById("seqKindSelect").value = "DNA";
+          document.getElementById("seqInputArea").value = PRESET_SEQUENCES.spike;
+          calculateSequenceLab(true);
+        });
+        document.getElementById("btnCalcSeq").addEventListener("click", () => calculateSequenceLab(true));
+        document.getElementById("btnClearSeq").addEventListener("click", () => clearSequenceLab(true));
+        document.getElementById("seqKindSelect").addEventListener("change", () => calculateSequenceLab(false));
+
+        // Lab 1B: PCR Primer & Tm
+        document.getElementById("presetPcrStdBtn").addEventListener("click", () => {
+          setPcrDefaults();
+          calculatePcrLab(true);
+        });
+        document.getElementById("presetPcrHighGcBtn").addEventListener("click", () => {
+          document.getElementById("pcrFwdInput").value = "GCGCGCGCATATGCGCGCGC";
+          document.getElementById("pcrRevInput").value = "CGCGCGCGTTACGCGCGCGC";
+          document.getElementById("pcrNaInput").value = "75";
+          document.getElementById("pcrMgInput").value = "2.0";
+          calculatePcrLab(true);
+        });
+        document.getElementById("btnCalcPcr").addEventListener("click", () => calculatePcrLab(true));
+        document.getElementById("btnClearPcr").addEventListener("click", () => clearPcrLab(true));
+
+        // Lab 1C: Copy Number, Molarity & Dilution
+        document.getElementById("presetCopyPlasmidBtn").addEventListener("click", () => {
+          document.getElementById("copyTypeSelect").value = "dsDNA";
+          document.getElementById("copyLenInput").value = "5000";
+          document.getElementById("copyMassNgInput").value = "100";
+          document.getElementById("copyVolUlInput").value = "20";
+          document.getElementById("copyC1NmInput").value = "";
+          calculateCopyLab(true);
+        });
+        document.getElementById("presetCopyQpcrBtn").addEventListener("click", () => {
+          setCopyDefaults();
+          document.getElementById("copyDilFactorInput").value = "10";
+          document.getElementById("copyStepsInput").value = "6";
+          calculateCopyLab(true);
+        });
+        document.getElementById("btnCalcCopy").addEventListener("click", () => calculateCopyLab(true));
+        document.getElementById("btnClearCopy").addEventListener("click", () => clearCopyLab(true));
+
+        // Lab 2A: Osmolarity & Tonicity
+        document.getElementById("presetOsmIsoBtn").addEventListener("click", () => {
+          setOsmDefaults();
+          calculateOsmLab(true);
+        });
+        document.getElementById("presetOsmHypoBtn").addEventListener("click", () => {
+          document.getElementById("osmSoluteMmInput").value = "50";
+          document.getElementById("osmIFactorInput").value = "1";
+          document.getElementById("osmTempCInput").value = "37";
+          document.getElementById("osmCellMmInput").value = "300";
+          calculateOsmLab(true);
+        });
+        document.getElementById("presetOsmHyperBtn").addEventListener("click", () => {
+          document.getElementById("osmSoluteMmInput").value = "300";
+          document.getElementById("osmIFactorInput").value = "2";
+          document.getElementById("osmTempCInput").value = "37";
+          document.getElementById("osmCellMmInput").value = "300";
+          calculateOsmLab(true);
+        });
+        document.getElementById("btnCalcOsm").addEventListener("click", () => calculateOsmLab(true));
+        document.getElementById("btnClearOsm").addEventListener("click", () => clearOsmLab(true));
+
+        // Lab 2B: Microscopy & FOV
+        document.getElementById("presetMic40xBtn").addEventListener("click", () => {
+          setMicDefaults();
+          calculateMicLab(true);
+        });
+        document.getElementById("presetMic100xBtn").addEventListener("click", () => {
+          document.getElementById("micOcularInput").value = "10";
+          document.getElementById("micObjBaseInput").value = "10";
+          document.getElementById("micFovBaseInput").value = "1800";
+          document.getElementById("micObjTargetInput").value = "100";
+          document.getElementById("micWaveNmInput").value = "520";
+          document.getElementById("micNaInput").value = "1.25";
+          calculateMicLab(true);
+        });
+        document.getElementById("btnCalcMic").addEventListener("click", () => calculateMicLab(true));
+        document.getElementById("btnClearMic").addEventListener("click", () => clearMicLab(true));
+
+        // Lab 2C: Doubling Time & Growth
+        document.getElementById("presetGrowthEcoliBtn").addEventListener("click", () => {
+          document.getElementById("growthN0Input").value = "1000";
+          document.getElementById("growthNtInput").value = "8000";
+          document.getElementById("growthTimeHrInput").value = "1";
+          document.getElementById("growthProjHrInput").value = "4";
+          calculateGrowthLab(true);
+        });
+        document.getElementById("presetGrowthMammalBtn").addEventListener("click", () => {
+          document.getElementById("growthN0Input").value = "50000";
+          document.getElementById("growthNtInput").value = "100000";
+          document.getElementById("growthTimeHrInput").value = "18";
+          document.getElementById("growthProjHrInput").value = "54";
+          calculateGrowthLab(true);
+        });
+        document.getElementById("btnCalcGrowth").addEventListener("click", () => calculateGrowthLab(true));
+        document.getElementById("btnClearGrowth").addEventListener("click", () => clearGrowthLab(true));
+
+        // Lab 3A: Punnett Square & Cross
+        document.getElementById("presetCrossMonoBtn").addEventListener("click", () => {
+          document.getElementById("crossTypeSelect").value = "mono";
+          calculateCrossLab(true);
+        });
+        document.getElementById("presetCrossTestBtn").addEventListener("click", () => {
+          document.getElementById("crossTypeSelect").value = "test";
+          calculateCrossLab(true);
+        });
+        document.getElementById("presetCrossDiBtn").addEventListener("click", () => {
+          document.getElementById("crossTypeSelect").value = "di";
+          calculateCrossLab(true);
+        });
+        document.getElementById("btnCalcCross").addEventListener("click", () => calculateCrossLab(true));
+        document.getElementById("btnClearCross").addEventListener("click", () => clearCrossLab(true));
+        document.getElementById("crossTypeSelect").addEventListener("change", () => calculateCrossLab(false));
+
+        // Lab 3B: Hardy-Weinberg & Chi-Square
+        document.getElementById("presetHweEqBtn").addEventListener("click", () => {
+          document.getElementById("hweObsAaDomInput").value = "250";
+          document.getElementById("hweObsAaHetInput").value = "500";
+          document.getElementById("hweObsAaRecInput").value = "250";
+          calculateHweLab(true);
+        });
+        document.getElementById("presetHweSkewBtn").addEventListener("click", () => {
+          document.getElementById("hweObsAaDomInput").value = "320";
+          document.getElementById("hweObsAaHetInput").value = "110";
+          document.getElementById("hweObsAaRecInput").value = "270";
+          calculateHweLab(true);
+        });
+        document.getElementById("btnCalcHwe").addEventListener("click", () => calculateHweLab(true));
+        document.getElementById("btnClearHwe").addEventListener("click", () => clearHweLab(true));
+
+        // Lab 3C: Pedigree & Carrier Probability
+        document.getElementById("presetPedArBtn").addEventListener("click", () => {
+          document.getElementById("pedigreeScenarioSelect").value = "ar_carrier_parents";
+          calculatePedLab(true);
+        });
+        document.getElementById("presetPedAdBtn").addEventListener("click", () => {
+          document.getElementById("pedigreeScenarioSelect").value = "ad_affected_het";
+          calculatePedLab(true);
+        });
+        document.getElementById("presetPedXBtn").addEventListener("click", () => {
+          document.getElementById("pedigreeScenarioSelect").value = "xlink_carrier_mother";
+          calculatePedLab(true);
+        });
+        document.getElementById("btnCalcPed").addEventListener("click", () => calculatePedLab(true));
+        document.getElementById("btnClearPed").addEventListener("click", () => clearPedLab(true));
+        document.getElementById("pedigreeScenarioSelect").addEventListener("change", () => calculatePedLab(false));
+
+        // Lab 4A: Michaelis-Menten Kinetics
+        document.getElementById("presetMmBaseBtn").addEventListener("click", () => {
+          setMmDefaults();
+          calculateMmLab(true);
+        });
+        document.getElementById("presetMmCompBtn").addEventListener("click", () => {
+          document.getElementById("mmSubInput").value = "25";
+          document.getElementById("mmVmaxInput").value = "100";
+          document.getElementById("mmKmInput").value = "20";
+          document.getElementById("mmInhConcInput").value = "40";
+          document.getElementById("mmKiInput").value = "10";
+          document.getElementById("mmInhTypeSelect").value = "competitive";
+          calculateMmLab(true);
+        });
+        document.getElementById("btnCalcMm").addEventListener("click", () => calculateMmLab(true));
+        document.getElementById("btnClearMm").addEventListener("click", () => clearMmLab(true));
+
+        // Lab 4B: Metabolic Rate & Bioenergetics
+        document.getElementById("presetMetabAdultBtn").addEventListener("click", () => {
+          setMetabDefaults();
+          calculateMetabLab(true);
+        });
+        document.getElementById("presetMetabAtpBtn").addEventListener("click", () => {
+          document.getElementById("metabDg0Input").value = "-30.5";
+          document.getElementById("metabTempCInput").value = "37";
+          document.getElementById("metabQInput").value = "0.001";
+          calculateMetabLab(true);
+        });
+        document.getElementById("btnCalcMetab").addEventListener("click", () => calculateMetabLab(true));
+        document.getElementById("btnClearMetab").addEventListener("click", () => clearMetabLab(true));
+
+        // Lab 4C: Pharmacokinetics
+        document.getElementById("presetPkShortBtn").addEventListener("click", () => {
+          document.getElementById("pkDoseMgInput").value = "250";
+          document.getElementById("pkVdLInput").value = "35";
+          document.getElementById("pkHalfLifeHrInput").value = "2";
+          document.getElementById("pkTimeHrInput").value = "4";
+          document.getElementById("pkTauHrInput").value = "6";
+          calculatePkLab(true);
+        });
+        document.getElementById("presetPkLongBtn").addEventListener("click", () => {
+          document.getElementById("pkDoseMgInput").value = "100";
+          document.getElementById("pkVdLInput").value = "50";
+          document.getElementById("pkHalfLifeHrInput").value = "12";
+          document.getElementById("pkTimeHrInput").value = "12";
+          document.getElementById("pkTauHrInput").value = "24";
+          calculatePkLab(true);
+        });
+        document.getElementById("btnCalcPk").addEventListener("click", () => calculatePkLab(true));
+        document.getElementById("btnClearPk").addEventListener("click", () => clearPkLab(true));
+
+        // Responsive HTML5 Canvas resize handling
+        window.addEventListener("resize", () => {
+          drawGrowthChart();
+          drawEnzymeChart();
+        });
+
+        // Populate defaults and calculate initial results immediately on load
+        setSequenceDefaults();
+        setPcrDefaults();
+        setCopyDefaults();
+        setOsmDefaults();
+        setMicDefaults();
+        setGrowthDefaults();
+        setCrossDefaults();
+        setHweDefaults();
+        setPedDefaults();
+        setMmDefaults();
+        setMetabDefaults();
+        setPkDefaults();
+
+        calculateSequenceLab(false);
+        calculatePcrLab(false);
+        calculateCopyLab(false);
+        calculateOsmLab(false);
+        calculateMicLab(false);
+        calculateGrowthLab(false);
+        calculateCrossLab(false);
+        calculateHweLab(false);
+        calculatePedLab(false);
+        calculateMmLab(false);
+        calculateMetabLab(false);
+        calculatePkLab(false);
+      });
+    })();
+  </script>
+</body>
+</html>
